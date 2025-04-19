@@ -45,3 +45,4 @@ npm run dev
 
 This project can be deployed through Lovable's built-in publishing feature or connected to your own deployment pipeline.
 
+"# CastLinker_Self" 
