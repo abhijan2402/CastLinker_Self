@@ -1,21 +1,29 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Plus, 
-  FolderOpen, 
-  Clock, 
-  Users, 
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Plus,
+  FolderOpen,
+  Clock,
+  Users,
   Search,
-  SlidersHorizontal
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+  SlidersHorizontal,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchData } from "@/api/ClientFuntion";
 
 interface Project {
   id: string;
@@ -30,10 +38,11 @@ interface Project {
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [projectData, setProjectData] = useState([]);
 
   useEffect(() => {
     fetchProjects();
@@ -43,82 +52,94 @@ const Projects = () => {
     try {
       setLoading(true);
       if (!user) {
-        throw new Error('User not authenticated');
+        throw new Error("User not authenticated");
       }
 
       // First query to get projects where user is team head
       const { data: teamHeadProjects, error: headError } = await supabase
-        .from('projects')
-        .select('id, name, description, current_status, created_at')
-        .eq('team_head_id', user.id);
+        .from("projects")
+        .select("id, name, description, current_status, created_at")
+        .eq("team_head_id", user.id);
 
       if (headError) throw headError;
 
       // Second query to get projects where user is a member
       const { data: memberProjects, error: memberError } = await supabase
-        .from('project_members')
-        .select('project_id')
-        .eq('user_id', user.id)
-        .eq('status', 'accepted');
+        .from("project_members")
+        .select("project_id")
+        .eq("user_id", user.id)
+        .eq("status", "accepted");
 
       if (memberError) throw memberError;
 
       // Get full project details for member projects
-      const memberProjectIds = memberProjects.map(mp => mp.project_id);
+      const memberProjectIds = memberProjects.map((mp) => mp.project_id);
       const { data: memberProjectDetails, error: detailsError } = await supabase
-        .from('projects')
-        .select('id, name, description, current_status, created_at')
-        .in('id', memberProjectIds);
+        .from("projects")
+        .select("id, name, description, current_status, created_at")
+        .in("id", memberProjectIds);
 
       if (detailsError) throw detailsError;
 
       // Combine and deduplicate projects
-      const allProjects = [...(teamHeadProjects || []), ...(memberProjectDetails || [])];
-      const uniqueProjects = Array.from(new Map(allProjects.map(item => [item.id, item])).values());
+      const allProjects = [
+        ...(teamHeadProjects || []),
+        ...(memberProjectDetails || []),
+      ];
+      const uniqueProjects = Array.from(
+        new Map(allProjects.map((item) => [item.id, item])).values()
+      );
 
       // Enhance projects with additional data
-      const enhancedProjects = await Promise.all(uniqueProjects.map(async (project) => {
-        try {
-          // Get member count
-          const { count: memberCount, error: memberCountError } = await supabase
-            .from('project_members')
-            .select('*', { count: 'exact', head: true })
-            .eq('project_id', project.id)
-            .eq('status', 'accepted');
+      const enhancedProjects = await Promise.all(
+        uniqueProjects.map(async (project) => {
+          try {
+            // Get member count
+            const { count: memberCount, error: memberCountError } =
+              await supabase
+                .from("project_members")
+                .select("*", { count: "exact", head: true })
+                .eq("project_id", project.id)
+                .eq("status", "accepted");
 
-          if (memberCountError) throw memberCountError;
+            if (memberCountError) throw memberCountError;
 
-          // Get milestone count
-          const { count: milestoneCount, error: milestoneCountError } = await supabase
-            .from('project_milestones')
-            .select('*', { count: 'exact', head: true })
-            .eq('project_id', project.id);
+            // Get milestone count
+            const { count: milestoneCount, error: milestoneCountError } =
+              await supabase
+                .from("project_milestones")
+                .select("*", { count: "exact", head: true })
+                .eq("project_id", project.id);
 
-          if (milestoneCountError) throw milestoneCountError;
+            if (milestoneCountError) throw milestoneCountError;
 
-          return {
-            ...project,
-            member_count: memberCount || 1,
-            milestone_count: milestoneCount || 0
-          };
-        } catch (error) {
-          console.error(`Error fetching details for project ${project.id}:`, error);
-          // Return project with default counts if detail fetch fails
-          return {
-            ...project,
-            member_count: 1,
-            milestone_count: 0
-          };
-        }
-      }));
+            return {
+              ...project,
+              member_count: memberCount || 1,
+              milestone_count: milestoneCount || 0,
+            };
+          } catch (error) {
+            console.error(
+              `Error fetching details for project ${project.id}:`,
+              error
+            );
+            // Return project with default counts if detail fetch fails
+            return {
+              ...project,
+              member_count: 1,
+              milestone_count: 0,
+            };
+          }
+        })
+      );
 
       setProjects(enhancedProjects);
     } catch (error: any) {
-      console.error('Error fetching projects:', error);
+      console.error("Error fetching projects:", error);
       toast({
-        title: 'Failed to load projects',
-        description: error.message || 'Please try again later',
-        variant: 'destructive',
+        title: "Failed to load projects",
+        description: error.message || "Please try again later",
+        variant: "destructive",
       });
       // Set empty projects array to show the "No projects found" state
       setProjects([]);
@@ -127,8 +148,23 @@ const Projects = () => {
     }
   };
 
+  const handleGetProject = async () => {
+    try {
+      const response = await fetchData("/api/projects");
+      setProjectData(response as any[]);
+    } catch (error) {
+      console.error("❌ Unexpected error:", error);
+    }
+  };
+  useEffect(() => {
+    handleGetProject();
+  }, []);
+
+      console.log(projectData);
+
+
   const handleCreateProject = () => {
-    navigate('/projects/create');
+    navigate("/projects/create");
   };
 
   const handleProjectClick = (projectId: string) => {
@@ -136,9 +172,10 @@ const Projects = () => {
   };
 
   // Filter projects based on search query
-  const filteredProjects = projects.filter(project => 
-    project.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    project.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProjects = projects.filter(
+    (project) =>
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -163,16 +200,16 @@ const Projects = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Button 
-            variant="outline" 
-            size="icon" 
+          <Button
+            variant="outline"
+            size="icon"
             className="border-gold/20 text-muted-foreground hover:text-gold hover:border-gold/40"
           >
             <SlidersHorizontal className="h-4 w-4" />
             <span className="sr-only">Filter</span>
           </Button>
-          
-          <Button 
+
+          <Button
             className="gap-2 bg-gold hover:bg-gold/90 text-black w-full sm:w-auto"
             onClick={handleCreateProject}
           >
@@ -185,7 +222,10 @@ const Projects = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="bg-card/60 backdrop-blur-sm border-gold/10 hover:border-gold/30 transition-colors duration-200 shadow-md">
+            <Card
+              key={i}
+              className="bg-card/60 backdrop-blur-sm border-gold/10 hover:border-gold/30 transition-colors duration-200 shadow-md"
+            >
               <CardHeader className="pb-2">
                 <Skeleton className="h-6 w-3/4 mb-2" />
                 <Skeleton className="h-4 w-1/2" />
@@ -203,18 +243,21 @@ const Projects = () => {
             </Card>
           ))}
         </div>
-      ) : filteredProjects.length > 0 ? (
+      ) : projectData?.projects?.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
-            <Card 
-              key={project.id} 
+          {projectData?.projects.map((project) => (
+            <Card
+              key={project.id}
               className="bg-card/60 backdrop-blur-sm border-gold/10 hover:border-gold/30 transition-colors duration-200 cursor-pointer shadow-md"
               onClick={() => handleProjectClick(project.id)}
             >
               <CardHeader className="pb-2">
                 <div className="flex justify-between">
                   <CardTitle className="text-xl">{project.name}</CardTitle>
-                  <Badge variant="outline" className="bg-gold/10 border-gold/20 text-gold">
+                  <Badge
+                    variant="outline"
+                    className="bg-gold/10 border-gold/20 text-gold"
+                  >
                     {project.current_status}
                   </Badge>
                 </div>
@@ -247,12 +290,12 @@ const Projects = () => {
           <FolderOpen className="h-16 w-16 text-muted-foreground mb-4" />
           <h3 className="text-xl font-medium">No projects found</h3>
           <p className="text-muted-foreground mt-1 mb-6">
-            {searchQuery 
-              ? "No projects match your search criteria" 
+            {searchQuery
+              ? "No projects match your search criteria"
               : "Create your first project to get started"}
           </p>
-          <Button 
-            onClick={handleCreateProject} 
+          <Button
+            onClick={handleCreateProject}
             className="gap-2 bg-gold hover:bg-gold/90 text-black"
           >
             <Plus className="h-4 w-4" />

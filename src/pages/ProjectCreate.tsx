@@ -26,6 +26,8 @@ const ProjectCreate = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,15 +55,15 @@ const ProjectCreate = () => {
       description: description,
       status: status,
       location: location,
-      user_id: 1,
+      // user_id: 1,
     };
     console.log(payload);
     try {
       const response = await postData("/api/projects/create", payload);
       console.log("✅ Project created:", response);
-      toast({
-        title: "Project created successfully",
-      });
+      // toast({
+      //   title: "Project created successfully",
+      // });
     } catch (error) {
       console.error("❌ Unexpected error:", error);
       toast({
