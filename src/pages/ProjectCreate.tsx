@@ -1,26 +1,27 @@
-
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Film, 
-  ArrowLeft,
-  Loader2,
-  MapPin
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Film, ArrowLeft, Loader2, MapPin } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { postData } from "@/api/ClientFuntion";
 
 const ProjectCreate = () => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('Planning');
-  const [location, setLocation] = useState('');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("Planning");
+  const [location, setLocation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -28,82 +29,63 @@ const ProjectCreate = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
-      toast({
-        title: 'Not authenticated',
-        description: 'Please sign in to create a project',
-        variant: 'destructive'
-      });
-      return;
-    }
 
-    if (!name) {
-      toast({
-        title: 'Project name required',
-        description: 'Please enter a name for your project',
-        variant: 'destructive'
-      });
-      return;
-    }
+    // if (!user) {
+    //   toast({
+    //     title: "Not authenticated",
+    //     description: "Please sign in to create a project",
+    //     variant: "destructive",
+    //   });
+    //   return;
+    // }
 
+    // if (!name) {
+    //   toast({
+    //     title: "Project name required",
+    //     description: "Please enter a name for your project",
+    //     variant: "destructive",
+    //   });
+    //   return;
+    // }
+
+    const payload = {
+      name: name,
+      description: description,
+      status: status,
+      location: location,
+      user_id: 1,
+    };
+    console.log(payload);
     try {
-      setIsSubmitting(true);
-
-      // Insert the project
-      const { data, error } = await supabase
-        .from('projects')
-        .insert({
-          name,
-          description,
-          location,
-          team_head_id: user.id,
-          current_status: status
-        })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-
-      // Add the creator as a member (automatically accepted)
-      await supabase
-        .from('project_members')
-        .insert({
-          project_id: data.id,
-          user_id: user.id,
-          status: 'accepted'
-        });
-
+      const response = await postData("/api/projects/create", payload);
+      console.log("✅ Project created:", response);
       toast({
-        title: 'Project created',
-        description: 'Your project has been created successfully',
+        title: "Project created successfully",
       });
-
-      navigate(`/projects/${data.id}`);
-    } catch (error: any) {
-      console.error('Error creating project:', error);
+    } catch (error) {
+      console.error("❌ Unexpected error:", error);
       toast({
-        title: 'Failed to create project',
-        description: error.message || 'Please try again later',
-        variant: 'destructive'
+        title: "Error in creating Project",
+        description: error,
+        variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate('/projects')}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/projects")}
           className="rounded-full h-8 w-8"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-3xl font-bold gold-gradient-text">Create New Project</h1>
+        <h1 className="text-3xl font-bold gold-gradient-text">
+          Create New Project
+        </h1>
       </div>
 
       <Card className="bg-card/60 backdrop-blur-sm border-gold/10 shadow-md">
@@ -112,12 +94,16 @@ const ProjectCreate = () => {
             <Film className="h-5 w-5 text-gold" />
             Project Details
           </CardTitle>
-          <CardDescription>Fill in the details to create your new project</CardDescription>
+          <CardDescription>
+            Fill in the details to create your new project
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Project Name <span className="text-red-500">*</span></Label>
+              <Label htmlFor="name">
+                Project Name <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="name"
                 value={name}
@@ -127,7 +113,7 @@ const ProjectCreate = () => {
                 className="focus-visible:ring-gold/30"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
@@ -138,7 +124,7 @@ const ProjectCreate = () => {
                 className="min-h-[120px] focus-visible:ring-gold/30"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="location" className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -152,7 +138,7 @@ const ProjectCreate = () => {
                 className="focus-visible:ring-gold/30"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="status">Current Status</Label>
               <select
@@ -168,22 +154,24 @@ const ProjectCreate = () => {
                 <option value="Completed">Completed</option>
               </select>
             </div>
-            
+
             <div className="flex justify-end gap-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => navigate('/projects')}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/projects")}
                 className="border-gold/20 hover:border-gold/40"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="submit"
                 disabled={isSubmitting || !name}
                 className="bg-gold hover:bg-gold/90 text-black gap-2"
               >
-                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : null}
                 Create Project
               </Button>
             </div>

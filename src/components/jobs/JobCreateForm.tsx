@@ -1,13 +1,30 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CalendarIcon, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -15,13 +32,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Job, JobType, LocationType, RoleCategory } from "@/hooks/useJobsData";
 import { supabase } from "@/integrations/supabase/client";
 
+import { postData } from "@/api/ClientFuntion";
+
 interface JobCreateFormProps {
   isOpen: boolean;
   onClose: () => void;
   onJobCreated: () => void;
 }
 
-const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) => {
+const JobCreateForm = ({
+  isOpen,
+  onClose,
+  onJobCreated,
+}: JobCreateFormProps) => {
   const [formData, setFormData] = useState<Partial<Job>>({
     title: "",
     company: "",
@@ -40,150 +63,123 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
   const [currentTag, setCurrentTag] = useState("");
   const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCheckboxChange = (name: string, checked: boolean) => {
-    setFormData(prev => ({ ...prev, [name]: checked }));
+    setFormData((prev) => ({ ...prev, [name]: checked }));
   };
 
   const addRequirement = () => {
     if (currentRequirement.trim()) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        requirements: [...(prev.requirements || []), currentRequirement.trim()]
+        requirements: [...(prev.requirements || []), currentRequirement.trim()],
       }));
       setCurrentRequirement("");
     }
   };
 
   const removeRequirement = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      requirements: prev.requirements?.filter((_, i) => i !== index)
+      requirements: prev.requirements?.filter((_, i) => i !== index),
     }));
   };
 
   const addResponsibility = () => {
     if (currentResponsibility.trim()) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        responsibilities: [...(prev.responsibilities || []), currentResponsibility.trim()]
+        responsibilities: [
+          ...(prev.responsibilities || []),
+          currentResponsibility.trim(),
+        ],
       }));
       setCurrentResponsibility("");
     }
   };
 
   const removeResponsibility = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      responsibilities: prev.responsibilities?.filter((_, i) => i !== index)
+      responsibilities: prev.responsibilities?.filter((_, i) => i !== index),
     }));
   };
 
   const addTag = () => {
     if (currentTag.trim()) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        tags: [...(prev.tags || []), currentTag.trim()]
+        tags: [...(prev.tags || []), currentTag.trim()],
       }));
       setCurrentTag("");
     }
   };
 
   const removeTag = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      tags: prev.tags?.filter((_, i) => i !== index)
+      tags: prev.tags?.filter((_, i) => i !== index),
     }));
   };
 
   const handleSubmit = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to create jobs",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Basic validation
-    if (!formData.title || !formData.company || !formData.description || !formData.location) {
-      toast({
-        title: "Missing required fields",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
     try {
-      const jobData = {
-        ...formData,
-        created_by: user.id,
-        application_deadline: deadlineDate?.toISOString(),
-        status: "active",
-        title: formData.title || "",
-        company: formData.company || "",
-        description: formData.description || "",
-        location: formData.location || "",
-        job_type: formData.job_type || "Full-time",
-        role_category: formData.role_category || "Acting",
-        location_type: formData.location_type || "On-site"
+      if (!user?.id) {
+        toast({
+          title: "Not authenticated",
+          description: "Please sign in to create a project",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const payload = {
+        job_title: formData.title,
+        company: formData.company,
+        company_logo_url: formData.company_logo,
+        job_type: formData.job_type,
+        role_category: formData.role_category,
+        location: formData.location,
+        location_type: formData.location_type,
+        min_salary: formData.salary_min,
+        max_salary: formData.salary_max,
+        job_description: formData.description,
+        requirements: formData.requirements,
+        responsibilities: formData.responsibilities,
+        tags: formData.tags,
+        application_url: formData.application_url,
+        application_email: formData.application_email,
+        is_featured: formData.is_featured || false,
+        user_id: "3",
       };
 
-      // Cast to any to bypass TypeScript errors with the database schema
-      const { data, error } = await supabase
-        .from('film_jobs')
-        .insert(jobData)
-        .select();
-
-      if (error) throw error;
-
+      const response = await postData("/api/jobs", payload);
+      console.log("✅ Job created:", response);
       toast({
         title: "Job created successfully",
-        description: "Your job listing has been published",
       });
-
-      // Reset form and close
-      setFormData({
-        title: "",
-        company: "",
-        description: "",
-        job_type: "Full-time",
-        role_category: "Acting",
-        location: "",
-        location_type: "On-site",
-        requirements: [],
-        responsibilities: [],
-        tags: [],
-        is_featured: false,
-      });
-      setDeadlineDate(undefined);
-      onJobCreated();
       onClose();
-    } catch (error: any) {
-      console.error("Error creating job:", error);
+    } catch (error) {
+      console.error("❌ Unexpected error:", error);
       toast({
-        title: "Error creating job",
-        description: error.message || "An unexpected error occurred",
+        title: "Error in creating Job",
+        description: error,
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -193,7 +189,8 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
         <DialogHeader>
           <DialogTitle>Create New Job Listing</DialogTitle>
           <DialogDescription>
-            Fill in the details for your new job opportunity in the film industry.
+            Fill in the details for your new job opportunity in the film
+            industry.
           </DialogDescription>
         </DialogHeader>
 
@@ -201,7 +198,9 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
           {/* Basic Job Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <Label htmlFor="title" className="block mb-2">Job Title*</Label>
+              <Label htmlFor="title" className="block mb-2">
+                Job Title*
+              </Label>
               <Input
                 id="title"
                 name="title"
@@ -214,7 +213,9 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             </div>
 
             <div>
-              <Label htmlFor="company" className="block mb-2">Company/Studio*</Label>
+              <Label htmlFor="company" className="block mb-2">
+                Company/Studio*
+              </Label>
               <Input
                 id="company"
                 name="company"
@@ -227,7 +228,9 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             </div>
 
             <div>
-              <Label htmlFor="company_logo" className="block mb-2">Company Logo URL</Label>
+              <Label htmlFor="company_logo" className="block mb-2">
+                Company Logo URL
+              </Label>
               <Input
                 id="company_logo"
                 name="company_logo"
@@ -239,41 +242,71 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             </div>
 
             <div>
-              <Label htmlFor="job_type" className="block mb-2">Job Type*</Label>
-              <Select 
-                value={formData.job_type} 
+              <Label htmlFor="job_type" className="block mb-2">
+                Job Type*
+              </Label>
+              <Select
+                value={formData.job_type}
                 onValueChange={(value) => handleSelectChange("job_type", value)}
               >
                 <SelectTrigger className="bg-cinematic-dark/50 border-gold/10 focus:border-gold">
                   <SelectValue placeholder="Select job type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["Full-time", "Part-time", "Contract", "Temporary", "Project"].map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  {[
+                    "Full-time",
+                    "Part-time",
+                    "Contract",
+                    "Temporary",
+                    "Project",
+                  ].map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="role_category" className="block mb-2">Role Category*</Label>
-              <Select 
-                value={formData.role_category} 
-                onValueChange={(value) => handleSelectChange("role_category", value)}
+              <Label htmlFor="role_category" className="block mb-2">
+                Role Category*
+              </Label>
+              <Select
+                value={formData.role_category}
+                onValueChange={(value) =>
+                  handleSelectChange("role_category", value)
+                }
               >
                 <SelectTrigger className="bg-cinematic-dark/50 border-gold/10 focus:border-gold">
                   <SelectValue placeholder="Select role category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["Acting", "Directing", "Production", "Cinematography", "Writing", "Editing", "Sound", "VFX", "Costume", "Makeup", "Other"].map((category) => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  {[
+                    "Acting",
+                    "Directing",
+                    "Production",
+                    "Cinematography",
+                    "Writing",
+                    "Editing",
+                    "Sound",
+                    "VFX",
+                    "Costume",
+                    "Makeup",
+                    "Other",
+                  ].map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="location" className="block mb-2">Location*</Label>
+              <Label htmlFor="location" className="block mb-2">
+                Location*
+              </Label>
               <Input
                 id="location"
                 name="location"
@@ -286,24 +319,32 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             </div>
 
             <div>
-              <Label htmlFor="location_type" className="block mb-2">Location Type*</Label>
-              <Select 
-                value={formData.location_type} 
-                onValueChange={(value) => handleSelectChange("location_type", value)}
+              <Label htmlFor="location_type" className="block mb-2">
+                Location Type*
+              </Label>
+              <Select
+                value={formData.location_type}
+                onValueChange={(value) =>
+                  handleSelectChange("location_type", value)
+                }
               >
                 <SelectTrigger className="bg-cinematic-dark/50 border-gold/10 focus:border-gold">
                   <SelectValue placeholder="Select location type" />
                 </SelectTrigger>
                 <SelectContent>
                   {["On-site", "Remote", "Hybrid"].map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="salary_min" className="block mb-2">Min Salary</Label>
+              <Label htmlFor="salary_min" className="block mb-2">
+                Min Salary
+              </Label>
               <Input
                 id="salary_min"
                 name="salary_min"
@@ -316,7 +357,9 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             </div>
 
             <div>
-              <Label htmlFor="salary_max" className="block mb-2">Max Salary</Label>
+              <Label htmlFor="salary_max" className="block mb-2">
+                Max Salary
+              </Label>
               <Input
                 id="salary_max"
                 name="salary_max"
@@ -329,34 +372,55 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             </div>
 
             <div>
-              <Label htmlFor="salary_currency" className="block mb-2">Currency</Label>
-              <Select 
-                value={formData.salary_currency || "USD"} 
-                onValueChange={(value) => handleSelectChange("salary_currency", value)}
+              <Label htmlFor="salary_currency" className="block mb-2">
+                Currency
+              </Label>
+              <Select
+                value={formData.salary_currency || "USD"}
+                onValueChange={(value) =>
+                  handleSelectChange("salary_currency", value)
+                }
               >
                 <SelectTrigger className="bg-cinematic-dark/50 border-gold/10 focus:border-gold">
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["USD", "EUR", "GBP", "CAD", "AUD", "INR"].map((currency) => (
-                    <SelectItem key={currency} value={currency}>{currency}</SelectItem>
-                  ))}
+                  {["USD", "EUR", "GBP", "CAD", "AUD", "INR"].map(
+                    (currency) => (
+                      <SelectItem key={currency} value={currency}>
+                        {currency}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="salary_period" className="block mb-2">Payment Period</Label>
-              <Select 
-                value={formData.salary_period || "yearly"} 
-                onValueChange={(value) => handleSelectChange("salary_period", value)}
+              <Label htmlFor="salary_period" className="block mb-2">
+                Payment Period
+              </Label>
+              <Select
+                value={formData.salary_period || "yearly"}
+                onValueChange={(value) =>
+                  handleSelectChange("salary_period", value)
+                }
               >
                 <SelectTrigger className="bg-cinematic-dark/50 border-gold/10 focus:border-gold">
                   <SelectValue placeholder="Select period" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["hourly", "daily", "weekly", "monthly", "yearly", "fixed"].map((period) => (
-                    <SelectItem key={period} value={period}>{period.charAt(0).toUpperCase() + period.slice(1)}</SelectItem>
+                  {[
+                    "hourly",
+                    "daily",
+                    "weekly",
+                    "monthly",
+                    "yearly",
+                    "fixed",
+                  ].map((period) => (
+                    <SelectItem key={period} value={period}>
+                      {period.charAt(0).toUpperCase() + period.slice(1)}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -371,7 +435,11 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
                     className="w-full bg-cinematic-dark/50 border-gold/10 justify-start text-left font-normal"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {deadlineDate ? format(deadlineDate, "PPP") : <span>Select a date</span>}
+                    {deadlineDate ? (
+                      format(deadlineDate, "PPP")
+                    ) : (
+                      <span>Select a date</span>
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-black">
@@ -389,7 +457,9 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
 
           {/* Job Description */}
           <div>
-            <Label htmlFor="description" className="block mb-2">Job Description*</Label>
+            <Label htmlFor="description" className="block mb-2">
+              Job Description*
+            </Label>
             <Textarea
               id="description"
               name="description"
@@ -406,12 +476,15 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             <Label className="block mb-2">Requirements</Label>
             <div className="space-y-2">
               {formData.requirements?.map((req, index) => (
-                <div key={index} className="flex items-center gap-2 p-2 bg-cinematic-dark/30 rounded-md">
+                <div
+                  key={index}
+                  className="flex items-center gap-2 p-2 bg-cinematic-dark/30 rounded-md"
+                >
                   <span className="flex-1">{req}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 w-7 p-0" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0"
                     onClick={() => removeRequirement(index)}
                   >
                     <X className="h-4 w-4" />
@@ -424,10 +497,10 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
                   value={currentRequirement}
                   onChange={(e) => setCurrentRequirement(e.target.value)}
                   className="bg-cinematic-dark/50 border-gold/10 focus:border-gold"
-                  onKeyDown={(e) => e.key === 'Enter' && addRequirement()}
+                  onKeyDown={(e) => e.key === "Enter" && addRequirement()}
                 />
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={addRequirement}
                   disabled={!currentRequirement.trim()}
                 >
@@ -442,12 +515,15 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             <Label className="block mb-2">Responsibilities</Label>
             <div className="space-y-2">
               {formData.responsibilities?.map((resp, index) => (
-                <div key={index} className="flex items-center gap-2 p-2 bg-cinematic-dark/30 rounded-md">
+                <div
+                  key={index}
+                  className="flex items-center gap-2 p-2 bg-cinematic-dark/30 rounded-md"
+                >
                   <span className="flex-1">{resp}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 w-7 p-0" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0"
                     onClick={() => removeResponsibility(index)}
                   >
                     <X className="h-4 w-4" />
@@ -460,10 +536,10 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
                   value={currentResponsibility}
                   onChange={(e) => setCurrentResponsibility(e.target.value)}
                   className="bg-cinematic-dark/50 border-gold/10 focus:border-gold"
-                  onKeyDown={(e) => e.key === 'Enter' && addResponsibility()}
+                  onKeyDown={(e) => e.key === "Enter" && addResponsibility()}
                 />
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={addResponsibility}
                   disabled={!currentResponsibility.trim()}
                 >
@@ -479,12 +555,15 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             <div className="space-y-2">
               <div className="flex flex-wrap gap-2">
                 {formData.tags?.map((tag, index) => (
-                  <div key={index} className="flex items-center gap-1 px-3 py-1 bg-cinematic-dark/50 border border-gold/10 rounded-full">
+                  <div
+                    key={index}
+                    className="flex items-center gap-1 px-3 py-1 bg-cinematic-dark/50 border border-gold/10 rounded-full"
+                  >
                     <span>{tag}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-5 w-5 p-0 hover:bg-transparent text-foreground/60 hover:text-foreground" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-5 w-5 p-0 hover:bg-transparent text-foreground/60 hover:text-foreground"
                       onClick={() => removeTag(index)}
                     >
                       <X className="h-3 w-3" />
@@ -498,10 +577,10 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
                   value={currentTag}
                   onChange={(e) => setCurrentTag(e.target.value)}
                   className="bg-cinematic-dark/50 border-gold/10 focus:border-gold"
-                  onKeyDown={(e) => e.key === 'Enter' && addTag()}
+                  onKeyDown={(e) => e.key === "Enter" && addTag()}
                 />
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={addTag}
                   disabled={!currentTag.trim()}
                 >
@@ -514,7 +593,9 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
           {/* Application Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="application_url" className="block mb-2">Application URL</Label>
+              <Label htmlFor="application_url" className="block mb-2">
+                Application URL
+              </Label>
               <Input
                 id="application_url"
                 name="application_url"
@@ -526,7 +607,9 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             </div>
 
             <div>
-              <Label htmlFor="application_email" className="block mb-2">Application Email</Label>
+              <Label htmlFor="application_email" className="block mb-2">
+                Application Email
+              </Label>
               <Input
                 id="application_email"
                 name="application_email"
@@ -543,7 +626,7 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
             <Checkbox
               id="is_featured"
               checked={formData.is_featured || false}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 handleCheckboxChange("is_featured", checked as boolean)
               }
             />
@@ -554,16 +637,16 @@ const JobCreateForm = ({ isOpen, onClose, onJobCreated }: JobCreateFormProps) =>
         </div>
 
         <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-3">
-          <Button 
-            variant="outline" 
-            className="flex-1" 
+          <Button
+            variant="outline"
+            className="flex-1"
             onClick={onClose}
             disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button 
-            className="flex-1 bg-gold hover:bg-gold-dark text-cinematic" 
+          <Button
+            className="flex-1 bg-gold hover:bg-gold-dark text-cinematic"
             onClick={handleSubmit}
             disabled={isSubmitting}
           >
