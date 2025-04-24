@@ -30,11 +30,14 @@ interface Project {
   name: string;
   description: string;
   current_status: string;
-  created_at: string;
+  createdAt: string;
   member_count?: number;
   milestone_count?: number;
 }
 
+type ProjectResponse = {
+  projects: Project[];
+};
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +45,7 @@ const Projects = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [projectData, setProjectData] = useState([]);
+  const [projectData, setProjectData] = useState<Project[]>([]);
 
   useEffect(() => {
     fetchProjects();
@@ -150,8 +153,8 @@ const Projects = () => {
 
   const handleGetProject = async () => {
     try {
-      const response = await fetchData("/api/projects");
-      setProjectData(response as any[]);
+      const response = (await fetchData("/api/projects")) as ProjectResponse;
+      setProjectData(response.projects);
     } catch (error) {
       console.error("❌ Unexpected error:", error);
     }
@@ -160,8 +163,7 @@ const Projects = () => {
     handleGetProject();
   }, []);
 
-      console.log(projectData);
-
+  console.log(projectData);
 
   const handleCreateProject = () => {
     navigate("/projects/create");
@@ -243,9 +245,9 @@ const Projects = () => {
             </Card>
           ))}
         </div>
-      ) : projectData?.projects?.length > 0 ? (
+      ) : projectData?.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projectData?.projects.map((project) => (
+          {projectData?.map((project) => (
             <Card
               key={project.id}
               className="bg-card/60 backdrop-blur-sm border-gold/10 hover:border-gold/30 transition-colors duration-200 cursor-pointer shadow-md"
@@ -262,7 +264,7 @@ const Projects = () => {
                   </Badge>
                 </div>
                 <CardDescription className="text-muted-foreground">
-                  {new Date(project.created_at).toLocaleDateString()}
+                  {new Date(project.createdAt).toLocaleDateString()}
                 </CardDescription>
               </CardHeader>
               <CardContent>

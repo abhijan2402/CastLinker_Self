@@ -16,6 +16,7 @@ const JobFiltersComponent = ({ onFilterChange, onResetFilters }: JobFiltersProps
   const [roleCategories, setRoleCategories] = useState<RoleCategory[]>([]);
   const [experienceLevels, setExperienceLevels] = useState<ExperienceLevel[]>([]);
   const [payRange, setPayRange] = useState([0, 200000]);
+
   
   const handleJobTypeChange = (checked: boolean | "indeterminate", jobType: JobType) => {
     setJobTypes(prev => 

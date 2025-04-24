@@ -275,7 +275,7 @@ const IndustryHub = () => {
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={featuredNews.author_avatar} />
-                          <AvatarFallback>{featuredNews.author_name.charAt(0)}</AvatarFallback>
+                          {/* <AvatarFallback>{featuredNews?.author_name?.charAt(0)}</AvatarFallback> */}
                         </Avatar>
                         <span className="text-sm">By {featuredNews.author_name}</span>
                       </div>
@@ -327,7 +327,7 @@ const IndustryHub = () => {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={item.author_avatar} />
-                        <AvatarFallback>{item.author_name.charAt(0)}</AvatarFallback>
+                        {/* <AvatarFallback>{item.author_name.charAt(0)}</AvatarFallback> */}
                       </Avatar>
                       <span className="text-xs">{item.author_name}</span>
                     </div>
@@ -820,8 +820,8 @@ const IndustryHub = () => {
         onClose={() => setDialogOpen(prev => ({ ...prev, courses: false }))} 
         onSubmit={async (data) => {
           // Extract description from the data before passing to submitCourse
-          const { description, ...courseData } = data;
-          return submitCourse(courseData);
+          // const { description, ...courseData } = data;
+          return submitCourse(data);
         }}
       />
       

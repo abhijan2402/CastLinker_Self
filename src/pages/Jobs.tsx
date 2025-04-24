@@ -30,7 +30,7 @@ const Jobs = () => {
   } = useJobsData();
 
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
-  const [jobsData, setJobsData] = useState([]);
+  // const [jobsData, setJobsData] = useState([]);
 
   const handleFilterChange = (newFilters: Partial<JobFilters>) => {
     updateFilters(newFilters);
@@ -40,20 +40,18 @@ const Jobs = () => {
     updateFilters(searchFilters);
   };
 
-  const handleGetJobs = async () => {
-    try {
-      const response = await fetchData("/api/jobs");
-      console.log(response)
-      setJobsData(response as any[]);
-    } catch (error) {
-      console.error("❌ Unexpected error:", error);
-    }
-  };
-    useEffect(() => {
-      handleGetJobs();
-    }, []); 
-
-
+  // const handleGetJobs = async () => {
+  //   try {
+  //     const response = await fetchData("/api/jobs");
+  //     console.log(response);
+  //     setJobsData(response as any[]);
+  //   } catch (error) {
+  //     console.error("❌ Unexpected error:", error);
+  //   }
+  // };
+  // useEffect(() => {
+  //   handleGetJobs();
+  // }, []);
 
   return (
     <div className="space-y-6 px-2 sm:px-0">
@@ -93,7 +91,7 @@ const Jobs = () => {
         {/* Job Results */}
         <div className="flex-1 space-y-4 sm:space-y-6 w-full">
           <JobResults
-            jobs={jobsData}
+            jobs={jobs}
             isLoading={isLoading}
             error={error}
             totalCount={totalCount}
