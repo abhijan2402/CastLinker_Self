@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -6,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,17 +16,22 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { Job } from "@/hooks/useJobsData";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { postData } from "@/api/ClientFuntion";
 
 interface JobFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (job: Partial<Job>) => void;
   job: Job | null;
+}
+
+interface PostDataResponse {
+  message: string;
 }
 
 const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
@@ -43,9 +47,9 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
     status: "active",
     is_featured: false,
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Reset form when job changes
   useEffect(() => {
     if (job) {
@@ -65,7 +69,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
         salary_currency: job.salary_currency || "USD",
         salary_period: job.salary_period || "yearly",
         application_url: job.application_url || "",
-        application_email: job.application_email || ""
+        application_email: job.application_email || "",
       });
     } else {
       // Reset form for new job
@@ -82,63 +86,78 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
       });
     }
   }, [job, isOpen]);
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  
+
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const numValue = value ? parseInt(value, 10) : undefined;
-    setFormData(prev => ({ ...prev, [name]: numValue }));
+    setFormData((prev) => ({ ...prev, [name]: numValue }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  
+
   const handleCheckboxChange = (name: string, checked: boolean) => {
-    setFormData(prev => ({ ...prev, [name]: checked }));
+    setFormData((prev) => ({ ...prev, [name]: checked }));
   };
-  
+
   const handleSubmit = async () => {
     if (!formData.title || !formData.company || !formData.description) {
       toast({
         variant: "destructive",
         title: "Missing fields",
-        description: "Please fill in all required fields"
+        description: "Please fill in all required fields",
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Add created_at for new jobs
       if (!job) {
         formData.created_at = new Date().toISOString();
       }
-      
-      await onSubmit(formData);
-      onClose();
+      // console.log(formData);
+
+      // await onSubmit(formData);
+      const response = (await postData(
+        "/api/jobs",
+        formData
+      )) as PostDataResponse;
+      if (response.message) {
+        console.log("✅ Job created:", response);
+        toast({
+          title: "Job created successfully",
+        });
+        onClose();
+      }
     } catch (error) {
       console.error("Error in form submission:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{job ? "Edit Job" : "Add New Job"}</DialogTitle>
           <DialogDescription>
-            {job ? "Update the details of this job listing" : "Fill in the details to create a new job listing"}
+            {job
+              ? "Update the details of this job listing"
+              : "Fill in the details to create a new job listing"}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
@@ -152,7 +171,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                 required
               />
             </div>
-            
+
             <div className="col-span-2">
               <Label htmlFor="company">Company/Studio *</Label>
               <Input
@@ -164,7 +183,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                 required
               />
             </div>
-            
+
             <div>
               <Label htmlFor="company_logo">Company Logo URL</Label>
               <Input
@@ -175,41 +194,58 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                 placeholder="https://example.com/logo.png"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="job_type">Job Type *</Label>
-              <Select 
-                value={formData.job_type} 
+              <Select
+                value={formData.job_type}
                 onValueChange={(value) => handleSelectChange("job_type", value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select job type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["Full-time", "Part-time", "Contract", "Temporary"].map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
+                  {["Full-time", "Part-time", "Contract", "Temporary"].map(
+                    (type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <Label htmlFor="role_category">Role Category *</Label>
-              <Select 
-                value={formData.role_category} 
-                onValueChange={(value) => handleSelectChange("role_category", value)}
+              <Select
+                value={formData.role_category}
+                onValueChange={(value) =>
+                  handleSelectChange("role_category", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select role category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["Acting", "Directing", "Production", "Cinematography", "Writing", "Editing", "Sound", "VFX"].map((category) => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  {[
+                    "Acting",
+                    "Directing",
+                    "Production",
+                    "Cinematography",
+                    "Writing",
+                    "Editing",
+                    "Sound",
+                    "VFX",
+                  ].map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <Label htmlFor="location">Location *</Label>
               <Input
@@ -221,28 +257,32 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                 required
               />
             </div>
-            
+
             <div>
               <Label htmlFor="location_type">Location Type *</Label>
-              <Select 
-                value={formData.location_type} 
-                onValueChange={(value) => handleSelectChange("location_type", value)}
+              <Select
+                value={formData.location_type}
+                onValueChange={(value) =>
+                  handleSelectChange("location_type", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select location type" />
                 </SelectTrigger>
                 <SelectContent>
                   {["On-site", "Remote", "Hybrid"].map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <Label htmlFor="status">Status *</Label>
-              <Select 
-                value={formData.status} 
+              <Select
+                value={formData.status}
                 onValueChange={(value) => handleSelectChange("status", value)}
               >
                 <SelectTrigger>
@@ -255,7 +295,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <Label htmlFor="salary_min">Min Salary</Label>
               <Input
@@ -267,7 +307,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                 placeholder="e.g. 50000"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="salary_max">Max Salary</Label>
               <Input
@@ -279,43 +319,51 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                 placeholder="e.g. 80000"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="salary_currency">Currency</Label>
-              <Select 
-                value={formData.salary_currency || "USD"} 
-                onValueChange={(value) => handleSelectChange("salary_currency", value)}
+              <Select
+                value={formData.salary_currency || "USD"}
+                onValueChange={(value) =>
+                  handleSelectChange("salary_currency", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
                   {["USD", "EUR", "GBP", "CAD", "AUD"].map((currency) => (
-                    <SelectItem key={currency} value={currency}>{currency}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="salary_period">Payment Period</Label>
-              <Select 
-                value={formData.salary_period || "yearly"} 
-                onValueChange={(value) => handleSelectChange("salary_period", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select period" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["hourly", "daily", "weekly", "monthly", "yearly"].map((period) => (
-                    <SelectItem key={period} value={period}>
-                      {period.charAt(0).toUpperCase() + period.slice(1)}
+                    <SelectItem key={currency} value={currency}>
+                      {currency}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
+            <div>
+              <Label htmlFor="salary_period">Payment Period</Label>
+              <Select
+                value={formData.salary_period || "yearly"}
+                onValueChange={(value) =>
+                  handleSelectChange("salary_period", value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select period" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["hourly", "daily", "weekly", "monthly", "yearly"].map(
+                    (period) => (
+                      <SelectItem key={period} value={period}>
+                        {period.charAt(0).toUpperCase() + period.slice(1)}
+                      </SelectItem>
+                    )
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="col-span-2">
               <Label htmlFor="description">Description *</Label>
               <Textarea
@@ -328,7 +376,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                 required
               />
             </div>
-            
+
             <div>
               <Label htmlFor="application_url">Application URL</Label>
               <Input
@@ -339,7 +387,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                 placeholder="https://example.com/apply"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="application_email">Application Email</Label>
               <Input
@@ -350,12 +398,12 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                 placeholder="jobs@example.com"
               />
             </div>
-            
+
             <div className="col-span-2 flex items-center gap-2">
               <Checkbox
                 id="is_featured"
                 checked={formData.is_featured || false}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   handleCheckboxChange("is_featured", checked as boolean)
                 }
               />
@@ -365,13 +413,13 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
             </div>
           </div>
         </div>
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={isSubmitting}
             className="bg-gold hover:bg-gold/90 text-black"
           >

@@ -1,80 +1,62 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import { postData } from "@/api/ClientFuntion";
+import { supabase } from "@/integrations/supabase/client";
 
 export const fetchSavedJobs = async (userId: string | undefined) => {
   if (!userId) {
     return [];
   }
-  
+
   try {
     const { data, error } = await (supabase
-      .from('saved_jobs')
-      .select('job_id')
-      .eq('user_id', userId) as any);
+      .from("saved_jobs")
+      .select("job_id")
+      .eq("user_id", userId) as any);
 
     if (error) throw error;
-    
+
     return data?.map((record: any) => record.job_id) || [];
   } catch (error) {
-    console.error('Error fetching saved jobs:', error);
+    console.error("Error fetching saved jobs:", error);
     throw error;
   }
 };
 
-export const toggleSaveJob = async (jobId: string, userId: string | undefined, savedJobs: string[]) => {
+export const toggleSaveJob = async (
+  jobId: string,
+  userId: string | undefined,
+  savedJobs: string[]
+) => {
+  console.log(jobId, userId, savedJobs);
+
+  const isSaved = jobId ;
+
+  const newSavedJobs = isSaved
+    ? savedJobs?.filter((id) => id !== jobId)
+    : [...savedJobs, jobId];
+
+  const message = {
+    title: isSaved ? "Job removed" : "Job saved",
+    description: isSaved
+      ? "This job has been removed from your saved list"
+      : "This job hasdsfs been saved for later",
+  };
+
   if (!userId) {
-    return { 
-      newSavedJobs: savedJobs.includes(jobId)
-        ? savedJobs.filter(id => id !== jobId)
-        : [...savedJobs, jobId],
-      message: {
-        title: savedJobs.includes(jobId) ? 'Job removed' : 'Job saved',
-        description: savedJobs.includes(jobId) 
-          ? 'This job has been removed from your saved list' 
-          : 'This job has been saved for later'
-      }
-    };
+    return { newSavedJobs, message };
   }
 
   try {
-    if (savedJobs.includes(jobId)) {
-      // Delete from saved jobs
-      const { error } = await (supabase
-        .from('saved_jobs')
-        .delete()
-        .eq('user_id', userId)
-        .eq('job_id', jobId) as any);
+    const payload = {
+      job_id: jobId,
+      user_id: 3,
+      action: isSaved ? "remove" : "save",
+    };
 
-      if (error) throw error;
-      
-      return {
-        newSavedJobs: savedJobs.filter(id => id !== jobId),
-        message: {
-          title: 'Job removed',
-          description: 'This job has been removed from your saved list'
-        }
-      };
-    } else {
-      // Add to saved jobs
-      const { error } = await (supabase
-        .from('saved_jobs')
-        .insert({
-          user_id: userId,
-          job_id: jobId
-        }) as any);
+    await postData(`/api/jobs/Save`, payload);
 
-      if (error) throw error;
-      
-      return {
-        newSavedJobs: [...savedJobs, jobId],
-        message: {
-          title: 'Job saved',
-          description: 'This job has been saved to your profile'
-        }
-      };
-    }
+    return { newSavedJobs, message };
   } catch (error) {
-    console.error('Error toggling saved job:', error);
+    console.error("Error toggling saved job:", error);
     throw error;
   }
 };

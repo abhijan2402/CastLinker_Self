@@ -228,6 +228,7 @@ const CreatePostDialog = ({
         toast({
           title: "posts created successfully",
         });
+        onOpenChange(false);
       }
     } catch (error) {
       console.error("❌ Unexpected error:", error);

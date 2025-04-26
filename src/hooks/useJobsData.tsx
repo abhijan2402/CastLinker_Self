@@ -59,7 +59,7 @@ export const useJobsData = () => {
       const queryString = queryParams.toString();
       const endpoint = `/api/jobs${queryString ? `?${queryString}` : ""}`;
 
-      console.log(endpoint)
+      console.log(endpoint);
       const result = await fetchData(endpoint);
 
       if (!Array.isArray(result)) {
@@ -92,20 +92,28 @@ export const useJobsData = () => {
     }
   }, [toast, filters]);
 
-  // Fetch user's saved jobs
   const getSavedJobs = useCallback(async () => {
-    if (!user) {
-      // If not logged in, try to get from localStorage
-      const storedSavedJobs = localStorage.getItem("savedJobs");
-      if (storedSavedJobs) {
-        setSavedJobs(JSON.parse(storedSavedJobs));
-      }
-      return;
-    }
-
     try {
-      const savedJobIds = await fetchSavedJobs(user.id);
-      setSavedJobs(savedJobIds);
+      const response = await fetchData(`/api/jobs/list/3`);
+
+      // Define the expected structure of the response
+      type SavedJob = {
+        job_id: number;
+        // Include other properties if needed
+      };
+
+      type SavedJobsResponse = {
+        success: boolean;
+        data: SavedJob[];
+      };
+
+      // Assert the type of the response
+      const { data } = response as SavedJobsResponse;
+
+      // Extract job IDs and convert them to strings
+      const jobIds = data.map((job) => job.job_id.toString());
+
+      setSavedJobs(jobIds);
     } catch (error: any) {
       console.error("Error fetching saved jobs:", error);
     }
@@ -115,25 +123,6 @@ export const useJobsData = () => {
   const toggleSaveJob = useCallback(
     async (jobId: string) => {
       try {
-        // If not logged in, save to localStorage
-        if (!user) {
-          const updatedSavedJobs = savedJobs.includes(jobId)
-            ? savedJobs.filter((id) => id !== jobId)
-            : [...savedJobs, jobId];
-
-          setSavedJobs(updatedSavedJobs);
-          localStorage.setItem("savedJobs", JSON.stringify(updatedSavedJobs));
-
-          toast({
-            title: savedJobs.includes(jobId) ? "Job removed" : "Job saved",
-            description: savedJobs.includes(jobId)
-              ? "This job has been removed from your saved list"
-              : "This job has been saved for later",
-          });
-
-          return;
-        }
-
         const { newSavedJobs, message } = await toggleSaveJobService(
           jobId,
           user.id,
@@ -154,7 +143,7 @@ export const useJobsData = () => {
   );
 
   // Apply for a job
-  const applyForJob = useCallback(
+  const   applyForJob = useCallback(
     async (
       jobId: string,
       application: {

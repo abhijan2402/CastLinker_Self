@@ -30,8 +30,25 @@ import {
 import { cn } from "@/lib/utils";
 import CreatePostDialog from "@/components/posts/CreatePostDialog";
 import { toast } from "@/hooks/use-toast";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useNavigate } from "react-router-dom";
 
 const CATEGORIES = [
@@ -42,7 +59,7 @@ const CATEGORIES = [
   "Event",
   "Job Opportunity",
   "Mentorship",
-  "Other"
+  "Other",
 ];
 
 const LOCATIONS = [
@@ -53,7 +70,7 @@ const LOCATIONS = [
   "Chennai",
   "Kolkata",
   "Pune",
-  "Any Location"
+  "Any Location",
 ];
 
 const ITEMS_PER_PAGE = 9; // For 3x3 grid
@@ -62,12 +79,14 @@ const Posts = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const [postDateRange, setPostDateRange] = useState<DateRange | undefined>();
-  const [deadlineDateRange, setDeadlineDateRange] = useState<DateRange | undefined>();
+  const [deadlineDateRange, setDeadlineDateRange] = useState<
+    DateRange | undefined
+  >();
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const {
     posts,
     loading,
@@ -80,7 +99,7 @@ const Posts = () => {
     handleDeletePost,
     filters,
     updateFilters,
-    clearFilters
+    clearFilters,
   } = usePosts();
 
   const confirmDeletePost = (postId: string) => {
@@ -99,7 +118,7 @@ const Posts = () => {
         toast({
           title: "Error",
           description: "Failed to delete post. Please try again.",
-          variant: "destructive"
+          variant: "destructive",
         });
       }
       setPostToDelete(null);
@@ -110,69 +129,71 @@ const Posts = () => {
     navigate(`/posts/${post.id}`);
   };
 
-  const filteredPosts = posts.filter(post => {
-    if (filters.category !== 'all' && post.category !== filters.category) {
+  const filteredPosts = posts.filter((post) => {
+    if (filters.category !== "all" && post.category !== filters.category) {
       return false;
     }
-    
+
     if (filters.searchTerm) {
       const searchTerm = filters.searchTerm.toLowerCase();
-      const matchesSearch = 
-        (post.title?.toLowerCase().includes(searchTerm)) || 
-        (post.description?.toLowerCase().includes(searchTerm)) ||
-        (Array.isArray(post.tags) && post.tags.some(tag => 
-          tag?.toLowerCase().includes(searchTerm)
-        ));
-      
+      const matchesSearch =
+        post.title?.toLowerCase().includes(searchTerm) ||
+        post.description?.toLowerCase().includes(searchTerm) ||
+        (Array.isArray(post.tags) &&
+          post.tags.some((tag) => tag?.toLowerCase().includes(searchTerm)));
+
       if (!matchesSearch) return false;
     }
-    
+
     if (selectedLocation && selectedLocation !== "Any Location") {
       if (!post.location || !post.location.includes(selectedLocation)) {
         return false;
       }
     }
-    
+
     if (postDateRange?.from) {
       const postDate = new Date(post.created_at);
       if (isBefore(postDate, postDateRange.from)) {
         return false;
       }
     }
-    
+
     if (postDateRange?.to) {
       const postDate = new Date(post.created_at);
       if (isAfter(postDate, postDateRange.to)) {
         return false;
       }
     }
-    
+
     if (deadlineDateRange?.from && post.event_date) {
       const eventDate = new Date(post.event_date);
       if (isBefore(eventDate, deadlineDateRange.from)) {
         return false;
       }
     }
-    
+
     if (deadlineDateRange?.to && post.event_date) {
       const eventDate = new Date(post.event_date);
       if (isAfter(eventDate, deadlineDateRange.to)) {
         return false;
       }
     }
-    
+
     return true;
   });
-  
+
   const totalPages = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE);
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedPosts = filteredPosts.slice(startIdx, startIdx + ITEMS_PER_PAGE);
-  
+  const paginatedPosts = filteredPosts.slice(
+    startIdx,
+    startIdx + ITEMS_PER_PAGE
+  );
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
-  
+
   const handleClearFilters = () => {
     clearFilters();
     setSelectedLocation(null);
@@ -180,12 +201,13 @@ const Posts = () => {
     setDeadlineDateRange(undefined);
     setCurrentPage(1);
   };
-  
-  const hasActiveFilters = filters.searchTerm || 
-                          filters.category !== 'all' || 
-                          selectedLocation || 
-                          postDateRange || 
-                          deadlineDateRange;
+
+  const hasActiveFilters =
+    filters.searchTerm ||
+    filters.category !== "all" ||
+    selectedLocation ||
+    postDateRange ||
+    deadlineDateRange;
 
   return (
     <div className="container max-w-6xl py-8">
@@ -197,7 +219,7 @@ const Posts = () => {
           </p>
         </div>
         {user && (
-          <Button 
+          <Button
             onClick={() => setShowCreateDialog(true)}
             className="flex items-center gap-2"
           >
@@ -219,7 +241,7 @@ const Posts = () => {
                 onChange={(e) => updateFilters({ searchTerm: e.target.value })}
               />
             </div>
-            
+
             <Select
               value={filters.category}
               onValueChange={(value) => updateFilters({ category: value })}
@@ -237,7 +259,7 @@ const Posts = () => {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="flex flex-col md:flex-row gap-4">
             <Select
               value={selectedLocation || "any"}
@@ -253,14 +275,16 @@ const Posts = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="any">Any Location</SelectItem>
-                {LOCATIONS.filter(location => location !== "Any Location").map((location) => (
+                {LOCATIONS.filter(
+                  (location) => location !== "Any Location"
+                ).map((location) => (
                   <SelectItem key={location} value={location}>
                     {location}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -274,7 +298,8 @@ const Posts = () => {
                   {postDateRange?.from ? (
                     postDateRange.to ? (
                       <>
-                        {format(postDateRange.from, "LLL dd, y")} - {format(postDateRange.to, "LLL dd, y")}
+                        {format(postDateRange.from, "LLL dd, y")} -{" "}
+                        {format(postDateRange.to, "LLL dd, y")}
                       </>
                     ) : (
                       format(postDateRange.from, "LLL dd, y")
@@ -295,7 +320,7 @@ const Posts = () => {
                 />
               </PopoverContent>
             </Popover>
-            
+
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -309,7 +334,8 @@ const Posts = () => {
                   {deadlineDateRange?.from ? (
                     deadlineDateRange.to ? (
                       <>
-                        {format(deadlineDateRange.from, "LLL dd, y")} - {format(deadlineDateRange.to, "LLL dd, y")}
+                        {format(deadlineDateRange.from, "LLL dd, y")} -{" "}
+                        {format(deadlineDateRange.to, "LLL dd, y")}
                       </>
                     ) : (
                       format(deadlineDateRange.from, "LLL dd, y")
@@ -330,10 +356,10 @@ const Posts = () => {
                 />
               </PopoverContent>
             </Popover>
-            
+
             {hasActiveFilters && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleClearFilters}
                 className="flex items-center gap-2"
               >
@@ -352,9 +378,9 @@ const Posts = () => {
       ) : error ? (
         <div className="text-center py-12">
           <p className="text-destructive">{error}</p>
-          <Button 
-            variant="outline" 
-            className="mt-2" 
+          <Button
+            variant="outline"
+            className="mt-2"
             onClick={() => window.location.reload()}
           >
             Try Again
@@ -364,9 +390,7 @@ const Posts = () => {
         <div className="text-center py-12">
           <p className="text-muted-foreground">No posts found.</p>
           {hasActiveFilters && (
-            <p className="text-sm mt-2">
-              Try adjusting your search filters.
-            </p>
+            <p className="text-sm mt-2">Try adjusting your search filters.</p>
           )}
         </div>
       ) : (
@@ -385,20 +409,24 @@ const Posts = () => {
               />
             ))}
           </div>
-          
+
           {totalPages > 1 && (
             <Pagination className="mt-8">
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  <PaginationPrevious
+                    onClick={() =>
+                      handlePageChange(Math.max(1, currentPage - 1))
+                    }
+                    className={
+                      currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                    }
                   />
                 </PaginationItem>
-                
+
                 {[...Array(totalPages)].map((_, index) => {
                   const page = index + 1;
-                  
+
                   if (
                     page === 1 ||
                     page === totalPages ||
@@ -415,7 +443,7 @@ const Posts = () => {
                       </PaginationItem>
                     );
                   }
-                  
+
                   if (page === 2 || page === totalPages - 1) {
                     return (
                       <PaginationItem key={`ellipsis-${page}`}>
@@ -423,14 +451,20 @@ const Posts = () => {
                       </PaginationItem>
                     );
                   }
-                  
+
                   return null;
                 })}
-                
+
                 <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  <PaginationNext
+                    onClick={() =>
+                      handlePageChange(Math.min(totalPages, currentPage + 1))
+                    }
+                    className={
+                      currentPage === totalPages
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
                   />
                 </PaginationItem>
               </PaginationContent>
@@ -439,22 +473,26 @@ const Posts = () => {
         </>
       )}
 
-      <CreatePostDialog 
-        open={showCreateDialog} 
-        onOpenChange={setShowCreateDialog} 
+      <CreatePostDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
       />
 
-      <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
+      <AlertDialog
+        open={!!postToDelete}
+        onOpenChange={(open) => !open && setPostToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Post</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this post? This action cannot be undone.
+              Are you sure you want to delete this post? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={executeDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

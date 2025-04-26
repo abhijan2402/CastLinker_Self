@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Post } from "@/services/postsService";
@@ -46,7 +45,9 @@ const PostManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
-  const [applicationCounts, setApplicationCounts] = useState<Record<string, number>>({});
+  const [applicationCounts, setApplicationCounts] = useState<
+    Record<string, number>
+  >({});
 
   useEffect(() => {
     fetchPosts();
@@ -61,13 +62,13 @@ const PostManagement = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      
+
       // Cast data to ensure media_type is properly typed
-      const typedPosts = (data || []).map(post => ({
+      const typedPosts = (data || []).map((post) => ({
         ...post,
-        media_type: post.media_type as 'image' | 'video' | null
+        media_type: post.media_type as "image" | "video" | null,
       }));
-      
+
       setPosts(typedPosts);
 
       // Get application counts for all posts
@@ -88,7 +89,7 @@ const PostManagement = () => {
       toast({
         title: "Error",
         description: "Failed to fetch posts. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -110,29 +111,30 @@ const PostManagement = () => {
         .eq("id", postToDelete.id);
 
       if (error) throw error;
-      
-      setPosts(posts.filter(post => post.id !== postToDelete.id));
+
+      setPosts(posts.filter((post) => post.id !== postToDelete.id));
       setDeleteConfirmOpen(false);
       setPostToDelete(null);
-      
+
       toast({
         title: "Post Deleted",
-        description: "The post has been successfully deleted."
+        description: "The post has been successfully deleted.",
       });
     } catch (error) {
       console.error("Error deleting post:", error);
       toast({
         title: "Error",
         description: "Failed to delete post. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
-  const filteredPosts = posts.filter(post =>
-    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPosts = posts.filter(
+    (post) =>
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -140,7 +142,9 @@ const PostManagement = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold">Post Management</h1>
-          <p className="text-muted-foreground mt-1">Manage all post listings in the platform</p>
+          <p className="text-muted-foreground mt-1">
+            Manage all post listings in the platform
+          </p>
         </div>
         <div className="relative w-full md:w-auto">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -188,11 +192,15 @@ const PostManagement = () => {
                   ) : (
                     filteredPosts.map((post) => (
                       <TableRow key={post.id}>
-                        <TableCell className="font-medium">{post.title}</TableCell>
+                        <TableCell className="font-medium">
+                          {post.title}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline">{post.category}</Badge>
                         </TableCell>
-                        <TableCell>{format(new Date(post.created_at), "MMM dd, yyyy")}</TableCell>
+                        <TableCell>
+                          {format(new Date(post.created_at), "MMM dd, yyyy")}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center">
                             <Users className="h-4 w-4 mr-1 text-muted-foreground" />
@@ -209,12 +217,18 @@ const PostManagement = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem asChild>
-                                <Link to={`/posts/${post.id}`} className="cursor-pointer flex items-center">
+                                <Link
+                                  to={`/posts/${post.id}`}
+                                  className="cursor-pointer flex items-center"
+                                >
                                   <Eye className="h-4 w-4 mr-2" />
                                   View
                                 </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => confirmDelete(post)} className="text-destructive focus:text-destructive">
+                              <DropdownMenuItem
+                                onClick={() => confirmDelete(post)}
+                                className="text-destructive focus:text-destructive"
+                              >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete
                               </DropdownMenuItem>
@@ -245,11 +259,15 @@ const PostManagement = () => {
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete the post "{postToDelete?.title}"? This action cannot be undone.
+              Are you sure you want to delete the post "{postToDelete?.title}"?
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDelete}>

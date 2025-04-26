@@ -41,6 +41,7 @@ const JobResults = memo(({
   const [isRetrying, setIsRetrying] = useState(false);
   
   const handleJobClick = useCallback((job: Job) => {
+    console.log(selectedJob)
     setSelectedJob(job);
   }, []);
   
