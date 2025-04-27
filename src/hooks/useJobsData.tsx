@@ -25,7 +25,14 @@ export const useJobsData = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<JobFilters>({});
+  const [filters, setFilters] = useState<JobFilters>({
+    jobTypes: [],
+    roleCategories: [],
+    experienceLevels: [],
+    salaryMin: 0,
+    salaryMax: 200000,
+  });
+
   const [sort, setSort] = useState<JobSort>({
     field: "relevance",
     direction: "desc",
@@ -34,7 +41,6 @@ export const useJobsData = () => {
   const [totalCount, setTotalCount] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
-
   // Add a ref to track if this is the initial render
   const initialRenderCompleted = useRef(false);
   // Add a ref for ongoing fetch operations
@@ -47,19 +53,38 @@ export const useJobsData = () => {
     fetchInProgress.current = true;
     setIsLoading(true);
     setError(null);
+
     try {
-      // Build query string from filters
+      // console.log("Current filters:", filters);
+
       const queryParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          queryParams.append(key, String(value));
-        }
-      });
+
+      // Mapping frontend filter keys to backend query parameters
+      if (filters.jobTypes) {
+        queryParams.append("type", filters.jobTypes.join(","));
+      }
+      if (filters.roleCategories) {
+        queryParams.append("roleCategory", filters.roleCategories.join(","));
+      }
+      if (filters.experienceLevels) {
+        queryParams.append(
+          "experienceLevel",
+          filters.experienceLevels.join(",")
+        );
+      }
+      if (filters.salaryMin !== undefined && filters.salaryMin !== null) {
+        queryParams.append("min_salary", String(filters.salaryMin));
+      }
+      if (filters.salaryMax !== undefined && filters.salaryMax !== null) {
+        queryParams.append("max_salary", String(filters.salaryMax));
+      }
 
       const queryString = queryParams.toString();
+      console.log(queryString);
       const endpoint = `/api/jobs${queryString ? `?${queryString}` : ""}`;
 
       console.log(endpoint);
+
       const result = await fetchData(endpoint);
 
       if (!Array.isArray(result)) {
@@ -143,7 +168,7 @@ export const useJobsData = () => {
   );
 
   // Apply for a job
-  const   applyForJob = useCallback(
+  const applyForJob = useCallback(
     async (
       jobId: string,
       application: {

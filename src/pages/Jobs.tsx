@@ -40,18 +40,7 @@ const Jobs = () => {
     updateFilters(searchFilters);
   };
 
-  // const handleGetJobs = async () => {
-  //   try {
-  //     const response = await fetchData("/api/jobs");
-  //     console.log(response);
-  //     setJobsData(response as any[]);
-  //   } catch (error) {
-  //     console.error("❌ Unexpected error:", error);
-  //   }
-  // };
-  // useEffect(() => {
-  //   handleGetJobs();
-  // }, []);
+
 
   return (
     <div className="space-y-6 px-2 sm:px-0">
