@@ -437,9 +437,9 @@ const Dashboard = () => {
                           <div>
                             <div className="flex items-center gap-2">
                               <h3 className="font-semibold text-base leading-tight">
-                                {job.title}
+                                {job.job_title}
                               </h3>
-                              {job.isNew && (
+                              {job.is_featured && (
                                 <Badge
                                   variant="outline"
                                   className="bg-green-500/10 border-green-500/20 text-green-500 text-[10px] rounded-sm py-0 h-5"
@@ -463,11 +463,11 @@ const Dashboard = () => {
                               </div>
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <Briefcase className="h-3 w-3" />
-                                {job.type}
+                                {job.job_type}
                               </div>
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <DollarSign className="h-3 w-3" />
-                                {job.pay}
+                                {job.min_salary}
                               </div>
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <Clock className="h-3 w-3" />
@@ -477,7 +477,7 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">
-                          {job.desc}
+                          {job.job_description}
                         </p>
                         <div className="flex items-center justify-end gap-2 pt-1">
                           <Button
