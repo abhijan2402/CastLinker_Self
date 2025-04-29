@@ -1,9 +1,9 @@
-
-import { useState, useEffect, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
-import { E2EEncryption } from '../utils/encryption';
+import { useState, useEffect, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
+import { E2EEncryption } from "../utils/encryption";
+import socket from "@/socket";
 
 // Define types to match those used in the codebase
 export interface Message {
@@ -11,7 +11,7 @@ export interface Message {
   room_id: string;
   sender_id: string;
   content: string;
-  type: 'text' | 'image' | 'video' | 'audio' | 'document' | 'system';
+  type: "text" | "image" | "video" | "audio" | "document" | "system";
   metadata: {
     fileName?: string;
     fileSize?: number;
@@ -30,7 +30,7 @@ export interface Message {
   reactions?: MessageReaction[];
   // Additional properties to support existing code
   timestamp?: string;
-  status?: 'sent' | 'delivered' | 'seen';
+  status?: "sent" | "delivered" | "seen";
   isMe?: boolean;
   attachments?: Attachment[];
 }
@@ -52,7 +52,7 @@ export interface MessageReaction {
 
 export interface ChatRoom {
   id: string;
-  type: 'one_to_one' | 'group';
+  type: "one_to_one" | "group";
   name: string;
   created_at: string;
   updated_at: string;
@@ -67,7 +67,7 @@ export interface ChatRoom {
 
 export interface UserPresence {
   user_id: string;
-  status: 'online' | 'away' | 'offline';
+  status: "online" | "away" | "offline";
   last_active: string;
   typing_in_room?: string;
   typing_until?: string;
@@ -76,13 +76,13 @@ export interface UserPresence {
 export interface OnlineUser {
   id: string;
   name: string;
-  status: 'online' | 'away' | 'offline';
+  status: "online" | "away" | "offline";
 }
 
 export interface MediaAttachment {
   id: string;
   message_id: string;
-  type: 'image' | 'video' | 'audio' | 'document';
+  type: "image" | "video" | "audio" | "document";
   url: string;
   filename: string;
   size_bytes: number;
@@ -109,65 +109,47 @@ export const useChat = (roomId: string) => {
   const { user } = useAuth();
   const encryption = new E2EEncryption();
 
-  // Load initial messages
   useEffect(() => {
     if (!roomId || !user) return;
 
     const loadMockData = async () => {
       setIsLoading(true);
-      
+
       // Mock room data
       const mockRoom: ChatRoom = {
         id: roomId,
-        type: 'one_to_one',
-        name: 'Chat Room',
+        type: "one_to_one",
+        name: "Chat Room",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         last_message_at: new Date().toISOString(),
         metadata: {
-          description: 'A chat room',
+          description: "A chat room",
           memberCount: 2,
-          last_message: 'Hello',
-          unread_count: 0
-        }
-      };
-      
-      // Mock messages
-      const mockMessages: Message[] = [
-        {
-          id: uuidv4(),
-          room_id: roomId,
-          sender_id: 'other-user',
-          content: 'Hello there!',
-          type: 'text',
-          metadata: {},
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-          updated_at: new Date(Date.now() - 3600000).toISOString(),
-          is_edited: false,
-          is_deleted: false,
-          timestamp: '1 hour ago',
-          status: 'seen',
-          isMe: false
+          last_message: "Hello",
+          unread_count: 0,
         },
-        {
-          id: uuidv4(),
-          room_id: roomId,
-          sender_id: user.id,
-          content: 'Hi! How are you?',
-          type: 'text',
-          metadata: {},
-          created_at: new Date(Date.now() - 1800000).toISOString(),
-          updated_at: new Date(Date.now() - 1800000).toISOString(),
-          is_edited: false,
-          is_deleted: false,
-          timestamp: '30 minutes ago',
-          status: 'seen',
-          isMe: true
-        }
-      ];
-      
+      };
+
+      // Mock received message (this is your incoming message)
+      const receivedMessage: Message = {
+        id: "d3c9b767-a4a0-4a73-a743-0e24f8ddda12",
+        room_id: roomId, // you should assign the current roomId here!
+        sender_id: "e983aee4-0387-440a-99f3-c12355aa7458",
+        content: "hlo",
+        type: "text",
+        metadata: {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_edited: false,
+        is_deleted: false,
+        timestamp: "Just now",
+        status: "sent",
+        isMe: false, // or true based on sender_id === user.id
+      };
+
       setRoomInfo(mockRoom);
-      setMessages(mockMessages);
+      setMessages([receivedMessage]); // 👈 correctly setting the message
       setIsLoading(false);
     };
 
@@ -176,6 +158,7 @@ export const useChat = (roomId: string) => {
 
   // Send message function
   const sendMessage = async (content: string, attachments: File[] = []) => {
+    console.log(content);
     if (!user || !content.trim()) return;
 
     const newMessage: Message = {
@@ -183,32 +166,63 @@ export const useChat = (roomId: string) => {
       room_id: roomId,
       sender_id: user.id,
       content,
-      type: 'text',
+      type: "text",
       metadata: {},
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_edited: false,
       is_deleted: false,
-      timestamp: 'Just now',
-      status: 'sent',
-      isMe: true
+      timestamp: "Just now",
+      status: "sent",
+      isMe: true,
     };
 
     // If there are attachments, add them to the message
     if (attachments.length > 0) {
-      newMessage.attachments = attachments.map(file => ({
+      newMessage.attachments = attachments.map((file) => ({
         id: uuidv4(),
         messageId: newMessage.id,
         fileUrl: URL.createObjectURL(file),
         fileName: file.name,
         fileType: file.type,
-        fileSize: file.size
+        fileSize: file.size,
       }));
     }
 
-    setMessages(prev => [...prev, newMessage]);
+    setMessages((prev) => [...prev, newMessage]);
+
+    socket.emit("send_message", {
+      sender_id: 1,
+      receiver_id: 3,
+      content: content,
+      // You can also send attachments if needed
+    });
+
     return true;
   };
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleReceiveMessage = (data: { newMessage: Message }) => {
+      const incomingMessage = data.newMessage;
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          ...incomingMessage,
+          isMe: incomingMessage.sender_id === "3", // check if sent by me
+        },
+      ]);
+    };
+
+    socket.on("receive_message", handleReceiveMessage);
+
+    // Cleanup to avoid multiple listeners
+    return () => {
+      socket.off("receive_message", handleReceiveMessage);
+    };
+  }, [socket]);
 
   // Update typing status
   const setTyping = async (typing: boolean) => {
@@ -230,62 +244,80 @@ export const useChat = (roomId: string) => {
   // Delete message
   const deleteMessage = async (messageId: string, forEveryone = false) => {
     if (forEveryone) {
-      setMessages(prev => prev.map(msg => 
-        msg.id === messageId 
-          ? { ...msg, content: 'This message was deleted', is_deleted: true, attachments: undefined, reactions: undefined } 
-          : msg
-      ));
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                content: "This message was deleted",
+                is_deleted: true,
+                attachments: undefined,
+                reactions: undefined,
+              }
+            : msg
+        )
+      );
     } else {
-      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+      setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
     }
     return true;
   };
 
   // Edit message
   const editMessage = async (messageId: string, newContent: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId 
-        ? { ...msg, content: newContent, is_edited: true } 
-        : msg
-    ));
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId
+          ? { ...msg, content: newContent, is_edited: true }
+          : msg
+      )
+    );
     return true;
   };
 
   // Add reaction to message
   const addReaction = async (messageId: string, emoji: string) => {
     if (!user) return false;
-    
-    setMessages(prev => prev.map(msg => {
-      if (msg.id === messageId) {
-        const existingReactions = msg.reactions || [];
-        const filteredReactions = existingReactions.filter(r => r.userId !== user.id);
-        
-        return {
-          ...msg,
-          reactions: [...filteredReactions, { userId: user.id, emoji }]
-        };
-      }
-      return msg;
-    }));
-    
+
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id === messageId) {
+          const existingReactions = msg.reactions || [];
+          const filteredReactions = existingReactions.filter(
+            (r) => r.userId !== user.id
+          );
+
+          return {
+            ...msg,
+            reactions: [...filteredReactions, { userId: user.id, emoji }],
+          };
+        }
+        return msg;
+      })
+    );
+
     return true;
   };
 
   // Remove reaction from message
   const removeReaction = async (messageId: string, emoji: string) => {
     if (!user) return false;
-    
-    setMessages(prev => prev.map(msg => {
-      if (msg.id === messageId) {
-        const existingReactions = msg.reactions || [];
-        return {
-          ...msg,
-          reactions: existingReactions.filter(r => !(r.userId === user.id && r.emoji === emoji))
-        };
-      }
-      return msg;
-    }));
-    
+
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id === messageId) {
+          const existingReactions = msg.reactions || [];
+          return {
+            ...msg,
+            reactions: existingReactions.filter(
+              (r) => !(r.userId === user.id && r.emoji === emoji)
+            ),
+          };
+        }
+        return msg;
+      })
+    );
+
     return true;
   };
 

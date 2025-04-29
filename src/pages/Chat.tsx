@@ -10,6 +10,7 @@ import { useChat } from "@/hooks/useChat";
 import { useDebounce } from "@/hooks/useDebounce";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { Message, MessageReaction as TypedMessageReaction } from "@/types/chat";
+import socket from "@/socket"
 
 const Chat = () => {
   const { user } = useAuth();
@@ -62,6 +63,8 @@ const Chat = () => {
       avatar: "/placeholder.svg"
     }
   ]);
+
+  console.log(messages)
   
   const [activeChat, setActiveChat] = useState(mockChats[0]);
   const [searchQuery, setSearchQuery] = useState("");
