@@ -14,10 +14,7 @@ export const useAdminAuth = () => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   
   useEffect(() => {
-    // In a real app, we would fetch the admin role from the backend
-    // For this demo, we're considering emails containing "admin" as admin accounts
-    // and assigning a role based on the email
-    if (user && user.email.includes("admin")) {
+    if (user?.email?.includes("admin")) {
       let role: AdminTeamRole = 'moderator'; // default role
       
       if (user.email.includes("super")) {
@@ -47,5 +44,6 @@ export const useAdminAuth = () => {
     can
   };
 };
+
 
 export default useAdminAuth;

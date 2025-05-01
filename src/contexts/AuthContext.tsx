@@ -1,7 +1,7 @@
-import { createContext, useState, useContext, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { User as SupabaseUser } from '@supabase/supabase-js';
-import { useToast } from '@/hooks/use-toast';
+import { createContext, useState, useContext, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useToast } from "@/hooks/use-toast";
 
 // Define User interface
 export interface User {
@@ -16,9 +16,18 @@ export interface User {
 // Define AuthContext interface
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    rememberMe: boolean
+  ) => Promise<void>;
   logout: () => void;
-  signup: (email: string, password: string, name: string, role: string) => Promise<void>;
+  signup: (
+    email: string,
+    password: string,
+    name: string,
+    role: string
+  ) => Promise<void>;
   isLoading: boolean;
   error: string | null;
 }
@@ -41,14 +50,17 @@ export const useAuth = () => {
 // Convert Supabase user to our User format
 const formatUser = (supabaseUser: SupabaseUser | null): User | null => {
   if (!supabaseUser) return null;
-  
+
   return {
     id: supabaseUser.id,
-    name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || '',
-    email: supabaseUser.email || '',
-    role: supabaseUser.user_metadata?.role || 'Actor',
-    avatar: supabaseUser.user_metadata?.avatar_url || '/images/avatar.png',
-    isLoggedIn: true
+    name:
+      supabaseUser.user_metadata?.name ||
+      supabaseUser.email?.split("@")[0] ||
+      "",
+    email: supabaseUser.email || "",
+    role: supabaseUser.user_metadata?.role || "Actor",
+    avatar: supabaseUser.user_metadata?.avatar_url || "/images/avatar.png",
+    isLoggedIn: true,
   };
 };
 
@@ -62,40 +74,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Check for existing session on mount
   useEffect(() => {
     // First set up the auth state listener to prevent missing auth events
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        const formattedUser = formatUser(session?.user || null);
-        setUser(formattedUser);
-        setIsLoading(false);
-        
-        if (event === 'SIGNED_IN' && formattedUser) {
-          toast({
-            title: "Welcome back!",
-            description: `You are logged in as ${formattedUser.name}`,
-          });
-        }
-        
-        if (event === 'SIGNED_OUT') {
-          toast({
-            title: "Signed out",
-            description: "You have been logged out successfully",
-          });
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      const formattedUser = formatUser(session?.user || null);
+      setUser(formattedUser);
+      setIsLoading(false);
+
+      if (event === "SIGNED_IN" && formattedUser) {
+        toast({
+          title: "Welcome back!",
+          description: `You are logged in as ${formattedUser.name}`,
+        });
       }
-    );
+
+      if (event === "SIGNED_OUT") {
+        toast({
+          title: "Signed out",
+          description: "You have been logged out successfully",
+        });
+      }
+    });
 
     // Then check for existing session
     const checkSession = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
-        
+
         if (data.session) {
           const formattedUser = formatUser(data.session.user);
           setUser(formattedUser);
         }
       } catch (err) {
-        console.error('Error checking auth session:', err);
+        console.error("Error checking auth session:", err);
       } finally {
         setIsLoading(false);
       }
@@ -108,25 +120,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [toast]);
 
-  const login = async (email: string, password: string, rememberMe: boolean): Promise<void> => {
+  const login = async (
+    email: string,
+    password: string,
+    rememberMe: boolean
+  ): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
+
       if (error) throw error;
-      
+
       if (rememberMe) {
-        localStorage.setItem('rememberLogin', 'true');
+        localStorage.setItem("rememberLogin", "true");
       } else {
-        localStorage.removeItem('rememberLogin');
+        localStorage.removeItem("rememberLogin");
       }
     } catch (error: any) {
-      setError(error.message || 'Failed to login');
+      setError(error.message || "Failed to login");
       toast({
         title: "Login failed",
         description: error.message || "Check your credentials and try again",
@@ -138,11 +154,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signup = async (email: string, password: string, name: string, role: string): Promise<void> => {
+  const signup = async (
+    email: string,
+    password: string,
+    name: string,
+    role: string
+  ): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // First, create the auth account
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -151,17 +172,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           data: {
             name,
             role: role || "Actor",
-            avatar_url: "/images/avatar.png"
-          }
-        }
+            avatar_url: "/images/avatar.png",
+          },
+        },
       });
-      
+
       if (error) throw error;
-      
+
       if (data.user) {
         // Create the user profile
         const { error: profileError } = await supabase
-          .from('castlinker_escyvd_user_profiles')
+          .from("castlinker_escyvd_user_profiles")
           .insert({
             user_email: email,
             display_name: name,
@@ -170,35 +191,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             verified: false,
-            bio: `Hi, I'm ${name}! I'm a ${role || "Actor"} looking to connect with other film industry professionals.`,
+            bio: `Hi, I'm ${name}! I'm a ${
+              role || "Actor"
+            } looking to connect with other film industry professionals.`,
             headline: `${role || "Actor"} | Available for Projects`,
-            location: "Remote"
+            location: "Remote",
           });
 
         if (profileError) {
-          console.error('Error creating user profile:', profileError);
+          console.error("Error creating user profile:", profileError);
           // Don't throw here as the auth account is already created
           toast({
             title: "Profile Creation Warning",
-            description: "Account created but profile setup incomplete. Please contact support.",
+            description:
+              "Account created but profile setup incomplete. Please contact support.",
             variant: "destructive",
           });
         } else {
           // Create initial skills based on role
           const defaultSkills = getDefaultSkillsForRole(role);
           if (defaultSkills.length > 0) {
-            const skillsToInsert = defaultSkills.map(skill => ({
+            const skillsToInsert = defaultSkills.map((skill) => ({
               user_email: email,
               skill,
-              created_at: new Date().toISOString()
+              created_at: new Date().toISOString(),
             }));
-            
+
             const { error: skillsError } = await supabase
-              .from('castlinker_escyvd_user_skills')
+              .from("castlinker_escyvd_user_skills")
               .insert(skillsToInsert);
 
             if (skillsError) {
-              console.error('Error creating initial skills:', skillsError);
+              console.error("Error creating initial skills:", skillsError);
             }
           }
 
@@ -209,10 +233,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     } catch (error: any) {
-      setError(error.message || 'Failed to create account');
+      setError(error.message || "Failed to create account");
       toast({
         title: "Signup failed",
-        description: error.message || "Please try again with different credentials",
+        description:
+          error.message || "Please try again with different credentials",
         variant: "destructive",
       });
       throw error;
@@ -249,9 +274,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(true);
     try {
       await supabase.auth.signOut();
-      localStorage.removeItem('rememberLogin');
+      localStorage.removeItem("rememberLogin");
     } catch (error: any) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
       toast({
         title: "Error signing out",
         description: error.message || "An error occurred while logging out",
@@ -268,14 +293,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     logout,
     signup,
     isLoading,
-    error
+    error,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export default AuthContext;

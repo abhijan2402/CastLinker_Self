@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  rememberMe: z.boolean().default(false)
+  rememberMe: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -41,16 +40,20 @@ const LoginForm = () => {
     defaultValues: {
       email: "",
       password: "",
-      rememberMe: false
-    }
+      rememberMe: false,
+    },
   });
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await login(data.email, data.password, data.rememberMe);
+      toast({
+        title: "Login success!",
+        description: "You have logged in your account",
+      });
       navigate("/dashboard");
     } catch (error) {
       if (error instanceof Error) {
@@ -66,16 +69,20 @@ const LoginForm = () => {
   return (
     <div className="space-y-6 w-full max-w-md">
       <div className="text-center">
-        <h1 className="text-3xl font-bold gold-gradient-text mb-2">Welcome Back</h1>
-        <p className="text-muted-foreground">Sign in to continue to CastLinker</p>
+        <h1 className="text-3xl font-bold gold-gradient-text mb-2">
+          Welcome Back
+        </h1>
+        <p className="text-muted-foreground">
+          Sign in to continue to CastLinker
+        </p>
       </div>
-      
+
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -85,9 +92,9 @@ const LoginForm = () => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="your@email.com" 
-                    {...field} 
+                  <Input
+                    placeholder="your@email.com"
+                    {...field}
                     className="bg-background/70"
                   />
                 </FormControl>
@@ -95,7 +102,7 @@ const LoginForm = () => {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="password"
@@ -103,10 +110,10 @@ const LoginForm = () => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="password" 
-                    placeholder="••••••••" 
-                    {...field} 
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    {...field}
                     className="bg-background/70"
                   />
                 </FormControl>
@@ -114,7 +121,7 @@ const LoginForm = () => {
               </FormItem>
             )}
           />
-          
+
           <div className="flex items-center justify-between">
             <FormField
               control={form.control}
@@ -133,14 +140,17 @@ const LoginForm = () => {
                 </FormItem>
               )}
             />
-            
-            <Link to="/forgot-password" className="text-sm font-medium text-gold hover:text-gold/80">
+
+            <Link
+              to="/forgot-password"
+              className="text-sm font-medium text-gold hover:text-gold/80"
+            >
               Forgot password?
             </Link>
           </div>
-          
-          <Button 
-            type="submit" 
+
+          <Button
+            type="submit"
             className="w-full bg-gold hover:bg-gold/90 text-black font-medium"
             disabled={isLoading || authLoading}
           >
@@ -155,10 +165,16 @@ const LoginForm = () => {
           </Button>
         </form>
       </Form>
-      
+
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
-          Don't have an account? <Link to="/signup" className="text-gold hover:text-gold/80 font-medium">Sign up</Link>
+          Don't have an account?{" "}
+          <Link
+            to="/signup"
+            className="text-gold hover:text-gold/80 font-medium"
+          >
+            Sign up
+          </Link>
         </p>
       </div>
 
@@ -175,7 +191,10 @@ const LoginForm = () => {
 
       <div className="flex justify-center">
         <Link to="/admin/login">
-          <Button variant="outline" className="border-gold/30 text-gold hover:bg-gold/10">
+          <Button
+            variant="outline"
+            className="border-gold/30 text-gold hover:bg-gold/10"
+          >
             <Shield className="h-4 w-4 mr-2" />
             Sign in as Administrator
           </Button>

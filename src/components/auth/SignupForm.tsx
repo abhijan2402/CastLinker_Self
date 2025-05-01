@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,9 +33,9 @@ const formSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.string().min(1, "Please select a role"),
-  agreeToTerms: z.boolean().refine(val => val === true, {
-    message: "You must agree to the terms and conditions"
-  })
+  agreeToTerms: z.boolean().refine((val) => val === true, {
+    message: "You must agree to the terms and conditions",
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -62,7 +61,6 @@ const SignupForm = () => {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     setError(null);
-    
     try {
       await signup(data.email, data.password, data.name, data.role);
       toast({
@@ -84,16 +82,18 @@ const SignupForm = () => {
   return (
     <div className="space-y-6 w-full max-w-md">
       <div className="text-center">
-        <h1 className="text-3xl font-bold gold-gradient-text mb-2">Create an Account</h1>
+        <h1 className="text-3xl font-bold gold-gradient-text mb-2">
+          Create an Account
+        </h1>
         <p className="text-muted-foreground">Join the CastLinker community</p>
       </div>
-      
+
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -103,9 +103,9 @@ const SignupForm = () => {
               <FormItem>
                 <FormLabel>Full Name</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="John Doe" 
-                    {...field} 
+                  <Input
+                    placeholder="John Doe"
+                    {...field}
                     className="bg-background/70"
                   />
                 </FormControl>
@@ -113,7 +113,7 @@ const SignupForm = () => {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="email"
@@ -121,17 +121,17 @@ const SignupForm = () => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="your@email.com" 
+                  <Input
+                    placeholder="your@email.com"
                     {...field}
-                    className="bg-background/70" 
+                    className="bg-background/70"
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="password"
@@ -139,26 +139,26 @@ const SignupForm = () => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="password" 
-                    placeholder="••••••••" 
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
                     {...field}
-                    className="bg-background/70" 
+                    className="bg-background/70"
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="role"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>I am a</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
@@ -171,27 +171,47 @@ const SignupForm = () => {
                     <SelectItem value="Director">Director</SelectItem>
                     <SelectItem value="Producer">Producer</SelectItem>
                     <SelectItem value="Screenwriter">Screenwriter</SelectItem>
-                    <SelectItem value="Cinematographer">Cinematographer</SelectItem>
-                    <SelectItem value="Casting Director">Casting Director</SelectItem>
+                    <SelectItem value="Cinematographer">
+                      Cinematographer
+                    </SelectItem>
+                    <SelectItem value="Casting Director">
+                      Casting Director
+                    </SelectItem>
                     <SelectItem value="Agent">Agent</SelectItem>
-                    <SelectItem value="Production Company">Production Company</SelectItem>
+                    <SelectItem value="Production Company">
+                      Production Company
+                    </SelectItem>
                     <SelectItem value="Editor">Editor</SelectItem>
-                    <SelectItem value="Sound Designer">Sound Designer</SelectItem>
-                    <SelectItem value="Production Designer">Production Designer</SelectItem>
-                    <SelectItem value="Costume Designer">Costume Designer</SelectItem>
+                    <SelectItem value="Sound Designer">
+                      Sound Designer
+                    </SelectItem>
+                    <SelectItem value="Production Designer">
+                      Production Designer
+                    </SelectItem>
+                    <SelectItem value="Costume Designer">
+                      Costume Designer
+                    </SelectItem>
                     <SelectItem value="Makeup Artist">Makeup Artist</SelectItem>
-                    <SelectItem value="Stunt Coordinator">Stunt Coordinator</SelectItem>
-                    <SelectItem value="Visual Effects Artist">Visual Effects Artist</SelectItem>
-                    <SelectItem value="Music Composer">Music Composer</SelectItem>
+                    <SelectItem value="Stunt Coordinator">
+                      Stunt Coordinator
+                    </SelectItem>
+                    <SelectItem value="Visual Effects Artist">
+                      Visual Effects Artist
+                    </SelectItem>
+                    <SelectItem value="Music Composer">
+                      Music Composer
+                    </SelectItem>
                     <SelectItem value="Art Director">Art Director</SelectItem>
-                    <SelectItem value="Location Manager">Location Manager</SelectItem>
+                    <SelectItem value="Location Manager">
+                      Location Manager
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="agreeToTerms"
@@ -205,16 +225,26 @@ const SignupForm = () => {
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel className="text-sm font-normal cursor-pointer">
-                    I agree to the <Link to="/terms" className="text-gold hover:text-gold/80">Terms of Service</Link> and <Link to="/privacy" className="text-gold hover:text-gold/80">Privacy Policy</Link>
+                    I agree to the{" "}
+                    <Link to="/terms" className="text-gold hover:text-gold/80">
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      to="/privacy"
+                      className="text-gold hover:text-gold/80"
+                    >
+                      Privacy Policy
+                    </Link>
                   </FormLabel>
                   <FormMessage />
                 </div>
               </FormItem>
             )}
           />
-          
-          <Button 
-            type="submit" 
+
+          <Button
+            type="submit"
             className="w-full bg-gold hover:bg-gold/90 text-black font-medium"
             disabled={isLoading || authLoading}
           >
@@ -229,10 +259,16 @@ const SignupForm = () => {
           </Button>
         </form>
       </Form>
-      
+
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
-          Already have an account? <Link to="/login" className="text-gold hover:text-gold/80 font-medium">Sign in</Link>
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="text-gold hover:text-gold/80 font-medium"
+          >
+            Sign in
+          </Link>
         </p>
       </div>
 
@@ -249,7 +285,10 @@ const SignupForm = () => {
 
       <div className="flex justify-center">
         <Link to="/admin/login">
-          <Button variant="outline" className="border-gold/30 text-gold hover:bg-gold/10">
+          <Button
+            variant="outline"
+            className="border-gold/30 text-gold hover:bg-gold/10"
+          >
             <Shield className="h-4 w-4 mr-2" />
             Sign in as Administrator
           </Button>

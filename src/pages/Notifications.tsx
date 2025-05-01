@@ -8,6 +8,7 @@ import { Bell, Check, Film, Calendar, MessageCircle, Building2, Award, Mail } fr
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from 'date-fns';
+import { fetchData } from '@/api/ClientFuntion';
 
 // Define notification object type
 interface Notification {
@@ -94,6 +95,9 @@ const NotificationsPage = () => {
             type: 'billing'
           }
         ];
+
+        const res = fetchData("/api/notifications");
+        console.log(res);
         
         setNotifications(sampleNotifications);
       } catch (error) {
