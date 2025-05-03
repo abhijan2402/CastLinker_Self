@@ -74,6 +74,9 @@ interface EventApiResponse {
 interface CourseApiResponse {
   data: CourseItem[];
 }
+interface ResourceApiResponse {
+  data: ResourceItem[];
+}
 
 export const useIndustryHub = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -105,12 +108,20 @@ export const useIndustryHub = () => {
       if (eventsResponse?.data) {
         setEvents(eventsResponse.data);
       }
-
+ 
       // Fetch Course Data
       const coursesResult = await fetchData("/api/courses/list");
       const coursesResponse = coursesResult as CourseApiResponse;
       if (coursesResponse?.data) {
         setCourses(coursesResponse.data);
+      }
+      // Fetch Course Data
+      const resourcesResult = await fetchData("/api/resources/list");
+      console.log(resourcesResult);
+
+      const resourcesResponse = resourcesResult as ResourceApiResponse;
+      if (resourcesResponse?.data) {
+        setResources(resourcesResponse.data);
       }
     } catch (error) {
       console.error("Error fetching industry data:", error);
@@ -253,7 +264,7 @@ export const useIndustryHub = () => {
 
         case "resource": {
           console.log(data);
-          const response = await postData("/api/courses/create", data);
+          const response = await postData("/api/resources/create", data);
           console.log(response);
           // toast({
           //   title: "Submission Successful",

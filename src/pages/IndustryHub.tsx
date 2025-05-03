@@ -19,7 +19,7 @@ import { SubmitEventForm } from "@/components/industry/SubmitEventForm";
 import { SubmitCourseForm } from "@/components/industry/SubmitCourseForm";
 import { SubmitResourceForm } from "@/components/industry/SubmitResourceForm";
 import { useToast } from "@/hooks/use-toast";
-
+ 
 const IndustryHub = () => {
   const { user } = useAuth();
   const { toast } = useToast();

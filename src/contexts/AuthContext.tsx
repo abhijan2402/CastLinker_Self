@@ -34,6 +34,7 @@ interface AuthContextType {
   error: string | null;
 }
 type LoginResponse = User;
+type SingupResponse = User;
 
 // Create context with default values
 const AuthContext = createContext<AuthContextType>({
@@ -178,14 +179,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(true);
       setError(null);
 
-      const registerResponse = await postData("/auth/register", {
-        email: email,
-        password: password,
-        username: name,
-        user_type: role,
-        user_role: "user",
-      });
-      console.log(registerResponse);
+      const registerResponse = await postData<SingupResponse>(
+        "/auth/register",
+        {
+          email: email,
+          password: password,
+          username: name,
+          user_type: role,
+          user_role: "user",
+        }
+      );
+
+      // Later in login:
+      setUser(registerResponse);
+
+      // Save token to localStorage
+      localStorage.setItem("authToken", registerResponse.token);
 
       // Step 2: Create user profile via your backend
       // const profilePayload = {
