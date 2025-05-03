@@ -138,14 +138,14 @@ const JobCreateForm = ({
 
   const handleSubmit = async () => {
     try {
-      if (!user?.id) {
-        toast({
-          title: "Not authenticated",
-          description: "Please sign in to create a project",
-          variant: "destructive",
-        });
-        return;
-      }
+      // if (!user?.id) {
+      //   toast({
+      //     title: "Not authenticated",
+      //     description: "Please sign in to create a project",
+      //     variant: "destructive",
+      //   });
+      //   return;
+      // }
 
       const payload = {
         job_title: formData.title,

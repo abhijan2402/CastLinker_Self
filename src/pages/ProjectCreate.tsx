@@ -61,9 +61,13 @@ const ProjectCreate = () => {
     try {
       const response = await postData("/api/projects/create", payload);
       console.log("✅ Project created:", response);
-      // toast({
-      //   title: "Project created successfully",
-      // });
+      if(response){
+
+        toast({
+          title: "Project created successfully",
+        });
+        navigate("/projects");
+      }
     } catch (error) {
       console.error("❌ Unexpected error:", error);
       toast({

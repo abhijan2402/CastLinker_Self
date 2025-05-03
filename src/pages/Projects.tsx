@@ -48,108 +48,9 @@ const Projects = () => {
   const [projectData, setProjectData] = useState<Project[]>([]);
 
   useEffect(() => {
-    fetchProjects();
+    handleGetProject();
+    setLoading(false);
   }, [user]);
-
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
-
-      // First query to get projects where user is team head
-      const { data: teamHeadProjects, error: headError } = await supabase
-        .from("projects")
-        .select("id, name, description, current_status, created_at")
-        .eq("team_head_id", user.id);
-
-      if (headError) throw headError;
-
-      // Second query to get projects where user is a member
-      const { data: memberProjects, error: memberError } = await supabase
-        .from("project_members")
-        .select("project_id")
-        .eq("user_id", user.id)
-        .eq("status", "accepted");
-
-      if (memberError) throw memberError;
-
-      // Get full project details for member projects
-      const memberProjectIds = memberProjects.map((mp) => mp.project_id);
-      const { data: memberProjectDetails, error: detailsError } = await supabase
-        .from("projects")
-        .select("id, name, description, current_status, created_at")
-        .in("id", memberProjectIds);
-
-      if (detailsError) throw detailsError;
-
-      // Combine and deduplicate projects
-      const allProjects = [
-        ...(teamHeadProjects || []),
-        ...(memberProjectDetails || []),
-      ];
-      const uniqueProjects = Array.from(
-        new Map(allProjects.map((item) => [item.id, item])).values()
-      );
-
-      // Enhance projects with additional data
-      const enhancedProjects = await Promise.all(
-        uniqueProjects.map(async (project) => {
-          try {
-            // Get member count
-            const { count: memberCount, error: memberCountError } =
-              await supabase
-                .from("project_members")
-                .select("*", { count: "exact", head: true })
-                .eq("project_id", project.id)
-                .eq("status", "accepted");
-
-            if (memberCountError) throw memberCountError;
-
-            // Get milestone count
-            const { count: milestoneCount, error: milestoneCountError } =
-              await supabase
-                .from("project_milestones")
-                .select("*", { count: "exact", head: true })
-                .eq("project_id", project.id);
-
-            if (milestoneCountError) throw milestoneCountError;
-
-            return {
-              ...project,
-              member_count: memberCount || 1,
-              milestone_count: milestoneCount || 0,
-            };
-          } catch (error) {
-            console.error(
-              `Error fetching details for project ${project.id}:`,
-              error
-            );
-            // Return project with default counts if detail fetch fails
-            return {
-              ...project,
-              member_count: 1,
-              milestone_count: 0,
-            };
-          }
-        })
-      );
-
-      setProjects(enhancedProjects);
-    } catch (error: any) {
-      console.error("Error fetching projects:", error);
-      toast({
-        title: "Failed to load projects",
-        description: error.message || "Please try again later",
-        variant: "destructive",
-      });
-      // Set empty projects array to show the "No projects found" state
-      setProjects([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGetProject = async () => {
     try {
@@ -163,7 +64,7 @@ const Projects = () => {
     handleGetProject();
   }, []);
 
-  console.log(projectData);
+  // console.log(projectData);
 
   const handleCreateProject = () => {
     navigate("/projects/create");
@@ -174,12 +75,12 @@ const Projects = () => {
   };
 
   // Filter projects based on search query
-  const filteredProjects = projects.filter(
+  const filteredProjects = projectData.filter(
     (project) =>
       project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
+  console.log(filteredProjects);
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
@@ -247,7 +148,7 @@ const Projects = () => {
         </div>
       ) : projectData?.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projectData?.map((project) => (
+          {filteredProjects?.map((project) => (
             <Card
               key={project.id}
               className="bg-card/60 backdrop-blur-sm border-gold/10 hover:border-gold/30 transition-colors duration-200 cursor-pointer shadow-md"

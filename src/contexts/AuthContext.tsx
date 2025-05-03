@@ -12,6 +12,7 @@ export interface User {
   role: string;
   avatar: string;
   isLoggedIn: boolean;
+  token: string;
 }
 
 // Define AuthContext interface
@@ -32,6 +33,7 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
 }
+type LoginResponse = User;
 
 // Create context with default values
 const AuthContext = createContext<AuthContextType>({
@@ -62,12 +64,14 @@ const formatUser = (supabaseUser: SupabaseUser | null): User | null => {
     role: supabaseUser.user_metadata?.role || "Actor",
     avatar: supabaseUser.user_metadata?.avatar_url || "/images/avatar.png",
     isLoggedIn: true,
+    token: "ssasgf",
   };
 };
 
 // Auth Provider component
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -129,14 +133,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
       setError(null);
-      const payload = {
-        email: email,
-        password: password,
-      };
 
-      const loginResponse = await postData("/auth/login", { payload });
+      const payload = { email, password };
+
+      const loginResponse = await postData<LoginResponse>(
+        "/auth/login",
+        payload
+      );
+
       console.log(loginResponse);
 
+      // Later in login:
+      setUser(loginResponse);
+
+      // Save token to localStorage
+      localStorage.setItem("authToken", loginResponse.token);
+
+      // Remember login state
       if (rememberMe) {
         localStorage.setItem("rememberLogin", "true");
       } else {
@@ -165,15 +178,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(true);
       setError(null);
 
-      // Step 1: Register user
-      const payload = {
+      const registerResponse = await postData("/auth/register", {
         email: email,
         password: password,
         username: name,
         user_type: role,
         user_role: "user",
-      };
-      const registerResponse = await postData("/auth/register", { payload });
+      });
       console.log(registerResponse);
 
       // Step 2: Create user profile via your backend
