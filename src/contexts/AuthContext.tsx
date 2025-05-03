@@ -2,6 +2,7 @@ import { createContext, useState, useContext, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
+import { postData } from "@/api/ClientFuntion";
 
 // Define User interface
 export interface User {
@@ -128,13 +129,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
       setError(null);
+      const payload = {
+        email: email,
+        password: password,
+      };
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
+      const loginResponse = await postData("/auth/login", { payload });
+      console.log(loginResponse);
 
       if (rememberMe) {
         localStorage.setItem("rememberLogin", "true");
@@ -164,82 +165,60 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(true);
       setError(null);
 
-      // First, create the auth account
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            role: role || "Actor",
-            avatar_url: "/images/avatar.png",
-          },
-        },
-      });
+      // Step 1: Register user
+      const payload = {
+        email: email,
+        password: password,
+        username: name,
+        user_type: role,
+        user_role: "user",
+      };
+      const registerResponse = await postData("/auth/register", { payload });
+      console.log(registerResponse);
 
-      if (error) throw error;
+      // Step 2: Create user profile via your backend
+      // const profilePayload = {
+      //   user_email: email,
+      //   display_name: name,
+      //   role: role || "Actor",
+      //   avatar_url: "/images/avatar.png",
+      //   verified: false,
+      //   bio: `Hi, I'm ${name}! I'm a ${
+      //     role || "Actor"
+      //   } looking to connect with other film industry professionals.`,
+      //   headline: `${role || "Actor"} | Available for Projects`,
+      //   location: "Remote",
+      // };
 
-      if (data.user) {
-        // Create the user profile
-        const { error: profileError } = await supabase
-          .from("castlinker_escyvd_user_profiles")
-          .insert({
-            user_email: email,
-            display_name: name,
-            role: role || "Actor",
-            avatar_url: "/images/avatar.png",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            verified: false,
-            bio: `Hi, I'm ${name}! I'm a ${
-              role || "Actor"
-            } looking to connect with other film industry professionals.`,
-            headline: `${role || "Actor"} | Available for Projects`,
-            location: "Remote",
-          });
+      // const profileResponse = await postData("/user/setup-profile", {
+      //   payload: profilePayload,
+      // });
 
-        if (profileError) {
-          console.error("Error creating user profile:", profileError);
-          // Don't throw here as the auth account is already created
-          toast({
-            title: "Profile Creation Warning",
-            description:
-              "Account created but profile setup incomplete. Please contact support.",
-            variant: "destructive",
-          });
-        } else {
-          // Create initial skills based on role
-          const defaultSkills = getDefaultSkillsForRole(role);
-          if (defaultSkills.length > 0) {
-            const skillsToInsert = defaultSkills.map((skill) => ({
-              user_email: email,
-              skill,
-              created_at: new Date().toISOString(),
-            }));
+      // Step 3: Add default skills (optional)
+      // const defaultSkills = getDefaultSkillsForRole(role);
+      // if (defaultSkills.length > 0) {
+      //   const skillsPayload = defaultSkills.map((skill) => ({
+      //     user_email: email,
+      //     skill,
+      //   }));
 
-            const { error: skillsError } = await supabase
-              .from("castlinker_escyvd_user_skills")
-              .insert(skillsToInsert);
+      //   await postData("/user/setup-skills", { payload: skillsPayload });
+      // }
 
-            if (skillsError) {
-              console.error("Error creating initial skills:", skillsError);
-            }
-          }
-
-          toast({
-            title: "Account created successfully!",
-            description: "Welcome to CastLinker!",
-          });
-        }
-      }
+      // toast({
+      //   title: "Account created successfully!",
+      //   description: "Welcome to CastLinker!",
+      // });
     } catch (error: any) {
       setError(error.message || "Failed to create account");
+
       toast({
         title: "Signup failed",
         description:
           error.message || "Please try again with different credentials",
         variant: "destructive",
       });
+
       throw error;
     } finally {
       setIsLoading(false);

@@ -70,7 +70,7 @@ const ProjectCreate = () => {
         title: "Error in creating Project",
         description: error,
         variant: "destructive",
-      });
+      }); 
     }
   };
 

@@ -26,6 +26,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Shield, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { fetchData, postData } from "@/api/ClientFuntion";
 
 // Updated the schema to use boolean() instead of literal(true)
 const formSchema = z.object({
@@ -61,8 +62,10 @@ const SignupForm = () => {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     setError(null);
+
     try {
       await signup(data.email, data.password, data.name, data.role);
+
       toast({
         title: "Account created!",
         description: "You can now login with your credentials",
