@@ -86,20 +86,17 @@ export const useJobsData = () => {
       console.log(endpoint);
 
       const result = await fetchData(endpoint);
+      console.log(result);
 
-      if (!Array.isArray(result)) {
-        setError("Invalid response from server");
-        setJobs([]);
-        setTotalCount(0);
-        toast({
-          title: "Error fetching jobs",
-          description: "Invalid response from server",
-          variant: "destructive",
-        });
-      } else {
-        console.log("Job data fetched:", result.length, "jobs");
-        setJobs(result);
-        setTotalCount(result.length);
+      if (
+        result &&
+        typeof result === "object" &&
+        result !== null &&
+        "data" in result
+      ) {
+        const res = result as { data: any[]; length: number };
+        setJobs(res.data);
+        setTotalCount(res.data.length);
       }
     } catch (error: any) {
       console.error("Error in getJobs:", error);
@@ -119,26 +116,48 @@ export const useJobsData = () => {
 
   const getSavedJobs = useCallback(async () => {
     try {
-      const response = await fetchData(`/api/jobs/list/3`);
+      const response = await fetchData(`/api/jobs/list/${user?.id}`);
 
       // Define the expected structure of the response
-      type SavedJob = {
-        job_id: number;
-        // Include other properties if needed
+      type Job = {
+        id: number;
+        job_title: string;
+        company: string;
+        company_logo_url: string;
+        job_type: string;
+        role_category: string;
+        location: string;
+        location_type: string;
+        min_salary: number;
+        max_salary: number;
+        currency: string;
+        payment_period: string;
+        application_deadline: string | null;
+        job_description: string;
+        requirements: string[];
+        responsibilities: string[];
+        tags: string[];
+        application_url: string;
+        application_email: string;
+        is_featured: boolean;
+        status: string;
+        user_id: number;
+        createdAt: string;
+        updatedAt: string;
       };
 
       type SavedJobsResponse = {
         success: boolean;
-        data: SavedJob[];
+        data: Job[];
       };
 
       // Assert the type of the response
       const { data } = response as SavedJobsResponse;
 
       // Extract job IDs and convert them to strings
-      const jobIds = data.map((job) => job.job_id.toString());
-
+      const jobIds = data?.map((job) => job.id.toString());
       setSavedJobs(jobIds);
+      console.log("Saved Jobs:", savedJobs);
     } catch (error: any) {
       console.error("Error fetching saved jobs:", error);
     }

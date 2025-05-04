@@ -217,7 +217,7 @@ export const useChat = (roomId: string) => {
 
     socket.emit("send_message", {
       sender_id: user?.id,
-      receiver_id: 25,
+      receiver_id: 29,
       content: content,
       // You can also send attachments if needed
     });
