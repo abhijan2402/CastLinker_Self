@@ -225,7 +225,7 @@ export const useChat = (roomId: string) => {
   };
   useEffect(() => {
     // Ensure user is defined and has a valid ID
-    if (!user?.user?.id || !socket) return;
+    if (!user?.id || !socket) return;
     console.log("I__M_CALLED");
 
     const handleReceiveMessage = (message: Message) => {

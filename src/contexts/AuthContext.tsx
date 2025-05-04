@@ -10,7 +10,6 @@ export interface User {
   email: string;
   role: string;
   type: string;
-  avatar: string;
   isLoggedIn: boolean;
   token: string;
 }
@@ -173,7 +172,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email: loginResponse.user.email,
         role: loginResponse.user.user_type,
         type: loginResponse.user.user_role,
-        avatar: "/images/avatar.png",
         isLoggedIn: true,
         token: loginResponse.token,
       };
@@ -232,7 +230,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email: registerResponse.user.email,
         role: registerResponse.user.user_role,
         type: registerResponse.user.user_type,
-        avatar: "/images/avatar.png",
         isLoggedIn: true,
         token: registerResponse.token,
       };

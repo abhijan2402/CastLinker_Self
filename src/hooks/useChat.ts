@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { E2EEncryption } from "../utils/encryption";
+import Socket from "@/socket";
 import socket from "@/socket";
 
 // Define types to match those used in the codebase
 export interface Message {
   id: string;
   room_id: string;
-  sender_id: string;
+  sender_id: number;
+  receiver_id: number;
   content: string;
   type: "text" | "image" | "video" | "audio" | "document" | "system";
   metadata: {
@@ -108,53 +109,75 @@ export const useChat = (roomId: string) => {
 
   const { user } = useAuth();
   const encryption = new E2EEncryption();
+  // console.log(user);
+  // useEffect(() => {
+  //   if (!roomId || !user) return;
 
+  //   const loadMockData = async () => {
+  //     setIsLoading(true);
+
+  //     // Mock room data
+  //     const mockRoom: ChatRoom = {
+  //       id: roomId,
+  //       type: "one_to_one",
+  //       name: "Chat Room",
+  //       created_at: new Date().toISOString(),
+  //       updated_at: new Date().toISOString(),
+  //       last_message_at: new Date().toISOString(),
+  //       metadata: {
+  //         description: "A chat room",
+  //         memberCount: 2,
+  //         last_message: "Hello",
+  //         unread_count: 0,
+  //       },
+  //     };
+
+  //     // Mock received message (this is your incoming message)
+  //     const receivedMessage: Message = {
+  //       id: "d3c9b767-a4a0-4a73-a743-0e24f8ddda12",
+  //       room_id: roomId, // you should assign the current roomId here!
+  //       sender_id: "e983aee4-0387-440a-99f3-c12355aa7458",
+  //       content: "hlo",
+  //       type: "text",
+  //       metadata: {},
+  //       created_at: new Date().toISOString(),
+  //       updated_at: new Date().toISOString(),
+  //       is_edited: false,
+  //       is_deleted: false,
+  //       timestamp: "Just now",
+  //       status: "sent",
+  //       isMe: false, // or true based on sender_id === user.id
+  //     };
+
+  //     setRoomInfo(mockRoom);
+  //     setMessages([receivedMessage]); // 👈 correctly setting the message
+  //     setIsLoading(false);
+  //   };
+
+  //   loadMockData();
+  // }, [roomId, user]);
   useEffect(() => {
-    if (!roomId || !user) return;
+    //user whom we are chatting
 
-    const loadMockData = async () => {
-      setIsLoading(true);
+    console.log(user?.id, "USER___USER");
 
-      // Mock room data
-      const mockRoom: ChatRoom = {
-        id: roomId,
-        type: "one_to_one",
-        name: "Chat Room",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        last_message_at: new Date().toISOString(),
-        metadata: {
-          description: "A chat room",
-          memberCount: 2,
-          last_message: "Hello",
-          unread_count: 0,
-        },
-      };
+    // if (!user?.user?.id) return;
 
-      // Mock received message (this is your incoming message)
-      const receivedMessage: Message = {
-        id: "d3c9b767-a4a0-4a73-a743-0e24f8ddda12",
-        room_id: roomId, // you should assign the current roomId here!
-        sender_id: "e983aee4-0387-440a-99f3-c12355aa7458",
-        content: "hlo",
-        type: "text",
-        metadata: {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_edited: false,
-        is_deleted: false,
-        timestamp: "Just now",
-        status: "sent",
-        isMe: false, // or true based on sender_id === user.id
-      };
+    socket.connect();
 
-      setRoomInfo(mockRoom);
-      setMessages([receivedMessage]); // 👈 correctly setting the message
-      setIsLoading(false);
+    Socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      socket.emit("join", { user_id: user?.id }); // Let server know this user's room
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    return () => {
+      socket.disconnect();
     };
-
-    loadMockData();
-  }, [roomId, user]);
+  }, []);
 
   // Send message function
   const sendMessage = async (content: string, attachments: File[] = []) => {
@@ -165,7 +188,7 @@ export const useChat = (roomId: string) => {
       id: uuidv4(),
       room_id: roomId,
       sender_id: user.id,
-      content,
+      content,  
       type: "text",
       metadata: {},
       created_at: new Date().toISOString(),
@@ -190,39 +213,44 @@ export const useChat = (roomId: string) => {
     }
 
     setMessages((prev) => [...prev, newMessage]);
+    console.log("Called");
 
     socket.emit("send_message", {
-      sender_id: 1,
-      receiver_id: 3,
+      sender_id: user?.id,
+      receiver_id: 25,
       content: content,
       // You can also send attachments if needed
     });
 
     return true;
   };
-
   useEffect(() => {
-    if (!socket) return;
+    // Ensure user is defined and has a valid ID
+    if (!user?.id || !socket) return;
+    console.log("I__M_CALLED");
 
-    const handleReceiveMessage = (data: { newMessage: Message }) => {
-      const incomingMessage = data.newMessage;
+    const handleReceiveMessage = (message: Message) => {
+      console.log("Incoming message:", message);
 
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          ...incomingMessage,
-          isMe: incomingMessage.sender_id === "3", // check if sent by me
-        },
-      ]);
+      // Check if the message is for this user
+      if (message.receiver_id === user?.id) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            ...message,
+            isMe: message.sender_id === user?.id, // Check if sent by current user
+          },
+        ]);
+      }
     };
 
     socket.on("receive_message", handleReceiveMessage);
 
-    // Cleanup to avoid multiple listeners
+    // Cleanup the event listener on component unmount
     return () => {
       socket.off("receive_message", handleReceiveMessage);
     };
-  }, [socket]);
+  }, [socket, user?.id]);
 
   // Update typing status
   const setTyping = async (typing: boolean) => {

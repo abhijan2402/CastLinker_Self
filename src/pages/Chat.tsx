@@ -5,25 +5,41 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, Phone, Video, Info, Plus, Search, Filter } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/useAuth";
-import { ChatMessage as ChatMessageComponent, ChatMessage } from "@/components/chat/ChatMessage";
+import {
+  ChatMessage as ChatMessageComponent,
+  ChatMessage,
+} from "@/components/chat/ChatMessage";
 import { useChat } from "@/hooks/useChat";
 import { useDebounce } from "@/hooks/useDebounce";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { Message, MessageReaction as TypedMessageReaction } from "@/types/chat";
-import socket from "@/socket"
+import socket from "@/socket";
+import { fetchData } from "@/api/ClientFuntion";
+
+interface Chat {
+  id: string;
+  name: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unread: number;
+  avatar: string;
+  role?: string;
+  online?: boolean;
+}
+
+interface ChatListResponse {
+  success: boolean;
+  data: Chat[];
+}
 
 const Chat = () => {
   const { user } = useAuth();
   const [inputMessage, setInputMessage] = useState("");
   const messageEndRef = useRef<HTMLDivElement>(null);
-  
-  const { 
-    messages,
-    sendMessage,
-    isLoading
-  } = useChat(''); 
-  
-  const [mockChats, setMockChats] = useState([
+
+  const { messages, sendMessage, isLoading } = useChat("");
+
+  const [mockChats, setMockChats] = useState<Chat[]>([
     {
       id: "1",
       name: "Sarah Johnson",
@@ -32,7 +48,7 @@ const Chat = () => {
       unread: 2,
       avatar: "/placeholder.svg",
       role: "Casting Director",
-      online: true
+      online: true,
     },
     {
       id: "2",
@@ -42,7 +58,7 @@ const Chat = () => {
       unread: 0,
       avatar: "/placeholder.svg",
       role: "Director",
-      online: false
+      online: false,
     },
     {
       id: "3",
@@ -52,7 +68,7 @@ const Chat = () => {
       unread: 0,
       avatar: "/placeholder.svg",
       role: "Producer",
-      online: true
+      online: true,
     },
     {
       id: "4",
@@ -60,20 +76,35 @@ const Chat = () => {
       lastMessage: "Hey team, I've uploaded the latest schedule",
       lastMessageTime: "08/10/2023",
       unread: 3,
-      avatar: "/placeholder.svg"
-    }
+      avatar: "/placeholder.svg",
+    },
   ]);
 
-  console.log(messages)
-  
+  const handleAllChats = async () => {
+    const res = await fetchData<ChatListResponse>(`/api/chat/list/${user.id}`);
+
+    if (res.success && Array.isArray(res.data)) {
+      // setMockChats(res.data);
+      console.log(res.data);
+    } else {
+      console.error("Failed to load chats");
+    }
+  };
+
+  useEffect(() => {
+    handleAllChats();
+  }, []);
+
+  // console.log(messages)
+
   const [activeChat, setActiveChat] = useState(mockChats[0]);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchTerm = useDebounce(searchQuery, 300);
-  
+
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-  
+
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
       sendMessage(inputMessage);
@@ -82,14 +113,14 @@ const Chat = () => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
   const handleEmojiSelect = (emoji: string) => {
-    setInputMessage(prev => prev + emoji);
+    setInputMessage((prev) => prev + emoji);
   };
 
   return (
@@ -98,55 +129,65 @@ const Chat = () => {
         <div className="p-4 border-b border-white/10 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gold">Messages</h2>
           <div className="flex gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="text-gold hover:bg-gold/10 rounded-full"
             >
               <Plus size={20} />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="text-gold hover:bg-gold/10 rounded-full"
             >
               <Filter size={20} />
             </Button>
           </div>
         </div>
-        
+
         <div className="p-4">
           <div className="relative">
-            <Search 
-              size={18} 
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" 
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
             />
-            <Input 
-              placeholder="Search conversations..." 
+            <Input
+              placeholder="Search conversations..."
               className="pl-10 bg-[#222222] border-0 text-white placeholder:text-gray-400 focus-visible:ring-gold/30"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
-        
+
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">
             {mockChats.map((chat) => (
-              <div 
+              <div
                 key={chat.id}
                 onClick={() => setActiveChat(chat)}
                 className={`
                   flex items-center gap-3 p-3 rounded-lg cursor-pointer
-                  ${activeChat?.id === chat.id ? 'bg-gold/20 border-l-2 border-gold' : 'hover:bg-[#222222]'}
+                  ${
+                    activeChat?.id === chat.id
+                      ? "bg-gold/20 border-l-2 border-gold"
+                      : "hover:bg-[#222222]"
+                  }
                 `}
               >
                 <div className="relative">
                   <Avatar className="h-12 w-12">
                     <AvatarImage src={chat.avatar} alt={chat.name} />
-                    <AvatarFallback className={`
-                      ${activeChat?.id === chat.id ? 'bg-gold/20 text-gold' : 'bg-[#333333] text-gray-300'}
-                    `}>
+                    <AvatarFallback
+                      className={`
+                      ${
+                        activeChat?.id === chat.id
+                          ? "bg-gold/20 text-gold"
+                          : "bg-[#333333] text-gray-300"
+                      }
+                    `}
+                    >
                       {chat.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
@@ -156,10 +197,16 @@ const Chat = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center">
-                    <h3 className={`font-medium truncate ${activeChat?.id === chat.id ? 'text-gold' : 'text-white'}`}>
+                    <h3
+                      className={`font-medium truncate ${
+                        activeChat?.id === chat.id ? "text-gold" : "text-white"
+                      }`}
+                    >
                       {chat.name}
                     </h3>
-                    <span className="text-xs text-gray-400">{chat.lastMessageTime}</span>
+                    <span className="text-xs text-gray-400">
+                      {chat.lastMessageTime}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <p className="text-sm text-gray-400 truncate">
@@ -180,7 +227,7 @@ const Chat = () => {
           </div>
         </ScrollArea>
       </div>
-      
+
       <div className="flex-1 flex flex-col">
         {!activeChat ? (
           <div className="flex items-center justify-center h-full text-gray-400">
@@ -192,10 +239,14 @@ const Chat = () => {
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={activeChat.avatar} alt={activeChat.name} />
-                  <AvatarFallback className="bg-gold/20 text-gold">{activeChat.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback className="bg-gold/20 text-gold">
+                    {activeChat.name.charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className="text-lg font-semibold text-gold">{activeChat.name}</h2>
+                  <h2 className="text-lg font-semibold text-gold">
+                    {activeChat.name}
+                  </h2>
                   <div className="flex items-center gap-2">
                     {activeChat.online && (
                       <>
@@ -206,29 +257,31 @@ const Chat = () => {
                     {activeChat.role && (
                       <>
                         <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-300">{activeChat.role}</span>
+                        <span className="text-sm text-gray-300">
+                          {activeChat.role}
+                        </span>
                       </>
                     )}
                   </div>
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="rounded-full text-gold hover:bg-gold/10"
                 >
                   <Phone size={20} />
                 </Button>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="rounded-full text-gold hover:bg-gold/10"
                 >
                   <Video size={20} />
                 </Button>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="rounded-full text-gold hover:bg-gold/10"
                 >
@@ -236,7 +289,7 @@ const Chat = () => {
                 </Button>
               </div>
             </div>
-            
+
             <ScrollArea className="flex-1 p-6">
               {isLoading ? (
                 <div className="flex justify-center p-4">
@@ -249,21 +302,26 @@ const Chat = () => {
               ) : (
                 <div className="space-y-6">
                   {messages.map((message) => {
-                    const typedReactions = message.reactions?.map(reaction => ({
-                      emoji: reaction.emoji,
-                      user_id: reaction.userId || '',
-                      count: 1
-                    }));
-                    
+                    const typedReactions = message.reactions?.map(
+                      (reaction) => ({
+                        emoji: reaction.emoji,
+                        user_id: reaction.userId || "",
+                        count: 1,
+                      })
+                    );
+
                     const chatMessage: ChatMessage = {
                       ...message,
-                      senderName: message.sender_id === user?.id ? user?.email?.split('@')[0] : 'User',
-                      senderRole: message.sender_id === user?.id ? '' : 'Role',
+                      senderName:
+                        message.sender_id === user?.id
+                          ? user?.email?.split("@")[0]
+                          : "User",
+                      senderRole: message.sender_id === user?.id ? "" : "Role",
                       isMe: message.sender_id === user?.id,
-                      status: 'seen' as const,
-                      reactions: typedReactions
+                      status: "seen" as const,
+                      reactions: typedReactions,
                     };
-                    
+
                     return (
                       <ChatMessageComponent
                         key={message.id}
@@ -277,11 +335,11 @@ const Chat = () => {
                 </div>
               )}
             </ScrollArea>
-            
+
             <div className="p-4 border-t border-white/10">
               <div className="flex items-center gap-3">
                 <div className="flex-1 relative">
-                  <Input 
+                  <Input
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyDown={handleKeyPress}
@@ -292,8 +350,8 @@ const Chat = () => {
                     <EmojiPicker onSelect={handleEmojiSelect} />
                   </div>
                 </div>
-                <Button 
-                  onClick={handleSendMessage} 
+                <Button
+                  onClick={handleSendMessage}
                   className="rounded-full bg-gold hover:bg-gold/90 text-black"
                 >
                   <Send size={18} />
