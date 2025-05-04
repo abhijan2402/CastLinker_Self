@@ -26,43 +26,40 @@ const ProjectCreate = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // if (!user) {
-    //   toast({
-    //     title: "Not authenticated",
-    //     description: "Please sign in to create a project",
-    //     variant: "destructive",
-    //   });
-    //   return;
-    // }
+    if (!user) {
+      toast({
+        title: "Not authenticated",
+        description: "Please sign in to create a project",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // if (!name) {
-    //   toast({
-    //     title: "Project name required",
-    //     description: "Please enter a name for your project",
-    //     variant: "destructive",
-    //   });
-    //   return;
-    // }
+    if (!name) {
+      toast({
+        title: "Project name required",
+        description: "Please enter a name for your project",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const payload = {
       name: name,
       description: description,
       status: status,
       location: location,
-      // user_id: 1,
+      user_id: user.id,
     };
     console.log(payload);
     try {
       const response = await postData("/api/projects/create", payload);
       console.log("✅ Project created:", response);
-      if(response){
-
+      if (response) {
         toast({
           title: "Project created successfully",
         });
@@ -74,7 +71,7 @@ const ProjectCreate = () => {
         title: "Error in creating Project",
         description: error,
         variant: "destructive",
-      }); 
+      });
     }
   };
 

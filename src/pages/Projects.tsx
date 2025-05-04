@@ -161,7 +161,7 @@ const Projects = () => {
                     variant="outline"
                     className="bg-gold/10 border-gold/20 text-gold"
                   >
-                    {project.current_status}
+                    {project.current_status || "Planning"}
                   </Badge>
                 </div>
                 <CardDescription className="text-muted-foreground">

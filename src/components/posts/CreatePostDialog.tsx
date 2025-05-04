@@ -224,10 +224,12 @@ const CreatePostDialog = ({
       );
 
       console.log("✅ Posts created:", response);
-      if (response.message) {
+      if (response) {
         toast({
           title: "posts created successfully",
         });
+        form.reset();
+        setMediaFile(null);
         onOpenChange(false);
       }
     } catch (error) {

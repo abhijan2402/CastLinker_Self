@@ -96,7 +96,7 @@ const NotificationsPage = () => {
           }
         ];
 
-        const res = fetchData("/api/notifications");
+        const res = await fetchData("/api/notifications");
         console.log(res);
         
         setNotifications(sampleNotifications);

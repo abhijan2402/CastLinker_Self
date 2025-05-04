@@ -1,46 +1,41 @@
-import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
+import { E2EEncryption } from "../utils/encryption";
+import socket from "@/socket";
 
-export type ChatUser = {
+// Define types to match those used in the codebase
+export interface Message {
   id: string;
-  name: string;
-  role: string;
-  avatar: string;
-  online: boolean;
-  lastSeen: string | null;
-  unreadCount: number;
-};
-
-export type ChatMessage = {
-  id: string;
-  senderId: string;
-  recipientId: string | null;
-  chatId: string | null;
+  room_id: string;
+  sender_id: string;
   content: string;
-  timestamp: string;
-  status: 'sent' | 'delivered' | 'seen';
-  isMe: boolean;
+  type: "text" | "image" | "video" | "audio" | "document" | "system";
+  metadata: {
+    fileName?: string;
+    fileSize?: number;
+    mimeType?: string;
+    duration?: number;
+    dimensions?: {
+      width: number;
+      height: number;
+    };
+  };
+  created_at: string;
+  updated_at: string;
+  is_edited: boolean;
+  is_deleted: boolean;
+  reply_to_id?: string;
+  reactions?: MessageReaction[];
+  // Additional properties to support existing code
+  timestamp?: string;
+  status?: "sent" | "delivered" | "seen";
+  isMe?: boolean;
   attachments?: Attachment[];
-  reactions?: Reaction[];
-  isEdited: boolean;
-  isDeleted: boolean;
-};
+}
 
-export type Chat = {
-  id: string;
-  name: string;
-  participants: string[];
-  isGroup: boolean;
-  lastMessage: string;
-  lastMessageTime: string;
-  unread: number;
-  avatar: string;
-  role?: string;
-  online?: boolean;
-};
-
-export type Attachment = {
+export interface Attachment {
   id: string;
   messageId: string;
   fileUrl: string;
@@ -48,524 +43,325 @@ export type Attachment = {
   fileType: string;
   fileSize: number;
   thumbnailUrl?: string;
-};
+}
 
-export type Reaction = {
+export interface MessageReaction {
   userId: string;
   emoji: string;
-};
+}
 
-export const useChat = () => {
+export interface ChatRoom {
+  id: string;
+  type: "one_to_one" | "group";
+  name: string;
+  created_at: string;
+  updated_at: string;
+  last_message_at: string;
+  metadata: {
+    description?: string;
+    memberCount?: number;
+    last_message?: string;
+    unread_count?: number;
+  };
+}
+
+export interface UserPresence {
+  user_id: string;
+  status: "online" | "away" | "offline";
+  last_active: string;
+  typing_in_room?: string;
+  typing_until?: string;
+}
+
+export interface OnlineUser {
+  id: string;
+  name: string;
+  status: "online" | "away" | "offline";
+}
+
+export interface MediaAttachment {
+  id: string;
+  message_id: string;
+  type: "image" | "video" | "audio" | "document";
+  url: string;
+  filename: string;
+  size_bytes: number;
+  mime_type: string;
+  metadata: {
+    width?: number;
+    height?: number;
+    duration?: number;
+    thumbnail_url?: string;
+  };
+  encrypted_key: string;
+  created_at: string;
+}
+
+// Mock implementation for chat functionality
+export const useChat = (roomId: string) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [roomInfo, setRoomInfo] = useState<ChatRoom | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<UserPresence[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [activeChat, setActiveChat] = useState<Chat | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredChats, setFilteredChats] = useState<Chat[]>([]);
-  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'active'>('newest');
-  const [userTyping, setUserTyping] = useState<{userId: string, chatId: string} | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+  const encryption = new E2EEncryption();
+
+  // useEffect(() => {
+  //   if (!roomId || !user) return;
+
+  //   const loadMockData = async () => {
+  //     setIsLoading(true);
+
+  //     // Mock room data
+  //     const mockRoom: ChatRoom = {
+  //       id: roomId,
+  //       type: "one_to_one",
+  //       name: "Chat Room",
+  //       created_at: new Date().toISOString(),
+  //       updated_at: new Date().toISOString(),
+  //       last_message_at: new Date().toISOString(),
+  //       metadata: {
+  //         description: "A chat room",
+  //         memberCount: 2,
+  //         last_message: "Hello",
+  //         unread_count: 0,
+  //       },
+  //     };
+
+  //     // Mock received message (this is your incoming message)
+  //     const receivedMessage: Message = {
+  //       id: "d3c9b767-a4a0-4a73-a743-0e24f8ddda12",
+  //       room_id: roomId, // you should assign the current roomId here!
+  //       sender_id: "e983aee4-0387-440a-99f3-c12355aa7458",
+  //       content: "hlo",
+  //       type: "text",
+  //       metadata: {},
+  //       created_at: new Date().toISOString(),
+  //       updated_at: new Date().toISOString(),
+  //       is_edited: false,
+  //       is_deleted: false,
+  //       timestamp: "Just now",
+  //       status: "sent",
+  //       isMe: false, // or true based on sender_id === user.id
+  //     };
+
+  //     setRoomInfo(mockRoom);
+  //     setMessages([receivedMessage]); // 👈 correctly setting the message
+  //     setIsLoading(false);
+  //   };
+
+  //   loadMockData();
+  // }, [roomId, user]);
   useEffect(() => {
-    if (!user) return;
-    
-    const loadChats = async () => {
-      setIsLoading(true);
-      try {
-        const dummyChats = [
-          {
-            id: "1",
-            name: "Sarah Johnson",
-            participants: [user.id, "user123"],
-            isGroup: false,
-            lastMessage: "When can you send the audition tape?",
-            lastMessageTime: "10:30 AM",
-            unread: 2,
-            avatar: "/placeholder.svg",
-            role: "Casting Director",
-            online: true
-          },
-          {
-            id: "2",
-            name: "Michael Rodriguez",
-            participants: [user.id, "user456"],
-            isGroup: false,
-            lastMessage: "I loved your performance in that short film!",
-            lastMessageTime: "Yesterday",
-            unread: 0,
-            avatar: "/placeholder.svg",
-            role: "Director",
-            online: false
-          },
-          {
-            id: "3",
-            name: "Emma Thompson",
-            participants: [user.id, "user789"],
-            isGroup: false,
-            lastMessage: "Let's discuss the contract details",
-            lastMessageTime: "Monday",
-            unread: 0,
-            avatar: "/placeholder.svg",
-            role: "Producer",
-            online: true
-          },
-          {
-            id: "4",
-            name: "Film Project Team",
-            participants: [user.id, "user123", "user456", "user789"],
-            isGroup: true,
-            lastMessage: "Hey team, I've uploaded the latest schedule",
-            lastMessageTime: "08/10/2023",
-            unread: 3,
-            avatar: "/placeholder.svg"
-          }
-        ];
-        
-        setChats(dummyChats);
-        if (dummyChats.length > 0) {
-          setActiveChat(dummyChats[0]);
-        }
-      } catch (error) {
-        console.error('Error loading chats:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load conversations",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadChats();
-    setupRealtimeSubscription();
-    
-    return () => {
-      cleanupRealtimeSubscription();
-    };
-  }, [user]);
-  
-  useEffect(() => {
-    if (!activeChat) return;
-    
-    const loadMessages = async () => {
-      setIsLoading(true);
-      try {
-        if (activeChat.id === "1") {
-          const dummyMessages = [
-            {
-              id: "m1",
-              senderId: "user123",
-              recipientId: user?.id,
-              chatId: "1",
-              content: "Hi James, I saw your profile and I'm impressed with your work!",
-              timestamp: "10:15 AM",
-              status: 'seen' as const,
-              isMe: false,
-              isEdited: false,
-              isDeleted: false
-            },
-            {
-              id: "m2",
-              senderId: user?.id || "",
-              recipientId: "user123",
-              chatId: "1",
-              content: "Thank you, Sarah! I'm glad you liked my portfolio.",
-              timestamp: "10:17 AM",
-              status: 'seen' as const,
-              isMe: true,
-              isEdited: false,
-              isDeleted: false
-            },
-            {
-              id: "m3",
-              senderId: "user123",
-              recipientId: user?.id,
-              chatId: "1",
-              content: "I'm working on a new indie film and I think you'd be perfect for one of the roles.",
-              timestamp: "10:20 AM",
-              status: 'seen' as const,
-              isMe: false,
-              isEdited: false,
-              isDeleted: false
-            },
-            {
-              id: "m4",
-              senderId: user?.id || "",
-              recipientId: "user123",
-              chatId: "1",
-              content: "That sounds interesting! I'd love to hear more about it.",
-              timestamp: "10:22 AM",
-              status: 'seen' as const,
-              isMe: true,
-              isEdited: false,
-              isDeleted: false
-            },
-            {
-              id: "m5",
-              senderId: "user123",
-              recipientId: user?.id,
-              chatId: "1",
-              content: "Great! It's a drama set in the 1960s. The character I'm thinking of is a struggling musician with a complicated past.",
-              timestamp: "10:25 AM",
-              status: 'seen' as const,
-              isMe: false,
-              isEdited: false,
-              isDeleted: false
-            },
-            {
-              id: "m6",
-              senderId: "user123",
-              recipientId: user?.id,
-              chatId: "1",
-              content: "Would you be able to send me an audition tape with a few scenes? I can send over the script excerpts.",
-              timestamp: "10:26 AM",
-              status: 'seen' as const,
-              isMe: false,
-              isEdited: false,
-              isDeleted: false
-            },
-            {
-              id: "m7",
-              senderId: user?.id || "",
-              recipientId: "user123",
-              chatId: "1",
-              content: "That sounds like a challenging role, I'm definitely interested! Yes, I can prepare an audition tape once I receive the script.",
-              timestamp: "10:28 AM",
-              status: 'seen' as const,
-              isMe: true,
-              isEdited: false,
-              isDeleted: false
-            },
-            {
-              id: "m8",
-              senderId: "user123",
-              recipientId: user?.id,
-              chatId: "1",
-              content: "When can you send the audition tape?",
-              timestamp: "10:30 AM",
-              status: 'delivered' as const,
-              isMe: false,
-              isEdited: false,
-              isDeleted: false
-            }
-          ];
-          setMessages(dummyMessages);
-        } else {
-          setMessages([]);
-        }
-      } catch (error) {
-        console.error('Error loading messages:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load messages",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadMessages();
-    markChatAsRead(activeChat.id);
-  }, [activeChat, user]);
-  
-  useEffect(() => {
-    let filtered = [...chats];
-    
-    if (searchQuery) {
-      filtered = filtered.filter(chat => 
-        chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    if (showUnreadOnly) {
-      filtered = filtered.filter(chat => chat.unread > 0);
-    }
-    
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return a.lastMessageTime < b.lastMessageTime ? 1 : -1;
-        case 'oldest':
-          return a.lastMessageTime > b.lastMessageTime ? 1 : -1;
-        case 'active':
-          return b.unread - a.unread;
-        default:
-          return 0;
-      }
+    //user whom we are chatting
+
+    console.log(user?.user?.id, "USER___USER");
+
+    if (!user?.user?.id) return;
+
+    socket.connect();
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      socket.emit("join", { user_id: user?.user?.id }); // Let server know this user's room
     });
-    
-    setFilteredChats(filtered);
-  }, [chats, searchQuery, showUnreadOnly, sortBy]);
-  
-  const sendMessage = async (content: string, attachments?: File[], replyToMessageId?: string) => {
-    if (!user || !activeChat) return false;
-    
-    try {
-      const newMessage = {
-        id: `m${messages.length + 1}`,
-        senderId: user.id,
-        recipientId: activeChat.isGroup ? null : activeChat.participants.find(id => id !== user.id),
-        chatId: activeChat.id,
-        content,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: 'sent' as const,
-        isMe: true,
-        attachments: attachments ? attachments.map(file => ({
-          id: Math.random().toString(36).substring(7),
-          messageId: `m${messages.length + 1}`,
-          fileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-          fileUrl: URL.createObjectURL(file),
-        })) : undefined,
-        isEdited: false,
-        isDeleted: false
-      };
-      
-      setMessages(prev => [...prev, newMessage]);
-      
-      updateChatPreview(activeChat.id, content);
-      
-      return true;
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive"
-      });
-      return false;
-    }
-  };
-  
-  const updateChatPreview = (chatId: string, lastMessage: string) => {
-    setChats(prevChats => 
-      prevChats.map(chat => 
-        chat.id === chatId
-          ? { 
-              ...chat, 
-              lastMessage, 
-              lastMessageTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }
-          : chat
-      )
-    );
-  };
-  
-  const markChatAsRead = (chatId: string) => {
-    setChats(prevChats => 
-      prevChats.map(chat => 
-        chat.id === chatId
-          ? { ...chat, unread: 0 }
-          : chat
-      )
-    );
-    
-    setMessages(prevMessages => 
-      prevMessages.map(message => 
-        !message.isMe && message.status !== 'seen'
-          ? { ...message, status: 'seen' as const }
-          : message
-      )
-    );
-  };
-  
-  const indicateTyping = (chatId: string) => {
-    if (!user) return;
-    
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    
-    typingTimeoutRef.current = setTimeout(() => {
-      setUserTyping(null);
-    }, 3000);
-  };
-  
-  const setupRealtimeSubscription = () => {
-    if (!user) return;
-    
-    const channel = supabase
-      .channel('chat-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `recipient_id=eq.${user.id}`
-        },
-        (payload) => {
-          const newMessage = payload.new;
-          // Handle new message
-        }
-      )
-      .subscribe();
-  };
-  
-  const cleanupRealtimeSubscription = () => {
-    if (channel) {
-      supabase.removeChannel(channel);
-    }
-  };
-  
-  const editMessage = async (messageId: string, newContent: string) => {
-    try {
-      setMessages(prev => 
-        prev.map(message => 
-          message.id === messageId
-            ? { ...message, content: newContent, isEdited: true }
-            : message
-        )
-      );
-      
-      return true;
-    } catch (error) {
-      console.error('Error editing message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to edit message",
-        variant: "destructive"
-      });
-      return false;
-    }
-  };
-  
-  const deleteMessage = async (messageId: string, forEveryone: boolean = false) => {
-    try {
-      if (forEveryone) {
-        setMessages(prev => 
-          prev.map(message => 
-            message.id === messageId
-              ? { ...message, content: "This message was deleted", isDeleted: true, attachments: undefined, reactions: undefined }
-              : message
-          )
-        );
-      } else {
-        setMessages(prev => prev.filter(message => message.id !== messageId));
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error deleting message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete message",
-        variant: "destructive"
-      });
-      return false;
-    }
-  };
-  
-  const addReaction = async (messageId: string, emoji: string) => {
-    if (!user) return false;
-    
-    try {
-      const reaction = { userId: user.id, emoji };
-      
-      setMessages(prev => 
-        prev.map(message => 
-          message.id === messageId
-            ? { 
-                ...message, 
-                reactions: message.reactions 
-                  ? [...message.reactions.filter(r => r.userId !== user.id), reaction] 
-                  : [reaction] 
-              }
-            : message
-        )
-      );
-      
-      return true;
-    } catch (error) {
-      console.error('Error adding reaction:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add reaction",
-        variant: "destructive"
-      });
-      return false;
-    }
-  };
-  
-  const createGroupChat = async (name: string, participantIds: string[]) => {
-    if (!user) return false;
-    
-    try {
-      const allParticipants = [user.id, ...participantIds];
-      
-      const newChat: Chat = {
-        id: `group-${Date.now()}`,
-        name,
-        participants: allParticipants,
-        isGroup: true,
-        lastMessage: "Group created",
-        lastMessageTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        unread: 0,
-        avatar: "/placeholder.svg"
-      };
-      
-      setChats(prev => [newChat, ...prev]);
-      setActiveChat(newChat);
-      
-      return true;
-    } catch (error) {
-      console.error('Error creating group chat:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create group chat",
-        variant: "destructive"
-      });
-      return false;
-    }
-  };
-  
-  const uploadAttachment = async (file: File) => {
-    try {
-      return {
-        success: true,
-        url: URL.createObjectURL(file),
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  // Send message function
+  const sendMessage = async (content: string, attachments: File[] = []) => {
+    console.log(content);
+    if (!user || !content.trim()) return;
+
+    const newMessage: Message = {
+      id: uuidv4(),
+      room_id: roomId,
+      sender_id: user.id,
+      content,
+      type: "text",
+      metadata: {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_edited: false,
+      is_deleted: false,
+      timestamp: "Just now",
+      status: "sent",
+      isMe: true,
+    };
+
+    // If there are attachments, add them to the message
+    if (attachments.length > 0) {
+      newMessage.attachments = attachments.map((file) => ({
+        id: uuidv4(),
+        messageId: newMessage.id,
+        fileUrl: URL.createObjectURL(file),
         fileName: file.name,
         fileType: file.type,
-        fileSize: file.size
-      };
-    } catch (error) {
-      console.error('Error uploading attachment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to upload file",
-        variant: "destructive"
-      });
-      return { success: false };
+        fileSize: file.size,
+      }));
     }
+
+    setMessages((prev) => [...prev, newMessage]);
+    console.log("Called");
+
+    socket.emit("send_message", {
+      sender_id: 19,
+      receiver_id: 19,
+      content: content,
+      // You can also send attachments if needed
+    });
+
+    return true;
   };
-  
+  useEffect(() => {
+    // Ensure user is defined and has a valid ID
+    if (!user?.user?.id || !socket) return;
+    console.log("I__M_CALLED");
+
+    const handleReceiveMessage = (message: Message) => {
+      console.log("Incoming message:", message);
+
+      // Check if the message is for this user
+      if (message.receiver_id === user?.user?.id) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            ...message,
+            isMe: message.sender_id === user?.user?.id, // Check if sent by current user
+          },
+        ]);
+      }
+    };
+
+    socket.on("receive_message", handleReceiveMessage);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      socket.off("receive_message", handleReceiveMessage);
+    };
+  }, [socket, user?.user?.id]);
+
+  // Update typing status
+  const setTyping = async (typing: boolean) => {
+    setIsTyping(typing);
+    return true;
+  };
+
+  // Load more messages
+  const loadMoreMessages = async () => {
+    setHasMoreMessages(false);
+    return true;
+  };
+
+  // Mark message as read
+  const markAsRead = async () => {
+    return true;
+  };
+
+  // Delete message
+  const deleteMessage = async (messageId: string, forEveryone = false) => {
+    if (forEveryone) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                content: "This message was deleted",
+                is_deleted: true,
+                attachments: undefined,
+                reactions: undefined,
+              }
+            : msg
+        )
+      );
+    } else {
+      setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+    }
+    return true;
+  };
+
+  // Edit message
+  const editMessage = async (messageId: string, newContent: string) => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId
+          ? { ...msg, content: newContent, is_edited: true }
+          : msg
+      )
+    );
+    return true;
+  };
+
+  // Add reaction to message
+  const addReaction = async (messageId: string, emoji: string) => {
+    if (!user) return false;
+
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id === messageId) {
+          const existingReactions = msg.reactions || [];
+          const filteredReactions = existingReactions.filter(
+            (r) => r.userId !== user.id
+          );
+
+          return {
+            ...msg,
+            reactions: [...filteredReactions, { userId: user.id, emoji }],
+          };
+        }
+        return msg;
+      })
+    );
+
+    return true;
+  };
+
+  // Remove reaction from message
+  const removeReaction = async (messageId: string, emoji: string) => {
+    if (!user) return false;
+
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id === messageId) {
+          const existingReactions = msg.reactions || [];
+          return {
+            ...msg,
+            reactions: existingReactions.filter(
+              (r) => !(r.userId === user.id && r.emoji === emoji)
+            ),
+          };
+        }
+        return msg;
+      })
+    );
+
+    return true;
+  };
+
   return {
-    chats: filteredChats,
-    activeChat,
     messages,
-    isLoading,
-    userTyping,
-    searchQuery,
-    showUnreadOnly,
-    sortBy,
-    setActiveChat,
     sendMessage,
-    markChatAsRead,
-    indicateTyping,
-    setSearchQuery,
-    setShowUnreadOnly,
-    setSortBy,
-    editMessage,
+    isTyping,
+    onlineUsers,
+    setTyping,
+    roomInfo,
+    loadMoreMessages,
+    hasMoreMessages,
+    markAsRead,
     deleteMessage,
+    editMessage,
     addReaction,
-    createGroupChat,
-    uploadAttachment
+    removeReaction,
+    isLoading,
   };
 };

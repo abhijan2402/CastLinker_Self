@@ -6,12 +6,31 @@ import { postData } from "@/api/ClientFuntion";
 
 // Define User interface
 export interface User {
-  id: string;
-  name: string;
+  id: string | number;
   email: string;
   role: string;
+  type: string;
   avatar: string;
   isLoggedIn: boolean;
+  token: string;
+}
+
+interface SingupResponse {
+  user: {
+    id: number;
+    email: string;
+    user_type: string;
+    user_role: string;
+  };
+  token: string;
+}
+interface LoginResponse {
+  user: {
+    id: number;
+    email: string;
+    user_type: string;
+    user_role: string;
+  };
   token: string;
 }
 
@@ -33,8 +52,6 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
 }
-type LoginResponse = User;
-type SingupResponse = User;
 
 // Create context with default values
 const AuthContext = createContext<AuthContextType>({
@@ -52,79 +69,79 @@ export const useAuth = () => {
 };
 
 // Convert Supabase user to our User format
-const formatUser = (supabaseUser: SupabaseUser | null): User | null => {
-  if (!supabaseUser) return null;
+// const formatUser = (supabaseUser: SupabaseUser | null): User | null => {
+//   if (!supabaseUser) return null;
 
-  return {
-    id: supabaseUser.id,
-    name:
-      supabaseUser.user_metadata?.name ||
-      supabaseUser.email?.split("@")[0] ||
-      "",
-    email: supabaseUser.email || "",
-    role: supabaseUser.user_metadata?.role || "Actor",
-    avatar: supabaseUser.user_metadata?.avatar_url || "/images/avatar.png",
-    isLoggedIn: true,
-    token: "ssasgf",
-  };
-};
+//   return {
+//     id: supabaseUser.id,
+//     name:
+//       supabaseUser.user_metadata?.name ||
+//       supabaseUser.email?.split("@")[0] ||
+//       "",
+//     email: supabaseUser.email || "",
+//     role: supabaseUser.user_metadata?.role || "Actor",
+//     avatar: supabaseUser.user_metadata?.avatar_url || "/images/avatar.png",
+//     isLoggedIn: true,
+//     token: "ssasgf",
+//   };-
 
 // Auth Provider component
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  console.log(user);
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Check for existing session on mount
-  useEffect(() => {
-    // First set up the auth state listener to prevent missing auth events
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      const formattedUser = formatUser(session?.user || null);
-      setUser(formattedUser);
-      setIsLoading(false);
+  // useEffect(() => {
+  //   // First set up the auth state listener to prevent missing auth events
+  //   const {
+  //     data: { subscription },
+  //   } = supabase.auth.onAuthStateChange((event, session) => {
+  //     const formattedUser = formatUser(session?.user || null);
+  //     setUser(formattedUser);
+  //     setIsLoading(false);
 
-      if (event === "SIGNED_IN" && formattedUser) {
-        toast({
-          title: "Welcome back!",
-          description: `You are logged in as ${formattedUser.name}`,
-        });
-      }
+  //     if (event === "SIGNED_IN" && formattedUser) {
+  //       toast({
+  //         title: "Welcome back!",
+  //         description: `You are logged in as ${formattedUser.name}`,
+  //       });
+  //     }
 
-      if (event === "SIGNED_OUT") {
-        toast({
-          title: "Signed out",
-          description: "You have been logged out successfully",
-        });
-      }
-    });
+  //     if (event === "SIGNED_OUT") {
+  //       toast({
+  //         title: "Signed out",
+  //         description: "You have been logged out successfully",
+  //       });
+  //     }
+  //   });
 
-    // Then check for existing session
-    const checkSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
+  //   // Then check for existing session
+  //   const checkSession = async () => {
+  //     try {
+  //       const { data, error } = await supabase.auth.getSession();
+  //       if (error) throw error;
 
-        if (data.session) {
-          const formattedUser = formatUser(data.session.user);
-          setUser(formattedUser);
-        }
-      } catch (err) {
-        console.error("Error checking auth session:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  //       if (data.session) {
+  //         const formattedUser = formatUser(data.session.user);
+  //         setUser(formattedUser);
+  //       }
+  //     } catch (err) {
+  //       console.error("Error checking auth session:", err);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
-    checkSession();
+  //   checkSession();
 
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [toast]);
+  //   return () => {
+  //     subscription?.unsubscribe();
+  //   };
+  // }, [toast]);
 
   const login = async (
     email: string,
@@ -141,14 +158,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         "/auth/login",
         payload
       );
+      console.log(loginResponse);
+
+      if ((loginResponse as any)?.error) {
+        const errorMessage = (loginResponse as any).error;
+        throw new Error(errorMessage);
+      }
 
       console.log(loginResponse);
 
       // Later in login:
-      setUser(loginResponse);
+      const formattedUser: User = {
+        id: loginResponse.user.id,
+        email: loginResponse.user.email,
+        role: loginResponse.user.user_type,
+        type: loginResponse.user.user_role,
+        avatar: "/images/avatar.png",
+        isLoggedIn: true,
+        token: loginResponse.token,
+      };
 
+      setUser(formattedUser);
       // Save token to localStorage
-      localStorage.setItem("authToken", loginResponse.token);
+      localStorage.setItem("token", loginResponse.token);
 
       // Remember login state
       if (rememberMe) {
@@ -182,20 +214,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const registerResponse = await postData<SingupResponse>(
         "/auth/register",
         {
-          email: email,
-          password: password,
+          email,
+          password,
           username: name,
           user_type: role,
           user_role: "user",
         }
       );
 
-      // Later in login:
-      setUser(registerResponse);
+      // ❗ If response contains an error field, throw it
+      if ((registerResponse as any)?.error) {
+        throw new Error((registerResponse as any).error);
+      }
 
-      // Save token to localStorage
-      localStorage.setItem("authToken", registerResponse.token);
+      const formattedUser: User = {
+        id: registerResponse.user.id,
+        email: registerResponse.user.email,
+        role: registerResponse.user.user_role,
+        type: registerResponse.user.user_type,
+        avatar: "/images/avatar.png",
+        isLoggedIn: true,
+        token: registerResponse.token,
+      };
 
+      setUser(formattedUser);
+
+      localStorage.setItem("token", registerResponse.token);
+
+      // Additional optional setup steps are commented out
       // Step 2: Create user profile via your backend
       // const profilePayload = {
       //   user_email: email,
@@ -203,10 +249,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       //   role: role || "Actor",
       //   avatar_url: "/images/avatar.png",
       //   verified: false,
-      //   bio: `Hi, I'm ${name}! I'm a ${
+      //   bio: Hi, I'm ${name}! I'm a ${
       //     role || "Actor"
-      //   } looking to connect with other film industry professionals.`,
-      //   headline: `${role || "Actor"} | Available for Projects`,
+      //   } looking to connect with other film industry professionals.,
+      //   headline: ${role || "Actor"} | Available for Projects,
       //   location: "Remote",
       // };
 
@@ -269,21 +315,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      await supabase.auth.signOut();
-      localStorage.removeItem("rememberLogin");
-    } catch (error: any) {
-      console.error("Error signing out:", error);
-      toast({
-        title: "Error signing out",
-        description: error.message || "An error occurred while logging out",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("rememberLogin");
+    toast({
+      title: "Logged out",
+      description: "You have been logged out successfully.",
+    });
   };
 
   const value = {

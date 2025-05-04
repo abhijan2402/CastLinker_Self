@@ -66,7 +66,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const firstName = user?.name?.split(" ")[0] || "Actor";
+  const firstName = user?.username?.split(" ")[0] || "Actor";
   const [stats, setStats] = useState<Stats>({
     applications: 0,
     connections: 0,
@@ -168,7 +168,7 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  console.log(recentOpportunities);
+  // console.log(recentOpportunities);
 
   return (
     <div className="space-y-4 pr-1">
