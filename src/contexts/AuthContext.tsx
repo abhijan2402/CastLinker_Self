@@ -5,30 +5,74 @@ import { useToast } from "@/hooks/use-toast";
 import { postData } from "@/api/ClientFuntion";
 
 // Define User interface
+
 export interface User {
-  id: string | number;
+  id: number;
   email: string;
   role: string;
   type: string;
   isLoggedIn: boolean;
   token: string;
+
+  username?: string;
+  bio?: string;
+  age_range?: string;
+  weight?: string;
+  height?: string;
+  eye_color?: string;
+  hair_color?: string;
+  union_status?: string;
+  languages?: string;
+  representation?: string;
+  special_skills?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-interface SingupResponse {
-  user: {
-    id: number;
-    email: string;
-    user_type: string;
-    user_role: string;
-  };
-  token: string;
-}
+// Match this with your API response
 interface LoginResponse {
   user: {
     id: number;
     email: string;
-    user_type: string;
     user_role: string;
+    user_type: string;
+    // Add optional fields you might use later
+    username?: string;
+    bio?: string;
+    age_range?: string;
+    weight?: string;
+    height?: string;
+    eye_color?: string;
+    hair_color?: string;
+    union_status?: string;
+    languages?: string;
+    representation?: string;
+    special_skills?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+  token: string;
+}
+interface SingupResponse {
+  user: {
+    id: number;
+    email: string;
+    user_role: string;
+    user_type: string;
+    // Add optional fields you might use later
+    username?: string;
+    bio?: string;
+    age_range?: string;
+    weight?: string;
+    height?: string;
+    eye_color?: string;
+    hair_color?: string;
+    union_status?: string;
+    languages?: string;
+    representation?: string;
+    special_skills?: string;
+    createdAt?: string;
+    updatedAt?: string;
   };
   token: string;
 }
@@ -161,19 +205,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if ((loginResponse as any)?.error) {
         const errorMessage = (loginResponse as any).error;
+        toast({
+          title: "Login failed",
+          description: "Check your credentials and try again",
+          variant: "destructive",
+        });
         throw new Error(errorMessage);
       }
-
       console.log(loginResponse);
 
       // Later in login:
       const formattedUser: User = {
         id: loginResponse.user.id,
         email: loginResponse.user.email,
-        role: loginResponse.user.user_type,
-        type: loginResponse.user.user_role,
+        role: loginResponse.user.user_role,
+        type: loginResponse.user.user_type,
         isLoggedIn: true,
         token: loginResponse.token,
+
+        // Optional fields from backend response
+        username: loginResponse.user.username,
+        bio: loginResponse.user.bio,
+        age_range: loginResponse.user.age_range,
+        weight: loginResponse.user.weight,
+        height: loginResponse.user.height,
+        eye_color: loginResponse.user.eye_color,
+        hair_color: loginResponse.user.hair_color,
+        union_status: loginResponse.user.union_status,
+        languages: loginResponse.user.languages,
+        representation: loginResponse.user.representation,
+        special_skills: loginResponse.user.special_skills,
+        createdAt: loginResponse.user.createdAt,
+        updatedAt: loginResponse.user.updatedAt,
       };
 
       setUser(formattedUser);
@@ -187,10 +250,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         localStorage.removeItem("rememberLogin");
       }
     } catch (error: any) {
-      setError(error.message || "Failed to login");
+      setError("Failed to login");
       toast({
         title: "Login failed",
-        description: error.message || "Check your credentials and try again",
+        description: "Check your credentials and try again",
         variant: "destructive",
       });
       throw error;
@@ -222,6 +285,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // ❗ If response contains an error field, throw it
       if ((registerResponse as any)?.error) {
+        toast({
+          title: "Signup failed",
+          description: "Check your credentials and try again",
+          variant: "destructive",
+        });
         throw new Error((registerResponse as any).error);
       }
 
@@ -232,6 +300,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         type: registerResponse.user.user_type,
         isLoggedIn: true,
         token: registerResponse.token,
+
+        // Optional fields from backend response
+        username: registerResponse.user.username,
+        bio: registerResponse.user.bio,
+        age_range: registerResponse.user.age_range,
+        weight: registerResponse.user.weight,
+        height: registerResponse.user.height,
+        eye_color: registerResponse.user.eye_color,
+        hair_color: registerResponse.user.hair_color,
+        union_status: registerResponse.user.union_status,
+        languages: registerResponse.user.languages,
+        representation: registerResponse.user.representation,
+        special_skills: registerResponse.user.special_skills,
+        createdAt: registerResponse.user.createdAt,
+        updatedAt: registerResponse.user.updatedAt,
       };
 
       setUser(formattedUser);
@@ -273,12 +356,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       //   description: "Welcome to CastLinker!",
       // });
     } catch (error: any) {
-      setError(error.message || "Failed to create account");
+      setError("Failed to create account");
 
       toast({
         title: "Signup failed",
-        description:
-          error.message || "Please try again with different credentials",
+        description: "Please try again with different credentials",
         variant: "destructive",
       });
 

@@ -1,32 +1,50 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import { EditProfileDialog } from "./EditProfileDialog";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
+import { useAuth } from "@/contexts/AuthContext";
+import { postData, updateData } from "@/api/ClientFuntion";
 
 const AboutSection = () => {
   const [isEditing, setIsEditing] = useState(false);
-  
+  const { user } = useAuth();
+
   // In a real app, this data would come from API/context
   const about = {
-    bio: `Award-winning actor with over 10 years of experience in film, television, and theater. Specialized in dramatic roles with a strong background in method acting. I've worked with directors such as Christopher Nolan and Denis Villeneuve on major studio productions.
+    bio:
+      user?.bio ||
+      `Award-winning actor with over 10 years of experience in film, television, and theater. Specialized in dramatic roles with a strong background in method acting. I've worked with directors such as Christopher Nolan and Denis Villeneuve on major studio productions.
     
     Currently seeking challenging roles that push artistic boundaries. Open to both independent and major studio projects.`,
     details: [
-      { label: "Age Range", value: "30-40" },
-      { label: "Height", value: "6'1\" (185 cm)" },
-      { label: "Weight", value: "180 lbs (82 kg)" },
-      { label: "Hair Color", value: "Brown" },
-      { label: "Eye Color", value: "Blue" },
-      { label: "Languages", value: "English (Native), Spanish (Conversational), French (Basic)" },
-      { label: "Union Status", value: "SAG-AFTRA" },
-      { label: "Representation", value: "Creative Artists Agency (CAA)" },
-    ]
+      { label: "Age Range", value: user?.age_range || "30-40" },
+      { label: "Height", value: user?.height || "6'1\" (185 cm)" },
+      { label: "Weight", value: user?.weight || "180 lbs (82 kg)" },
+      { label: "Hair Color", value: user?.hair_color || "Brown" },
+      { label: "Eye Color", value: user?.eye_color || "Blue" },
+      {
+        label: "Languages",
+        value:
+          user?.languages ||
+          "English (Native), Spanish (Conversational), French (Basic)",
+      },
+      { label: "Union Status", value: user?.union_status || "SAG-AFTRA" },
+      {
+        label: "Representation",
+        value: user?.representation || "Creative Artists Agency (CAA)",
+      },
+    ],
   };
 
   // Define form for editing about section
@@ -41,13 +59,32 @@ const AboutSection = () => {
       languages: "English (Native), Spanish (Conversational), French (Basic)",
       unionStatus: "SAG-AFTRA",
       representation: "Creative Artists Agency (CAA)",
-    }
+    },
   });
 
   const handleSave = async (data: any) => {
-    // In a real application, this would call an API to save the data
-    console.log("Saving about data:", data);
-    return Promise.resolve();
+    // Map form data to match API schema
+    const payload = {
+      bio: data.bio || "",
+      age_range: data.ageRange || "",
+      height: data.height || "",
+      weight: data.weight || "",
+      hair_color: data.hairColor || "",
+      eye_color: data.eyeColor || "",
+      languages: data.languages || "",
+      union_status: data.unionStatus || "",
+      representation: data.representation || "",
+      special_skills: data.special_skills || "", // Add field in form if needed
+      profile_image: data.profile_image || "", // Add field in form if needed
+    };
+
+    // Send payload to API (you can replace console.log with your API call)
+    console.log("Saving about data:", payload);
+
+    const res = await updateData("auth/update-profile", payload);
+    console.log(res);
+
+    // Example: await api.post("/update-profile", payload);
   };
 
   return (
@@ -56,8 +93,8 @@ const AboutSection = () => {
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Biography</h3>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               className="text-gold hover:text-gold hover:bg-gold/10"
               onClick={() => setIsEditing(true)}
@@ -70,13 +107,13 @@ const AboutSection = () => {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card className="bg-card-gradient border-gold/10">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Details</h3>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               className="text-gold hover:text-gold hover:bg-gold/10"
               onClick={() => setIsEditing(true)}
@@ -100,7 +137,7 @@ const AboutSection = () => {
         description="Update your biographical information and personal details"
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
-        onSave={handleSave}
+        onSave={form.handleSubmit(handleSave)}
       >
         <Form {...form}>
           <FormField
@@ -110,10 +147,10 @@ const AboutSection = () => {
               <FormItem>
                 <FormLabel>Biography</FormLabel>
                 <FormControl>
-                  <Textarea 
-                    placeholder="Write about yourself..." 
-                    className="h-32" 
-                    {...field} 
+                  <Textarea
+                    placeholder="Write about yourself..."
+                    className="h-32"
+                    {...field}
                   />
                 </FormControl>
               </FormItem>
@@ -133,7 +170,7 @@ const AboutSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="height"
@@ -146,7 +183,7 @@ const AboutSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="weight"
@@ -159,7 +196,7 @@ const AboutSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="hairColor"
@@ -172,7 +209,7 @@ const AboutSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="eyeColor"
@@ -185,7 +222,7 @@ const AboutSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="languages"
@@ -198,7 +235,7 @@ const AboutSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="unionStatus"
@@ -211,7 +248,7 @@ const AboutSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="representation"

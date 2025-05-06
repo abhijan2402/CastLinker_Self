@@ -173,6 +173,7 @@ const JobCreateForm = ({
         title: "Job created successfully",
       });
       onClose();
+      onJobCreated();
     } catch (error) {
       console.error("❌ Unexpected error:", error);
       toast({
@@ -376,7 +377,7 @@ const JobCreateForm = ({
                 Currency
               </Label>
               <Select
-                value={formData.salary_currency || "USD"}
+                value={formData.salary_currency || "INR"}
                 onValueChange={(value) =>
                   handleSelectChange("salary_currency", value)
                 }
@@ -385,13 +386,11 @@ const JobCreateForm = ({
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["USD", "EUR", "GBP", "CAD", "AUD", "INR"].map(
-                    (currency) => (
-                      <SelectItem key={currency} value={currency}>
-                        {currency}
-                      </SelectItem>
-                    )
-                  )}
+                  {["INR"].map((currency) => (
+                    <SelectItem key={currency} value={currency}>
+                      {currency}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

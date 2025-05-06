@@ -320,7 +320,7 @@ const Posts = () => {
                 />
               </PopoverContent>
             </Popover>
-
+{/* 
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -355,7 +355,7 @@ const Posts = () => {
                   numberOfMonths={2}
                 />
               </PopoverContent>
-            </Popover>
+            </Popover> */}
 
             {hasActiveFilters && (
               <Button

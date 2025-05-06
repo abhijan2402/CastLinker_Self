@@ -10,7 +10,7 @@ import JobFiltersComponent from "@/components/jobs/JobFilters";
 import JobResults from "@/components/jobs/JobResults";
 import JobCreateForm from "@/components/jobs/JobCreateForm";
 import { fetchData } from "@/api/ClientFuntion";
-
+ 
 const Jobs = () => {
   const { user } = useAuth();
   const {

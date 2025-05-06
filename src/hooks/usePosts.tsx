@@ -1,17 +1,16 @@
-
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { 
-  Post, 
-  fetchPosts, 
-  checkIfApplied, 
-  togglePostLike, 
-  checkIfLiked, 
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Post,
+  fetchPosts,
+  checkIfApplied,
+  togglePostLike,
+  checkIfLiked,
   getApplicationsForPost,
   deletePost,
-  applyToPost
-} from '@/services/postsService';
-import { toast } from '@/hooks/use-toast';
+  applyToPost,
+} from "@/services/postsService";
+import { toast } from "@/hooks/use-toast";
 
 export const usePosts = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -19,12 +18,14 @@ export const usePosts = () => {
   const [error, setError] = useState<string | null>(null);
   const [appliedPosts, setAppliedPosts] = useState<Record<string, boolean>>({});
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
-  const [applicationCounts, setApplicationCounts] = useState<Record<string, number>>({});
+  const [applicationCounts, setApplicationCounts] = useState<
+    Record<string, number>
+  >({});
   const [filters, setFilters] = useState({
-    category: 'all',
-    searchTerm: ''
+    category: "all",
+    searchTerm: "",
   });
-  
+
   const { user } = useAuth();
 
   // Load all posts
@@ -36,7 +37,7 @@ export const usePosts = () => {
         // Ensure we're setting an array even if the API returns null/undefined
         setPosts(data || []);
       } catch (err) {
-        setError('Failed to load posts');
+        setError("Failed to load posts");
         console.error(err);
       } finally {
         setLoading(false);
@@ -50,15 +51,15 @@ export const usePosts = () => {
   useEffect(() => {
     const checkApplicationStatus = async () => {
       if (!user || !posts.length) return;
-      
+
       const statusMap: Record<string, boolean> = {};
-      
+
       for (const post of posts) {
         if (post && post.id) {
           statusMap[post.id] = await checkIfApplied(post.id, user.id);
         }
       }
-      
+
       setAppliedPosts(statusMap);
     };
 
@@ -69,15 +70,15 @@ export const usePosts = () => {
   useEffect(() => {
     const checkLikeStatus = async () => {
       if (!user || !posts.length) return;
-      
+
       const likeMap: Record<string, boolean> = {};
-      
+
       for (const post of posts) {
         if (post && post.id) {
           likeMap[post.id] = await checkIfLiked(post.id, user.id);
         }
       }
-      
+
       setLikedPosts(likeMap);
     };
 
@@ -88,16 +89,16 @@ export const usePosts = () => {
   useEffect(() => {
     const loadApplicationCounts = async () => {
       if (!posts.length) return;
-      
+
       const countsMap: Record<string, number> = {};
-      
+
       for (const post of posts) {
         if (post && post.id) {
           const applications = await getApplicationsForPost(post.id);
           countsMap[post.id] = applications?.length || 0;
         }
       }
-      
+
       setApplicationCounts(countsMap);
     };
 
@@ -105,23 +106,23 @@ export const usePosts = () => {
   }, [posts]);
 
   // Filtered posts based on category and search term
-  const filteredPosts = posts.filter(post => {
+  const filteredPosts = posts.filter((post) => {
     // Ensure we have proper values to filter on
     if (!post) return false;
 
-    const matchesCategory = filters.category === 'all' || post.category === filters.category;
-    const searchTerm = filters.searchTerm?.toLowerCase() || '';
-    
+    const matchesCategory =
+      filters.category === "all" || post.category === filters.category;
+    const searchTerm = filters.searchTerm?.toLowerCase() || "";
+
     let matchesSearch = true;
     if (searchTerm) {
-      matchesSearch = 
-        (post.title?.toLowerCase().includes(searchTerm)) || 
-        (post.description?.toLowerCase().includes(searchTerm)) ||
-        (Array.isArray(post.tags) && post.tags.some(tag => 
-          tag?.toLowerCase().includes(searchTerm)
-        ));
+      matchesSearch =
+        post.title?.toLowerCase().includes(searchTerm) ||
+        post.description?.toLowerCase().includes(searchTerm) ||
+        (Array.isArray(post.tags) &&
+          post.tags.some((tag) => tag?.toLowerCase().includes(searchTerm)));
     }
-    
+
     return matchesCategory && matchesSearch;
   });
 
@@ -131,25 +132,27 @@ export const usePosts = () => {
       toast({
         title: "Authentication Required",
         description: "Please sign in to like posts.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     try {
       const isLiked = await togglePostLike(postId, user.id);
-      
+
       if (isLiked !== null) {
-        setLikedPosts(prev => ({ ...prev, [postId]: isLiked }));
-        
+        setLikedPosts((prev) => ({ ...prev, [postId]: isLiked }));
+
         // Update the like count in the UI without needing to refetch all posts
-        setPosts(prev => 
-          prev.map(post => 
-            post.id === postId 
-              ? { 
-                  ...post, 
-                  like_count: isLiked ? post.like_count + 1 : Math.max(0, post.like_count - 1) 
-                } 
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  like_count: isLiked
+                    ? post.like_count + 1
+                    : Math.max(0, post.like_count - 1),
+                }
               : post
           )
         );
@@ -158,7 +161,7 @@ export const usePosts = () => {
       toast({
         title: "Error",
         description: "Failed to like post. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -169,7 +172,7 @@ export const usePosts = () => {
       toast({
         title: "Authentication Required",
         description: "Please sign in to apply for this opportunity.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -184,31 +187,34 @@ export const usePosts = () => {
 
     try {
       const result = await checkIfApplied(postId, user.id);
-      
+
       if (result) {
         toast({
           title: "Already Applied",
           description: "You have already applied for this opportunity.",
         });
-        setAppliedPosts(prev => ({ ...prev, [postId]: true }));
+        setAppliedPosts((prev) => ({ ...prev, [postId]: true }));
         return;
       }
-      
+
       const application = await applyToPost(postId, user.id);
-      
+
       if (application) {
         toast({
           title: "Application Submitted",
           description: "Your application has been successfully submitted.",
         });
-        setAppliedPosts(prev => ({ ...prev, [postId]: true }));
-        setApplicationCounts(prev => ({ ...prev, [postId]: (prev[postId] || 0) + 1 }));
+        setAppliedPosts((prev) => ({ ...prev, [postId]: true }));
+        setApplicationCounts((prev) => ({
+          ...prev,
+          [postId]: (prev[postId] || 0) + 1,
+        }));
       }
     } catch (err) {
       toast({
         title: "Error",
         description: "Failed to submit application. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -216,13 +222,13 @@ export const usePosts = () => {
   // Delete a post
   const handleDeletePost = async (postId: string) => {
     if (!user) return false;
-    
+
     try {
       const success = await deletePost(postId);
-      
+
       if (success) {
         // Remove the post from local state
-        setPosts(prev => prev.filter(post => post.id !== postId));
+        setPosts((prev) => prev.filter((post) => post.id !== postId));
         return true;
       }
       return false;
@@ -233,11 +239,11 @@ export const usePosts = () => {
   };
 
   const updateFilters = (newFilters: Partial<typeof filters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
   const clearFilters = () => {
-    setFilters({ category: 'all', searchTerm: '' });
+    setFilters({ category: "all", searchTerm: "" });
   };
 
   return {
@@ -252,7 +258,7 @@ export const usePosts = () => {
     handleDeletePost,
     filters,
     updateFilters,
-    clearFilters
+    clearFilters,
   };
 };
 

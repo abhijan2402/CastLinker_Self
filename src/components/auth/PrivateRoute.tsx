@@ -18,12 +18,17 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
     );
   }
 
-  // If user is not authenticated, redirect to login with the return URL
+  // If user is not authenticated, redirect to login with return URL
   if (!user) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
-  // If user is authenticated, render the children components
+  // If user is admin, redirect to admin route
+  if (user.role === "admin" && location.pathname !== "/admin/dashboard") {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
+  // If user is authenticated (and not admin or already at /admin), render the children
   return <>{children}</>;
 };
 
