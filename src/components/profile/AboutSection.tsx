@@ -15,34 +15,37 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/contexts/AuthContext";
 import { postData, updateData } from "@/api/ClientFuntion";
+import { useTalentProfile } from "@/hooks/useTalentProfile";
 
 const AboutSection = () => {
   const [isEditing, setIsEditing] = useState(false);
   const { user } = useAuth();
+  const { profile, fetchProfile } = useTalentProfile(user);
+  console.log(profile);
 
   // In a real app, this data would come from API/context
   const about = {
     bio:
-      user?.bio ||
+      profile?.bio ||
       `Award-winning actor with over 10 years of experience in film, television, and theater. Specialized in dramatic roles with a strong background in method acting. I've worked with directors such as Christopher Nolan and Denis Villeneuve on major studio productions.
     
     Currently seeking challenging roles that push artistic boundaries. Open to both independent and major studio projects.`,
     details: [
-      { label: "Age Range", value: user?.age_range || "30-40" },
-      { label: "Height", value: user?.height || "6'1\" (185 cm)" },
-      { label: "Weight", value: user?.weight || "180 lbs (82 kg)" },
-      { label: "Hair Color", value: user?.hair_color || "Brown" },
-      { label: "Eye Color", value: user?.eye_color || "Blue" },
+      { label: "Age Range", value: profile?.age_range || "30-40" },
+      { label: "Height", value: profile?.height || "6'1\" (185 cm)" },
+      { label: "Weight", value: profile?.weight || "180 lbs (82 kg)" },
+      { label: "Hair Color", value: profile?.hair_color || "Brown" },
+      { label: "Eye Color", value: profile?.eye_color || "Blue" },
       {
         label: "Languages",
         value:
-          user?.languages ||
+          profile?.languages ||
           "English (Native), Spanish (Conversational), French (Basic)",
       },
-      { label: "Union Status", value: user?.union_status || "SAG-AFTRA" },
+      { label: "Union Status", value: profile?.union_status || "SAG-AFTRA" },
       {
         label: "Representation",
-        value: user?.representation || "Creative Artists Agency (CAA)",
+        value: profile?.representation || "Creative Artists Agency (CAA)",
       },
     ],
   };
@@ -83,6 +86,7 @@ const AboutSection = () => {
 
     const res = await updateData("auth/update-profile", payload);
     console.log(res);
+    fetchProfile();
 
     // Example: await api.post("/update-profile", payload);
   };

@@ -33,6 +33,8 @@ export const useJobsData = () => {
     salaryMax: 200000,
   });
 
+
+
   const [sort, setSort] = useState<JobSort>({
     field: "relevance",
     direction: "desc",
@@ -80,7 +82,7 @@ export const useJobsData = () => {
       }
 
       const queryString = queryParams.toString();
-      // console.log(queryString);
+      console.log(queryString);
       const endpoint = `/api/jobs${queryString ? `?${queryString}` : ""}`;
 
       console.log(endpoint);
@@ -112,7 +114,11 @@ export const useJobsData = () => {
       setIsLoading(false);
       fetchInProgress.current = false;
     }
-  }, [toast, filters]);
+  }, [
+    toast,
+    filters,
+    sort
+  ]);
 
   const getSavedJobs = useCallback(async () => {
     try {

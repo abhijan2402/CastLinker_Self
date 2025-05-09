@@ -15,7 +15,6 @@ import { useAuth } from "@/contexts/AuthContext";
 const ProfileHeader = () => {
   const { user } = useAuth();
 
-  console.log("profile", user);
   // In a real app, this would come from a profile context/API
   const profile = {
     name: "James Wilson",

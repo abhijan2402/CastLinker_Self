@@ -9,7 +9,7 @@ import { JobFilters, JobType, RoleCategory, ExperienceLevel } from "@/types/jobT
 interface JobFiltersProps {
   onFilterChange: (filters: Partial<JobFilters>) => void;
   onResetFilters: () => void;
-}
+} 
 
 const JobFiltersComponent = ({ onFilterChange, onResetFilters }: JobFiltersProps) => {
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);

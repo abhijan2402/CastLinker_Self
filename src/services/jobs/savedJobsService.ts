@@ -23,7 +23,7 @@ export const fetchSavedJobs = async (userId: string | undefined) => {
 
 export const toggleSaveJob = async (
   jobId: string,
-  userId: string | undefined,
+  userId: string | number,
   savedJobs: string[]
 ) => {
   console.log(jobId, userId, savedJobs);
@@ -48,7 +48,7 @@ export const toggleSaveJob = async (
   try {
     const payload = {
       job_id: jobId,
-      user_id: 3,
+      user_id: userId,
       action: isSaved ? "remove" : "save",
     };
 

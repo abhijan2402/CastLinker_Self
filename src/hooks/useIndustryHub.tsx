@@ -108,7 +108,7 @@ export const useIndustryHub = () => {
       if (eventsResponse?.data) {
         setEvents(eventsResponse.data);
       }
- 
+
       // Fetch Course Data
       const coursesResult = await fetchData("/api/courses/list");
       const coursesResponse = coursesResult as CourseApiResponse;
@@ -199,6 +199,7 @@ export const useIndustryHub = () => {
           // API call to backend
           const response = await postData("/api/articles/create", data);
           console.log(response);
+          fetchIndustryData();
           // toast({
           //   title: "Submission Successful",
           //   description: "Your article has been created successfully",
@@ -230,6 +231,7 @@ export const useIndustryHub = () => {
 
           const response = await postData("/api/events/create", payload);
           console.log(response);
+          fetchIndustryData();
           // toast({
           //   title: "Submission Successful",
           //   description: "Your article has been created successfully",
@@ -253,6 +255,7 @@ export const useIndustryHub = () => {
           console.log(payload);
           const response = await postData("/api/courses/create", payload);
           console.log(response);
+          fetchIndustryData();
           // toast({
           //   title: "Submission Successful",
           //   description: "Your article has been created successfully",
@@ -270,6 +273,7 @@ export const useIndustryHub = () => {
           //   title: "Submission Successful",
           //   description: "Your article has been created successfully",
           // });
+          fetchIndustryData();
 
           return { success: true };
           break;

@@ -138,14 +138,14 @@ const JobCreateForm = ({
 
   const handleSubmit = async () => {
     try {
-      // if (!user?.id) {
-      //   toast({
-      //     title: "Not authenticated",
-      //     description: "Please sign in to create a project",
-      //     variant: "destructive",
-      //   });
-      //   return;
-      // }
+      if (!user?.id) {
+        toast({
+          title: "Not authenticated",
+          description: "Please sign in to create a project",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const payload = {
         job_title: formData.title,
@@ -164,7 +164,7 @@ const JobCreateForm = ({
         application_url: formData.application_url,
         application_email: formData.application_email,
         is_featured: formData.is_featured || false,
-        user_id: "3",
+        user_id: user.id,
       };
 
       const response = await postData("/api/jobs", payload);
