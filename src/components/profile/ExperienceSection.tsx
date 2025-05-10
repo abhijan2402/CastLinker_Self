@@ -1,20 +1,56 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Plus } from "lucide-react";
 import { EditProfileDialog } from "./EditProfileDialog";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
+import { fetchData, postData } from "@/api/ClientFuntion";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "react-toastify";
+
+interface Experience {
+  id: string;
+  type: string;
+  project_title: string;
+  role: string;
+  director: string;
+  production_company: string;
+  year: string;
+  description: string;
+  files?: any[];
+}
+
+interface ExperienceAPIResponse {
+  success: boolean;
+  data: Experience[];
+  message?: string;
+}
 
 const ExperienceSection = () => {
-  const [editingExperience, setEditingExperience] = useState<{type: string, index: number} | null>(null);
-  const [isAddingExperience, setIsAddingExperience] = useState<string | null>(null);
-  
+  const { user } = useAuth();
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [editingExperience, setEditingExperience] = useState<{
+    type: string;
+    index: number;
+  } | null>(null);
+  const [isAddingExperience, setIsAddingExperience] = useState<string | null>(
+    null
+  );
+
   // In a real app, this data would come from API/context
-  const experiences = {
+  const experiencess = {
     film: [
       {
         title: "The Last Journey",
@@ -22,7 +58,8 @@ const ExperienceSection = () => {
         director: "Christopher Stevens",
         company: "Universal Pictures",
         year: "2022",
-        description: "Played a pivotal supporting role in this award-winning drama. Character required deep emotional range and physical transformation."
+        description:
+          "Played a pivotal supporting role in this award-winning drama. Character required deep emotional range and physical transformation.",
       },
       {
         title: "City Lights",
@@ -30,7 +67,8 @@ const ExperienceSection = () => {
         director: "Sarah Johnson",
         company: "Paramount Pictures",
         year: "2021",
-        description: "Starred as the protagonist in this critically acclaimed urban drama. Role involved extensive dialogue in multiple languages and challenging emotional scenes."
+        description:
+          "Starred as the protagonist in this critically acclaimed urban drama. Role involved extensive dialogue in multiple languages and challenging emotional scenes.",
       },
       {
         title: "Eternal Echo",
@@ -38,8 +76,9 @@ const ExperienceSection = () => {
         director: "Michael Rodriguez",
         company: "Warner Bros",
         year: "2020",
-        description: "Played a police officer in this science fiction thriller. Role included various stunt sequences and combat scenes."
-      }
+        description:
+          "Played a police officer in this science fiction thriller. Role included various stunt sequences and combat scenes.",
+      },
     ],
     television: [
       {
@@ -48,7 +87,8 @@ const ExperienceSection = () => {
         director: "Various",
         company: "CBS",
         year: "2021",
-        description: "Appeared as a complex antagonist in this long-running crime drama series."
+        description:
+          "Appeared as a complex antagonist in this long-running crime drama series.",
       },
       {
         title: "The Morning Show",
@@ -56,8 +96,9 @@ const ExperienceSection = () => {
         director: "Various",
         company: "Apple TV+",
         year: "2019-2020",
-        description: "Played a recurring character across multiple episodes of this award-winning drama series."
-      }
+        description:
+          "Played a recurring character across multiple episodes of this award-winning drama series.",
+      },
     ],
     theater: [
       {
@@ -66,7 +107,8 @@ const ExperienceSection = () => {
         director: "Elizabeth Taylor",
         company: "Broadway Theater Company",
         year: "2019",
-        description: "Lead role in this contemporary adaptation of Shakespeare's classic. Performed for a three-month run to sold-out audiences."
+        description:
+          "Lead role in this contemporary adaptation of Shakespeare's classic. Performed for a three-month run to sold-out audiences.",
       },
       {
         title: "Death of a Salesman",
@@ -74,10 +116,39 @@ const ExperienceSection = () => {
         director: "Robert Wilson",
         company: "West End Production",
         year: "2018",
-        description: "Supporting role in this classic Arthur Miller play. Production received critical acclaim and multiple award nominations."
-      }
-    ]
+        description:
+          "Supporting role in this classic Arthur Miller play. Production received critical acclaim and multiple award nominations.",
+      },
+    ],
   };
+
+  useEffect(() => {
+    const fetchExperiences = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await fetchData(`/api/experience?type=`);
+        const data = res as ExperienceAPIResponse;
+        console.log(data);
+
+        if (!data.success) {
+          throw new Error(data.message || "Failed to fetch experiences.");
+        }
+
+        setExperiences(data.data || []);
+        toast.success("Experiences loaded successfully!");
+      } catch (err: any) {
+        console.error("Fetch error:", err);
+        setError(err.message);
+        toast.error(err.message || "Something went wrong!");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExperiences();
+  }, [user]);
 
   // Form for editing experience
   const experienceForm = useForm({
@@ -87,8 +158,8 @@ const ExperienceSection = () => {
       director: "",
       company: "",
       year: "",
-      description: ""
-    }
+      description: "",
+    },
   });
 
   // Set form values when editing an experience
@@ -100,7 +171,7 @@ const ExperienceSection = () => {
       director: experience.director,
       company: experience.company,
       year: experience.year,
-      description: experience.description
+      description: experience.description,
     });
     setEditingExperience({ type, index });
   };
@@ -113,18 +184,50 @@ const ExperienceSection = () => {
       director: "",
       company: "",
       year: "",
-      description: ""
+      description: "",
     });
     setIsAddingExperience(type);
   };
 
   const handleSaveExperience = async (data: any) => {
-    if (editingExperience) {
-      console.log(`Updating ${editingExperience.type} experience at index ${editingExperience.index}:`, data);
-    } else if (isAddingExperience) {
-      console.log(`Adding new ${isAddingExperience} experience:`, data);
+    const formattedData = {
+      type: editingExperience?.type || isAddingExperience || "film",
+      project_title: data.title,
+      role: data.role,
+      director: data.director,
+      production_company: data.company,
+      year: data.year,
+      description: data.description,
+      files: data.files || [],
+    };
+    console.log(formattedData);
+    try {
+      let res: any;
+
+      if (editingExperience) {
+        res = await postData("/api/experience", formattedData);
+        console.log(res);
+      } else if (isAddingExperience) {
+        res = await postData(`/api/experience/${user.id}`, formattedData);
+        console.log(res);
+      }
+
+      // Check if response indicates success
+      if (res && res.success) {
+        toast.success(
+          editingExperience
+            ? "Experience updated successfully!"
+            : "New experience added successfully!"
+        );
+      } else {
+        throw new Error(res?.message || "Something went wrong");
+      }
+    } catch (error: any) {
+      console.error("Error saving experience:", error);
+      toast.error(error.message || "Failed to save experience.");
+      // Optionally return or stop further logic
+      return;
     }
-    return Promise.resolve();
   };
 
   const closeEditingDialogs = () => {
@@ -133,17 +236,23 @@ const ExperienceSection = () => {
   };
 
   // Helper function to render experience cards
-  const renderExperienceCards = (type: string, data: typeof experiences.film) => (
+  const renderExperienceCards = (
+    type: string,
+    data: typeof experiencess.film
+  ) => (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold text-gold">{type.charAt(0).toUpperCase() + type.slice(1)}</h3>
-        <Button 
-          variant="outline" 
+        <h3 className="text-xl font-semibold text-gold">
+          {type.charAt(0).toUpperCase() + type.slice(1)}
+        </h3>
+        <Button
+          variant="outline"
           size="sm"
           className="text-gold border-gold/30 hover:bg-gold/10"
           onClick={() => handleAdd(type)}
         >
-          <Plus className="h-4 w-4 mr-1" /> Add {type.charAt(0).toUpperCase() + type.slice(1)} Experience
+          <Plus className="h-4 w-4 mr-1" /> Add{" "}
+          {type.charAt(0).toUpperCase() + type.slice(1)} Experience
         </Button>
       </div>
       <div className="space-y-4">
@@ -154,8 +263,8 @@ const ExperienceSection = () => {
                 <h4 className="text-lg font-medium">{exp.title}</h4>
                 <div className="flex items-center gap-2">
                   <span className="text-foreground/60 text-sm">{exp.year}</span>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     className="text-gold hover:text-gold hover:bg-gold/10"
                     onClick={() => handleEdit(type, index)}
@@ -167,7 +276,10 @@ const ExperienceSection = () => {
               <p className="text-gold mb-2">{exp.role}</p>
               <div className="flex flex-col md:flex-row gap-2 md:gap-6 text-sm text-foreground/70 mb-4">
                 <span>Director: {exp.director}</span>
-                <span>{type === 'television' ? 'Network' : 'Production'}: {exp.company}</span>
+                <span>
+                  {type === "television" ? "Network" : "Production"}:{" "}
+                  {exp.company}
+                </span>
               </div>
               <p className="text-foreground/80 text-sm">{exp.description}</p>
             </CardContent>
@@ -180,21 +292,37 @@ const ExperienceSection = () => {
   return (
     <div className="space-y-8">
       {/* Film Experience */}
-      {renderExperienceCards("film", experiences.film)}
-      
+      {renderExperienceCards("film", experiencess.film)}
+
       {/* Television Experience */}
-      {renderExperienceCards("television", experiences.television)}
-      
+      {renderExperienceCards("television", experiencess.television)}
+
       {/* Theater Experience */}
-      {renderExperienceCards("theater", experiences.theater)}
+      {renderExperienceCards("theater", experiencess.theater)}
 
       {/* Edit Experience Dialog */}
       <EditProfileDialog
-        title={editingExperience ? `Edit ${editingExperience.type.charAt(0).toUpperCase() + editingExperience.type.slice(1)} Experience` : `Add New ${isAddingExperience ? isAddingExperience.charAt(0).toUpperCase() + isAddingExperience.slice(1) : ''} Experience`}
-        description={editingExperience ? "Update your experience information" : "Add a new experience to your profile"}
+        title={
+          editingExperience
+            ? `Edit ${
+                editingExperience.type.charAt(0).toUpperCase() +
+                editingExperience.type.slice(1)
+              } Experience`
+            : `Add New ${
+                isAddingExperience
+                  ? isAddingExperience.charAt(0).toUpperCase() +
+                    isAddingExperience.slice(1)
+                  : ""
+              } Experience`
+        }
+        description={
+          editingExperience
+            ? "Update your experience information"
+            : "Add a new experience to your profile"
+        }
         isOpen={!!editingExperience || !!isAddingExperience}
         onClose={closeEditingDialogs}
-        onSave={handleSaveExperience}
+        onSave={experienceForm.handleSubmit(handleSaveExperience)}
       >
         <Form {...experienceForm}>
           <div className="grid grid-cols-1 gap-4">
@@ -210,7 +338,7 @@ const ExperienceSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={experienceForm.control}
               name="role"
@@ -223,7 +351,7 @@ const ExperienceSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={experienceForm.control}
@@ -237,7 +365,7 @@ const ExperienceSection = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={experienceForm.control}
                 name="company"
@@ -251,7 +379,7 @@ const ExperienceSection = () => {
                 )}
               />
             </div>
-            
+
             <FormField
               control={experienceForm.control}
               name="year"
@@ -264,7 +392,7 @@ const ExperienceSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={experienceForm.control}
               name="description"
@@ -272,10 +400,10 @@ const ExperienceSection = () => {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Describe your role and experience..." 
-                      className="h-24" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Describe your role and experience..."
+                      className="h-24"
+                      {...field}
                     />
                   </FormControl>
                 </FormItem>
