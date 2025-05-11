@@ -38,6 +38,11 @@ import { toast } from "@/hooks/use-toast";
 import { Edit, MoreHorizontal, Search, Trash2, Users, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
+import { fetchData } from "@/api/ClientFuntion";
+type FetchPostResponse = {
+  data: any[];
+  error?: string;
+};
 
 const PostManagement = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -56,33 +61,23 @@ const PostManagement = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("castlinker_posts")
-        .select("*")
-        .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      const response = (await fetchData("/api/posts/admin/")) as any[];
+      console.log(response)
 
-      // Cast data to ensure media_type is properly typed
-      const typedPosts = (data || []).map((post) => ({
-        ...post,
-        media_type: post.media_type as "image" | "video" | null,
-      }));
-
-      setPosts(typedPosts);
-
-      // Get application counts for all posts
-      const counts: Record<string, number> = {};
-      for (const post of typedPosts) {
-        const { count, error: countError } = await supabase
-          .from("post_applications")
-          .select("*", { count: "exact", head: true })
-          .eq("post_id", post.id);
-
-        if (!countError) {
-          counts[post.id] = count || 0;
-        }
+      if (!Array.isArray(response)) {
+        throw new Error("Invalid response format. Expected an array.");
       }
+
+      setPosts(response);
+
+      // Mocking application counts if not coming in response (e.g., add manually later or fake counts for now)
+      const counts: Record<string, number> = {};
+      response.forEach((post) => {
+        // Assuming `application_count` exists, else default to 0
+        counts[post.id] = post.application_count || 0;
+      });
+
       setApplicationCounts(counts);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -199,7 +194,7 @@ const PostManagement = () => {
                           <Badge variant="outline">{post.category}</Badge>
                         </TableCell>
                         <TableCell>
-                          {format(new Date(post.created_at), "MMM dd, yyyy")}
+                          {format(new Date(post.createdAt), "MMM dd, yyyy")}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center">

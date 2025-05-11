@@ -77,11 +77,11 @@ const LoginForm = () => {
         </p>
       </div>
 
-      {error && (
+      {/* {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      )}
+      )} */}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

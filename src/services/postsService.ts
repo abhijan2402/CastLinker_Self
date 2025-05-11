@@ -11,7 +11,7 @@ export type Post = {
   creator_profession: string | null;
   category: string;
   tags: string[];
-  created_at: string;
+  createdAt: string;
   updated_at: string;
   like_count: number;
   media_url?: string | null;

@@ -253,7 +253,7 @@ const App = () => {
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLogin />} />
-            <Route path="/admin/login" element={<AdminLogin />} /> {/* Add explicit /admin/login route */}
+            <Route path="/admin/login" element={<AdminLogin />} /> 
             <Route 
               path="/admin/dashboard" 
               element={

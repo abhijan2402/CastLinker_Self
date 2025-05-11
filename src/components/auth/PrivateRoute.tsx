@@ -24,9 +24,9 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
   }
 
   // If user is admin, redirect to admin route
-  if (user.role === "admin" && location.pathname !== "/admin/dashboard") {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
+  // if (user.role === "admin" && location.pathname !== "/admin/dashboard") {
+  //   return <Navigate to="/admin/dashboard" replace />;
+  // }
 
   // If user is authenticated (and not admin or already at /admin), render the children
   return <>{children}</>;

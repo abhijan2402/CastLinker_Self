@@ -1,9 +1,12 @@
-
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Event, EventFormData } from "@/types/eventTypes";
-
+import { fetchData } from "@/api/ClientFuntion";
+type FetchFeaturedEvents = {
+  data: Events[];
+  error?: string;
+};
 export function useEventsData() {
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,20 +21,20 @@ export function useEventsData() {
   const fetchEvents = async () => {
     try {
       setIsLoading(true);
-      let query = supabase.from('industry_events_management').select('*');
-      
-      // If date filter is applied
-      if (selectedDate) {
-        const formattedDate = selectedDate.toISOString().split('T')[0];
-        query = query.eq('event_date', formattedDate);
+      const response = (await fetchData(
+        "/api/events/list/admin/"
+      )) as FetchFeaturedEvents;
+
+
+      if (!response || response.error) {
+        throw new Error(response?.error || "Failed to fetch jobs");
       }
 
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
+      const featuredEvents = response.data as Event[];
+      console.log(featuredEvents);
+
       // Use type assertion to treat the data as Event[]
-      setEvents(data as Event[]);
+      setEvents(featuredEvents);
     } catch (error) {
       console.error("Error fetching events:", error);
       toast({
@@ -47,16 +50,16 @@ export function useEventsData() {
   const addEvent = async (eventData: EventFormData) => {
     try {
       setIsLoading(true);
-      
+
       const { data, error } = await supabase
-        .from('industry_events_management')
+        .from("industry_events_management")
         .insert([eventData])
         .select();
-      
+
       if (error) throw error;
-      
+
       if (data) {
-        setEvents(prev => [...prev, data[0] as Event]);
+        setEvents((prev) => [...prev, data[0] as Event]);
         toast({
           title: "Success",
           description: "Event created successfully!",
@@ -80,17 +83,19 @@ export function useEventsData() {
   const updateEvent = async (id: string, eventData: EventFormData) => {
     try {
       setIsLoading(true);
-      
+
       const { data, error } = await supabase
-        .from('industry_events_management')
+        .from("industry_events_management")
         .update(eventData)
-        .eq('id', id)
+        .eq("id", id)
         .select();
-      
+
       if (error) throw error;
-      
+
       if (data) {
-        setEvents(prev => prev.map(event => event.id === id ? (data[0] as Event) : event));
+        setEvents((prev) =>
+          prev.map((event) => (event.id === id ? (data[0] as Event) : event))
+        );
         toast({
           title: "Success",
           description: "Event updated successfully!",
@@ -114,15 +119,15 @@ export function useEventsData() {
   const deleteEvent = async (id: string) => {
     try {
       setIsLoading(true);
-      
+
       const { error } = await supabase
-        .from('industry_events_management')
+        .from("industry_events_management")
         .delete()
-        .eq('id', id);
-      
+        .eq("id", id);
+
       if (error) throw error;
-      
-      setEvents(prev => prev.filter(event => event.id !== id));
+
+      setEvents((prev) => prev.filter((event) => event.id !== id));
       toast({
         title: "Success",
         description: "Event deleted successfully!",
@@ -141,18 +146,23 @@ export function useEventsData() {
     }
   };
 
-  const filteredEvents = events.filter(event => 
-    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (event.description?.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredEvents = events.filter(
+    (event) =>
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const upcomingEvents = events.filter(event => event.status === "upcoming");
-  const featuredEvent = [...upcomingEvents].sort((a, b) => 
-    new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+  const upcomingEvents = events.filter((event) => event.status === "upcoming");
+  const featuredEvent = [...upcomingEvents].sort(
+    (a, b) =>
+      new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
   )[0];
 
-  const totalAttendees = events.reduce((sum, event) => sum + event.attendees, 0);
+  const totalAttendees = events.reduce(
+    (sum, event) => sum + event.attendees,
+    0
+  );
 
   return {
     events: filteredEvents,

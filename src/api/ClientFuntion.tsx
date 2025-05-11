@@ -69,6 +69,9 @@ export const postData = <T,>(url: string, data: any): Promise<T> =>
 export const updateData = <T,>(url: string, data: any): Promise<T> =>
   handleRequest<T>("put", url, data);
 
+export const patchData = <T,>(url: string, data: any): Promise<T> =>
+  handleRequest<T>("patch", url, data);
+
 export const deleteData = <T,>(url: string, data?: any): Promise<T> =>
   handleRequest<T>("delete", url, data);
 
