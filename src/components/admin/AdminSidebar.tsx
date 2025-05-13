@@ -80,12 +80,12 @@ const AdminSidebar = ({ collapsed, toggleSidebar }: AdminSidebarProps) => {
       href: "/admin/events",
       permission: "event_view",
     },
-    {
-      title: "Content Moderation",
-      icon: FileText,
-      href: "/admin/content",
-      permission: "content_view",
-    },
+    // {
+    //   title: "Content Moderation",
+    //   icon: FileText,
+    //   href: "/admin/content",
+    //   permission: "content_view",
+    // },
     {
       title: "Analytics",
       icon: BarChart2,

@@ -22,6 +22,7 @@ import { Job } from "@/hooks/useJobsData";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { postData } from "@/api/ClientFuntion";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface JobFormProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ interface PostDataResponse {
 
 const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [formData, setFormData] = useState<Partial<Job>>({
     title: "",
     company: "",
@@ -126,6 +128,10 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
         formData.created_at = new Date().toISOString();
       }
       // console.log(formData);
+      if (user.role === "admin") {
+        onSubmit(formData);
+        return;
+      }
 
       // await onSubmit(formData);
       const response = (await postData(
@@ -323,7 +329,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
             <div>
               <Label htmlFor="salary_currency">Currency</Label>
               <Select
-                value={formData.salary_currency || "USD"}
+                value={formData.salary_currency || "INR"}
                 onValueChange={(value) =>
                   handleSelectChange("salary_currency", value)
                 }
@@ -332,7 +338,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["USD", "EUR", "GBP", "CAD", "AUD"].map((currency) => (
+                  {["INR"].map((currency) => (
                     <SelectItem key={currency} value={currency}>
                       {currency}
                     </SelectItem>

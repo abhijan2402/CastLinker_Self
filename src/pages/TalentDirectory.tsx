@@ -213,12 +213,12 @@ const TalentDirectory = () => {
               Discover and connect with talented film industry professionals from around the world.
             </p>
           </div>
-          <div className="hidden sm:flex items-center gap-2">
+          {/* <div className="hidden sm:flex items-center gap-2">
             <Button size="sm" className="bg-gold hover:bg-gold/90 text-black gap-1">
               <UserPlus className="h-4 w-4" />
               <span>Connect</span>
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
       

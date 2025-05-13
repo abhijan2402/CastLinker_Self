@@ -44,6 +44,24 @@ type FetchJobsResponse = {
   data: Job[];
   error?: string;
 };
+type Job = {
+  job_title: string;
+  company: string;
+  job_description: string;
+  job_type: string;
+  role_category: string;
+  location: string;
+  location_type: string;
+  status: string;
+  is_featured: boolean;
+  company_logo: string;
+  salary_min: number;
+  salary_max: number;
+  salary_currency: string;
+  application_url: string;
+  application_email: string;
+  created_at: string;
+};
 
 const JobManagement = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -125,31 +143,44 @@ const JobManagement = () => {
   };
 
   const handleJobSubmit = async (jobData: Partial<Job>) => {
+    console.log("Raw job data:", jobData);
+
+    // Format the payload according to your structure
+    const payload: Partial<Job> = {
+      job_title: jobData.job_title || "",
+      company: jobData.company || "",
+      job_description: jobData.job_description || "",
+      job_type: jobData.job_type || "Full-time",
+      role_category: jobData.role_category || "",
+      location: jobData.location || "",
+      location_type: jobData.location_type || "On-site",
+      status: jobData.status || "active",
+      is_featured: jobData.is_featured ?? false,
+      company_logo: jobData.company_logo || "",
+      salary_min: jobData.salary_min || 0,
+      salary_max: jobData.salary_max || 0,
+      salary_currency: jobData.salary_currency || "USD",
+      application_url: jobData.application_url || "",
+      application_email: jobData.application_email || "",
+      created_at: jobData.created_at || new Date().toISOString(),
+    };
+
     try {
-      if (currentJob) {
-        const { error } = await (supabase
-          .from("film_jobs")
-          .update(jobData)
-          .eq("id", currentJob.id) as any);
+      const endpoint = currentJob ? "/api/jobs/update" : "/api/jobs";
+      const response = (await postData(endpoint, payload)) as {
+        error?: { message: string };
+      };
 
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Job updated successfully",
-        });
-      } else {
-        const { error } = await (supabase
-          .from("film_jobs")
-          .insert([jobData as any]) as any);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Job created successfully",
-        });
+      if (response?.error) {
+        throw new Error(response.error.message || "Unknown error");
       }
+
+      toast({
+        title: "Success",
+        description: currentJob
+          ? "Job updated successfully"
+          : "Job created successfully",
+      });
 
       fetchJobs();
       setIsJobFormOpen(false);
