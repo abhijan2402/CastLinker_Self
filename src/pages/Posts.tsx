@@ -285,7 +285,7 @@ const Posts = () => {
               </SelectContent>
             </Select>
 
-            <Popover>
+            {/* <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -319,7 +319,7 @@ const Posts = () => {
                   numberOfMonths={2}
                 />
               </PopoverContent>
-            </Popover>
+            </Popover> */}
 {/* 
             <Popover>
               <PopoverTrigger asChild>

@@ -11,6 +11,7 @@ import {
   applyToPost,
 } from "@/services/postsService";
 import { toast } from "@/hooks/use-toast";
+import { fetchData } from "@/api/ClientFuntion";
 
 export const usePosts = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -29,23 +30,23 @@ export const usePosts = () => {
   const { user } = useAuth();
 
   // Load all posts
-  useEffect(() => {
-    const loadPosts = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchPosts();
-        // Ensure we're setting an array even if the API returns null/undefined
-        setPosts(data || []);
-      } catch (err) {
-        setError("Failed to load posts");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    useEffect(() => {
+      const loadPosts = async () => {
+        setLoading(true);
+        try {
+          const data = await fetchData(`/api/posts/${user.id}`);
+          // Ensure we're setting an array even if the API returns null/undefined
+          setPosts(data || []);
+        } catch (err) {
+          setError("Failed to load posts");
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    loadPosts();
-  }, []);
+      loadPosts();
+    }, []);
 
   // Check which posts the current user has applied to
   useEffect(() => {

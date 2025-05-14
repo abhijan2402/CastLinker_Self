@@ -116,14 +116,14 @@ const AboutSection = () => {
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Details</h3>
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               className="text-gold hover:text-gold hover:bg-gold/10"
               onClick={() => setIsEditing(true)}
             >
               <Edit className="h-4 w-4 mr-1" /> Edit
-            </Button>
+            </Button> */}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {about.details.map((detail, index) => (

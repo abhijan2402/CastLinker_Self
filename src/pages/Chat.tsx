@@ -86,6 +86,7 @@ const Chat = () => {
     if (res.success && Array.isArray(res.data)) {
       // setMockChats(res.data);
       console.log(res.data);
+      setMockChats(res?.data);
     } else {
       console.error("Failed to load chats");
     }
@@ -224,6 +225,19 @@ const Chat = () => {
                 </div>
               </div>
             ))}
+            {mockChats?.length === 0 && (
+              <p
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  height: "40vh",
+                  alignItems: "center",
+                  fontSize:"12px"
+                }}
+              >
+                No Recent Chats Found
+              </p>
+            )}
           </div>
         </ScrollArea>
       </div>
@@ -266,20 +280,20 @@ const Chat = () => {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button
+                {/* <Button
                   variant="ghost"
                   size="icon"
                   className="rounded-full text-gold hover:bg-gold/10"
                 >
                   <Phone size={20} />
-                </Button>
-                <Button
+                </Button> */}
+                {/* <Button
                   variant="ghost"
                   size="icon"
                   className="rounded-full text-gold hover:bg-gold/10"
                 >
                   <Video size={20} />
-                </Button>
+                </Button> */}
                 <Button
                   variant="ghost"
                   size="icon"
