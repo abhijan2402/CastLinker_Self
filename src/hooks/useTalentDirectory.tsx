@@ -44,7 +44,7 @@ export const useTalentDirectory = () => {
       try {
         // First check if we have profiles table data
         const { data: profilesData, error: profilesError } = (await fetchData(
-          `auth/profile?user_id=${user.id}`
+          `api/users`
         )) as {
           data: TalentProfile[];
           error: any;

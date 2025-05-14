@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -32,8 +32,9 @@ import {
   Search,
   Filter,
 } from "lucide-react";
-import { postData } from "@/api/ClientFuntion";
+import { fetchData, postData } from "@/api/ClientFuntion";
 import { toast } from "react-toastify";
+import { useAuth } from "@/contexts/AuthContext";
 // Notification Payload Type
 interface NotificationPayload {
   title: string;
@@ -44,6 +45,7 @@ interface NotificationPayload {
 }
 
 const AdminNotifications = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationForm, setNotificationForm] = useState({
     title: "",
@@ -52,6 +54,18 @@ const AdminNotifications = () => {
     audience: "all",
   });
 
+  const [notifications, setNotifiactions] = useState([]);
+
+  const fetchNotification = async () => {
+    const res = await fetchData("/api/notifications/admin/template");
+    console.log(res);
+    setNotifiactions(res);
+  };
+
+  useEffect(() => {
+    fetchNotification();
+  }, []);
+
   const handleNotification = async (payload: NotificationPayload) => {
     try {
       // Send notification data to API
@@ -59,19 +73,21 @@ const AdminNotifications = () => {
         "/api/notifications/admin/template",
         payload
       ); // Assuming you have postData utility
-
-      // Show success toast
-      toast({
-        title: "Success",
-        description: "Notification sent successfully.",
-      });
+      console.log(response)
+      if (response) {
+        setNotificationForm({
+          title: "",
+          message: "",
+          type: "info",
+          audience: "all",
+        });
+        // Show success toast
+        toast.success("Notification sent successfully.");
+        fetchNotification();
+      }
     } catch (error: any) {
       console.error("Error sending notification:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.message || "Failed to send notification.",
-      });
+      toast.error(error?.message || "Failed to send notification.");
     }
   };
   const handleSubmit = () => {
@@ -88,62 +104,49 @@ const AdminNotifications = () => {
     console.log(payload);
     handleNotification(payload);
   };
-  // Mock notifications data
-  const notifications = [
-    {
-      id: "NOT-2024-001",
-      title: "Platform Maintenance",
-      message: "Scheduled maintenance on May 20, 2024, from 2 AM to 4 AM EST.",
-      type: "system",
-      audience: "all",
-      sentDate: "2024-05-15",
-      status: "sent",
-      reads: 234,
-    },
-    {
-      id: "NOT-2024-002",
-      title: "New Feature Announcement",
-      message:
-        "Introducing our new messaging system for talents and casting directors.",
-      type: "feature",
-      audience: "all",
-      sentDate: "2024-05-10",
-      status: "sent",
-      reads: 420,
-    },
-    {
-      id: "NOT-2024-003",
-      title: "Verify Your Account",
-      message:
-        "Please complete your profile verification to access premium features.",
-      type: "alert",
-      audience: "unverified",
-      sentDate: "2024-05-08",
-      status: "sent",
-      reads: 156,
-    },
-    {
-      id: "NOT-2024-004",
-      title: "Important Policy Update",
-      message: "We've updated our terms of service. Please review the changes.",
-      type: "important",
-      audience: "all",
-      sentDate: "2024-05-05",
-      status: "sent",
-      reads: 389,
-    },
-    {
-      id: "NOT-2024-005",
-      title: "Summer Discount",
-      message: "Get 20% off on premium plans this summer. Use code SUMMER24.",
-      type: "promotion",
-      audience: "free",
-      sentDate: "2024-05-01",
-      status: "scheduled",
-      scheduledDate: "2024-06-01",
-      reads: 0,
-    },
-  ];
+
+  const handleDarft = () => {
+    const payload: NotificationPayload = {
+      title: notificationForm.title,
+      message: notificationForm.message,
+      type: notificationForm.type,
+      audience:
+        notificationForm.audience === "all"
+          ? "All Users"
+          : notificationForm.audience,
+      status: "Draft", // Set status to "Sent" when sending
+    };
+    console.log(payload);
+    handleDarfNotifition(payload);
+  };
+
+  const handleDarfNotifition = async (payload: NotificationPayload) => {
+    try {
+      const response = await postData(
+        `/api/notifications/admin/template/${user?.id}/send`,
+        payload
+      ); // Assuming you have postData utility
+      setNotificationForm({
+        title: "",
+        message: "",
+        type: "info",
+        audience: "all",
+      });
+      fetchNotification();
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "Notification sent successfully.",
+      });
+    } catch (error: any) {
+      console.error("Error sending notification:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error?.message || "Failed to send notification.",
+      });
+    }
+  };
 
   const filteredNotifications = notifications.filter(
     (notification) =>
@@ -171,13 +174,13 @@ const AdminNotifications = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "sent":
+      case "Sent":
         return <Badge className="bg-green-500 hover:bg-green-600">Sent</Badge>;
-      case "scheduled":
+      case "Scheduled":
         return (
           <Badge className="bg-blue-500 hover:bg-blue-600">Scheduled</Badge>
         );
-      case "draft":
+      case "Draft":
         return <Badge className="bg-gray-500 hover:bg-gray-600">Draft</Badge>;
       default:
         return <Badge>{status}</Badge>;
@@ -337,7 +340,9 @@ const AdminNotifications = () => {
             </form>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline">Save as Draft</Button>
+            <Button variant="outline" onClick={handleDarft}>
+              Save as Draft
+            </Button>
             <Button className="gap-2" onClick={handleSubmit}>
               <Send className="h-4 w-4" />
               Send Now
@@ -414,7 +419,7 @@ const AdminNotifications = () => {
                       <TableCell>
                         {notification.status === "scheduled"
                           ? `${notification.scheduledDate} (scheduled)`
-                          : notification.sentDate}
+                          : notification.createdAt}
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(notification.status)}
