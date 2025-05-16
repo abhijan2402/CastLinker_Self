@@ -36,6 +36,7 @@ interface PostDataResponse {
 }
 
 const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
+  console.log(job)
   const { toast } = useToast();
   const { user } = useAuth();
   const [formData, setFormData] = useState<Partial<Job>>({
@@ -56,7 +57,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
   useEffect(() => {
     if (job) {
       setFormData({
-        title: job.title || "",
+        title: job.job_title || "",
         company: job.company || "",
         description: job.description || "",
         company_logo: job.company_logo || "",
@@ -68,7 +69,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
         is_featured: job.is_featured || false,
         salary_min: job.salary_min,
         salary_max: job.salary_max,
-        salary_currency: job.salary_currency || "USD",
+        salary_currency: job.salary_currency || "INR",
         salary_period: job.salary_period || "yearly",
         application_url: job.application_url || "",
         application_email: job.application_email || "",

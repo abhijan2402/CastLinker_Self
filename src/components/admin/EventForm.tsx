@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -50,6 +49,9 @@ const formSchema = z.object({
   }),
   status: z.enum(["upcoming", "completed", "registration", "cancelled"]),
   attendees: z.coerce.number().int().nonnegative(),
+  event_type: z.string().min(2, {
+    message: "Please enter event type.",
+  }),
 });
 
 interface EventFormProps {
@@ -58,7 +60,11 @@ interface EventFormProps {
   isSubmitting?: boolean;
 }
 
-const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormProps) => {
+const EventForm = ({
+  onSubmit,
+  initialData,
+  isSubmitting = false,
+}: EventFormProps) => {
   const [date, setDate] = useState<Date | undefined>(
     initialData?.event_date ? new Date(initialData.event_date) : undefined
   );
@@ -69,10 +75,18 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
       title: initialData?.title || "",
       description: initialData?.description || "",
       location: initialData?.location || "",
-      event_date: initialData?.event_date ? new Date(initialData.event_date) : undefined,
+      event_date: initialData?.event_date
+        ? new Date(initialData.event_date)
+        : undefined,
       event_time: initialData?.event_time || "",
-      status: (initialData?.status as "upcoming" | "completed" | "registration" | "cancelled") || "upcoming",
+      status:
+        (initialData?.status as
+          | "upcoming"
+          | "completed"
+          | "registration"
+          | "cancelled") || "upcoming",
       attendees: initialData?.attendees || 0,
+      event_type: initialData?.event_type || "",
     },
   });
 
@@ -80,9 +94,11 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
     // Format the date for sending to API
     const formattedData = {
       ...values,
-      event_date: values.event_date ? format(values.event_date, "yyyy-MM-dd") : "",
+      event_date: values.event_date
+        ? format(values.event_date, "yyyy-MM-dd")
+        : "",
     };
-    
+
     onSubmit(formattedData);
   };
 
@@ -102,7 +118,7 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="description"
@@ -110,17 +126,34 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Enter event description" 
-                  className="resize-none" 
-                  {...field} 
+                <Textarea
+                  placeholder="Enter event description"
+                  className="resize-none"
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        
+
+        <FormField
+          control={form.control}
+          name="event_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Event Type</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="e.g., Workshop, Seminar, Meetup"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="location"
@@ -134,7 +167,7 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
             </FormItem>
           )}
         />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
@@ -166,9 +199,7 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date("1900-01-01")
-                      }
+                      disabled={(date) => date < new Date("1900-01-01")}
                       initialFocus
                     />
                   </PopoverContent>
@@ -177,7 +208,7 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="event_time"
@@ -192,7 +223,7 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
             )}
           />
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
@@ -200,7 +231,10 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select event status" />
@@ -208,7 +242,9 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="upcoming">Upcoming</SelectItem>
-                    <SelectItem value="registration">Registration Open</SelectItem>
+                    <SelectItem value="registration">
+                      Registration Open
+                    </SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
@@ -217,7 +253,7 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="attendees"
@@ -232,9 +268,13 @@ const EventForm = ({ onSubmit, initialData, isSubmitting = false }: EventFormPro
             )}
           />
         </div>
-        
+
         <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? "Saving..." : initialData ? "Update Event" : "Create Event"}
+          {isSubmitting
+            ? "Saving..."
+            : initialData
+            ? "Update Event"
+            : "Create Event"}
         </Button>
       </form>
     </Form>

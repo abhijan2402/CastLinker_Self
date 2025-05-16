@@ -212,13 +212,13 @@ const EventManagement = () => {
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                       <span className="text-sm">
-                        {formatDate(featuredEvent.event_date)}
+                        {formatDate(featuredEvent.date)}
                       </span>
                     </div>
                     <div className="flex items-center">
                       <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                       <span className="text-sm">
-                        {featuredEvent.event_time}
+                        {featuredEvent.time}
                       </span>
                     </div>
                     <div className="flex items-center">
@@ -228,7 +228,7 @@ const EventManagement = () => {
                     <div className="flex items-center">
                       <Users className="h-4 w-4 mr-2 text-muted-foreground" />
                       <span className="text-sm">
-                        {featuredEvent.attendees} attendees
+                        {featuredEvent.expected_attribute} attendees
                       </span>
                     </div>
                   </div>
@@ -263,7 +263,7 @@ const EventManagement = () => {
                 />
               </div>
               <div className="flex gap-2">
-                <Popover>
+                {/* <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm">
                       <Calendar className="h-4 w-4 mr-2" />
@@ -292,7 +292,7 @@ const EventManagement = () => {
                       </div>
                     )}
                   </PopoverContent>
-                </Popover>
+                </Popover> */}
                 <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Event
@@ -347,7 +347,7 @@ const EventManagement = () => {
                         <TableCell>{formatDate(event.createdAt)}</TableCell>
                         <TableCell>{event.time}</TableCell>
                         <TableCell>
-                          {getStatusBadge(event.status || "NA")}
+                          {getStatusBadge(event.event_status || "NA")}
                         </TableCell>
                         {/* <TableCell>{event.attendees}</TableCell> */}
                         <TableCell>

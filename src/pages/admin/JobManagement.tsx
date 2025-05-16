@@ -35,11 +35,13 @@ import { Job } from "@/hooks/useJobsData";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { seedJobsData } from "@/utils/seedJobsData";
 import {
+  deleteData,
   fetchData,
   patchData,
   postData,
   updateData,
 } from "@/api/ClientFuntion";
+import { useAuth } from "@/contexts/AuthContext";
 type FetchJobsResponse = {
   data: Job[];
   error?: string;
@@ -62,8 +64,12 @@ type Job = {
   application_email: string;
   created_at: string;
 };
-
+type DeleteEventResponse = {
+  success: boolean;
+  message: string;
+};
 const JobManagement = () => {
+  const { user } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [totalJobs, setTotalJobs] = useState(0);
@@ -145,11 +151,10 @@ const JobManagement = () => {
   const handleJobSubmit = async (jobData: Partial<Job>) => {
     console.log("Raw job data:", jobData);
 
-    // Format the payload according to your structure
     const payload: Partial<Job> = {
-      job_title: jobData.job_title || "",
+      job_title: jobData.title || "",
       company: jobData.company || "",
-      job_description: jobData.job_description || "",
+      job_description: jobData.description || "",
       job_type: jobData.job_type || "Full-time",
       role_category: jobData.role_category || "",
       location: jobData.location || "",
@@ -159,32 +164,43 @@ const JobManagement = () => {
       company_logo: jobData.company_logo || "",
       salary_min: jobData.salary_min || 0,
       salary_max: jobData.salary_max || 0,
-      salary_currency: jobData.salary_currency || "USD",
+      salary_currency: jobData.salary_currency || "INR",
       application_url: jobData.application_url || "",
       application_email: jobData.application_email || "",
       created_at: jobData.created_at || new Date().toISOString(),
     };
 
     try {
-      const endpoint = currentJob ? "/api/jobs/update" : "/api/jobs";
-      const response = (await postData(endpoint, payload)) as {
-        error?: { message: string };
-      };
+      const endpoint = currentJob
+        ? `/api/jobs/admin/${currentJob.id}` // Update
+        : "/api/jobs/admin"; // Create
 
-      if (response?.error) {
-        throw new Error(response.error.message || "Unknown error");
+      const response = currentJob
+        ? await updateData(endpoint, payload)
+        : await postData(endpoint, payload);
+
+      const result = response as {
+        success?: boolean;
+        error?: { message: string };
+        message?: string;
+      };
+console.log(result)
+      if (!result?.success) {
+        throw new Error(result?.error?.message || result?.message);
       }
 
-      toast({
-        title: "Success",
-        description: currentJob
-          ? "Job updated successfully"
-          : "Job created successfully",
-      });
+      if (response) {
+        toast({
+          title: "Success",
+          description: currentJob
+            ? "Job updated successfully"
+            : "Job created successfully",
+        });
 
-      fetchJobs();
-      setIsJobFormOpen(false);
-      setCurrentJob(null);
+        fetchJobs(); // Refresh job list
+        setIsJobFormOpen(false);
+        setCurrentJob(null);
+      }
     } catch (error: any) {
       console.error("Error saving job:", error);
       toast({
@@ -204,21 +220,25 @@ const JobManagement = () => {
     if (!currentJob) return;
 
     try {
-      const { error } = await (supabase
-        .from("film_jobs")
-        .delete()
-        .eq("id", currentJob.id) as any);
+      const rawResponse = await deleteData(`/api/jobs/admin/${currentJob.id}`);
+      const result = rawResponse as DeleteEventResponse;
 
-      if (error) throw error;
+      console.log(result);
 
-      toast({
-        title: "Success",
-        description: "Job deleted successfully",
-      });
+      if (!result.message) {
+        throw new Error(result.message || "Failed to delete event");
+      }
 
-      fetchJobs();
-      setIsDeleteDialogOpen(false);
-      setCurrentJob(null);
+      if (result.message) {
+        toast({
+          title: "Success",
+          description: "Job deleted successfully",
+        });
+
+        fetchJobs();
+        setIsDeleteDialogOpen(false);
+        setCurrentJob(null);
+      }
     } catch (error: any) {
       console.error("Error deleting job:", error);
       toast({

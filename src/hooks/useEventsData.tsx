@@ -2,12 +2,45 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Event, EventFormData } from "@/types/eventTypes";
-import { fetchData } from "@/api/ClientFuntion";
+import {
+  deleteData,
+  fetchData,
+  postData,
+  updateData,
+} from "@/api/ClientFuntion";
+import useAuth from "./useAuth";
 type FetchFeaturedEvents = {
-  data: Events[];
+  data: Event[];
   error?: string;
 };
+
+interface EventData {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  event_type: string;
+  featured_image_url: string | null;
+  event_status: string;
+  expected_attribute: number;
+  user_id: number;
+  updatedAt: string;
+  createdAt: string;
+}
+
+interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+type DeleteEventResponse = {
+  success: boolean;
+  message: string;
+};
 export function useEventsData() {
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -24,7 +57,6 @@ export function useEventsData() {
       const response = (await fetchData(
         "/api/events/list/admin/"
       )) as FetchFeaturedEvents;
-
 
       if (!response || response.error) {
         throw new Error(response?.error || "Failed to fetch jobs");
@@ -48,30 +80,59 @@ export function useEventsData() {
   };
 
   const addEvent = async (eventData: EventFormData) => {
+    console.log(eventData);
     try {
       setIsLoading(true);
 
-      const { data, error } = await supabase
-        .from("industry_events_management")
-        .insert([eventData])
-        .select();
+      const payload = {
+        title: eventData.title,
+        description: eventData.description,
+        date: eventData.event_date,
+        time: eventData.event_time,
+        location: eventData.location,
+        event_type: eventData.event_type || "general",
+        event_status: eventData.status,
+        expected_attribute: eventData.attendees,
+        user_id: user?.id,
+      };
 
-      if (error) throw error;
+      const response = (await postData(
+        "/api/events/create/admin",
+        payload
+      )) as ApiResponse<EventData>;
 
-      if (data) {
-        setEvents((prev) => [...prev, data[0] as Event]);
-        toast({
-          title: "Success",
-          description: "Event created successfully!",
-        });
-        return true;
+      if (!response?.success) {
+        throw new Error(response.message || "Failed to create event");
       }
-      return false;
-    } catch (error) {
+      const newEvent: Event = {
+        id: response.data.id,
+        title: response.data.title,
+        description: response.data.description,
+        event_date: response.data.date,
+        event_time: response.data.time,
+        location: response.data.location,
+        event_type: response.data.event_type,
+        // featured_image_url: response.data.featured_image_url,
+        event_status: response.data.event_status,
+        attendees: response.data.expected_attribute,
+        user_id: response.data.user_id,
+        createdAt: response.data.createdAt,
+        updatedAt: response.data.updatedAt,
+      };
+      setEvents((prev) => [...prev, newEvent]);
+
+      toast({
+        title: "Success",
+        description: "Event created successfully!",
+      });
+
+      return true;
+    } catch (error: any) {
       console.error("Error creating event:", error);
       toast({
         title: "Error",
-        description: "Failed to create event. Please try again.",
+        description:
+          error.message || "Failed to create event. Please try again.",
         variant: "destructive",
       });
       return false;
@@ -84,18 +145,44 @@ export function useEventsData() {
     try {
       setIsLoading(true);
 
-      const { data, error } = await supabase
-        .from("industry_events_management")
-        .update(eventData)
-        .eq("id", id)
-        .select();
+      const payload = {
+        title: eventData.title,
+        description: eventData.description,
+        date: eventData.event_date,
+        time: eventData.event_time,
+        location: eventData.location,
+        event_type: eventData.event_type || "general",
+        event_status: eventData.status,
+        expected_attribute: eventData.attendees,
+      };
 
-      if (error) throw error;
+      const response = (await updateData(
+        `/api/events/admin/${id}`,
+        payload
+      )) as ApiResponse<EventData>;
 
-      if (data) {
-        setEvents((prev) =>
-          prev.map((event) => (event.id === id ? (data[0] as Event) : event))
-        );
+      if (!response?.success) {
+        throw new Error(response.message || "Failed to create event");
+      }
+
+      if (response?.success) {
+        const newEvent: Event = {
+          id: response.data.id,
+          title: response.data.title,
+          description: response.data.description,
+          event_date: response.data.date,
+          event_time: response.data.time,
+          location: response.data.location,
+          event_type: response.data.event_type,
+          // featured_image_url: response.data.featured_image_url,
+          event_status: response.data.event_status,
+          attendees: response.data.expected_attribute,
+          user_id: response.data.user_id,
+          createdAt: response.data.createdAt,
+          updatedAt: response.data.updatedAt,
+        };
+        setEvents((prev) => [...prev, newEvent]);
+
         toast({
           title: "Success",
           description: "Event updated successfully!",
@@ -116,30 +203,41 @@ export function useEventsData() {
     }
   };
 
-  const deleteEvent = async (id: string) => {
+  const deleteEvent = async (id: string | number) => {
     try {
       setIsLoading(true);
 
-      const { error } = await supabase
-        .from("industry_events_management")
-        .delete()
-        .eq("id", id);
+      const rawResponse = await deleteData(`/api/events/admin/${id}`);
+      const result = rawResponse as DeleteEventResponse;
 
-      if (error) throw error;
+      console.log(result);
+
+      if (!result.success) {
+        throw new Error(result.message || "Failed to delete event");
+      }
 
       setEvents((prev) => prev.filter((event) => event.id !== id));
+
       toast({
         title: "Success",
-        description: "Event deleted successfully!",
+        description: result.message || "Event deleted successfully!",
       });
+
       return true;
     } catch (error) {
       console.error("Error deleting event:", error);
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to delete event. Please try again.";
+
       toast({
         title: "Error",
-        description: "Failed to delete event. Please try again.",
+        description: message,
         variant: "destructive",
       });
+
       return false;
     } finally {
       setIsLoading(false);
@@ -148,19 +246,24 @@ export function useEventsData() {
 
   const filteredEvents = events.filter(
     (event) =>
-      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      (event.title?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (event.location?.toLowerCase() || "").includes(
+        searchQuery.toLowerCase()
+      ) ||
+      (event.description?.toLowerCase() || "").includes(
+        searchQuery.toLowerCase()
+      )
   );
 
-  const upcomingEvents = events.filter((event) => event.status === "upcoming");
+  const upcomingEvents = events.filter(
+    (event) => event.event_status === "upcoming"
+  );
   const featuredEvent = [...upcomingEvents].sort(
-    (a, b) =>
-      new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+    (a, b) => new Date(a.date).getTime() - new Date(b.time).getTime()
   )[0];
 
   const totalAttendees = events.reduce(
-    (sum, event) => sum + event.attendees,
+    (sum, event) => sum + event.expected_attribute,
     0
   );
 

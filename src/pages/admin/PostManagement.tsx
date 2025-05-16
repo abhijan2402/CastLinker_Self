@@ -38,10 +38,15 @@ import { toast } from "@/hooks/use-toast";
 import { Edit, MoreHorizontal, Search, Trash2, Users, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
-import { fetchData } from "@/api/ClientFuntion";
+import { deleteData, fetchData } from "@/api/ClientFuntion";
 type FetchPostResponse = {
   data: any[];
   error?: string;
+};
+
+type DeleteEventResponse = {
+  success: boolean;
+  message: string;
 };
 
 const PostManagement = () => {
@@ -63,7 +68,7 @@ const PostManagement = () => {
       setLoading(true);
 
       const response = (await fetchData("/api/posts/admin/")) as any[];
-      console.log(response)
+      console.log(response);
 
       if (!Array.isArray(response)) {
         throw new Error("Invalid response format. Expected an array.");
@@ -100,21 +105,25 @@ const PostManagement = () => {
     if (!postToDelete) return;
 
     try {
-      const { error } = await supabase
-        .from("castlinker_posts")
-        .delete()
-        .eq("id", postToDelete.id);
+      const rawResponse = await deleteData(`/api/posts/${postToDelete.id}`);
+      const result = rawResponse as DeleteEventResponse;
 
-      if (error) throw error;
+      console.log(result);
 
-      setPosts(posts.filter((post) => post.id !== postToDelete.id));
-      setDeleteConfirmOpen(false);
-      setPostToDelete(null);
+      if (!result.success) {
+        throw new Error(result.message || "Failed to delete event");
+      }
 
-      toast({
-        title: "Post Deleted",
-        description: "The post has been successfully deleted.",
-      });
+      if (result.success) {
+        setPosts(posts.filter((post) => post.id !== postToDelete.id));
+        setDeleteConfirmOpen(false);
+        setPostToDelete(null);
+
+        toast({
+          title: "Post Deleted",
+          description: "The post has been successfully deleted.",
+        });
+      }
     } catch (error) {
       console.error("Error deleting post:", error);
       toast({
@@ -199,10 +208,10 @@ const PostManagement = () => {
                         <TableCell>
                           <div className="flex items-center">
                             <Users className="h-4 w-4 mr-1 text-muted-foreground" />
-                            {applicationCounts[post.id] || 0}
+                            {applicationCounts[post.total_applications] || 0}
                           </div>
                         </TableCell>
-                        <TableCell>{post.like_count}</TableCell>
+                        <TableCell>{post.total_likes}</TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

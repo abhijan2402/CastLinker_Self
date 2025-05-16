@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -13,9 +12,10 @@ export type Post = {
   tags: string[];
   createdAt: string;
   updated_at: string;
-  like_count: number;
+  total_likes: number;
+  total_applications: string;
   media_url?: string | null;
-  media_type?: 'image' | 'video' | null;
+  media_type?: "image" | "video" | null;
   event_date?: string | null;
   external_url?: string | null;
   place?: string | null;
@@ -70,7 +70,9 @@ export const fetchPostById = async (id: string) => {
   }
 };
 
-export const createPost = async (post: Omit<Post, "id" | "created_at" | "updated_at" | "like_count">) => {
+export const createPost = async (
+  post: Omit<Post, "id" | "created_at" | "updated_at" | "like_count">
+) => {
   try {
     const { data, error } = await supabase
       .from("castlinker_posts")
@@ -158,30 +160,30 @@ export const getApplicationsForPost = async (post_id: string) => {
       .eq("post_id", post_id);
 
     if (appsError) throw appsError;
-    
+
     if (!applications || applications.length === 0) {
       return [];
     }
-    
-    const userIds = applications.map(app => app.user_id);
-    
+
+    const userIds = applications.map((app) => app.user_id);
+
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("id, full_name, avatar_url, profession_type, location, email")
       .in("id", userIds);
-    
+
     if (profilesError) {
       console.error("Error fetching profiles:", profilesError);
     }
-    
-    const applicantsWithProfiles = applications.map(app => {
-      const profile = profiles?.find(p => p.id === app.user_id) || null;
+
+    const applicantsWithProfiles = applications.map((app) => {
+      const profile = profiles?.find((p) => p.id === app.user_id) || null;
       return {
         ...app,
-        profile
+        profile,
       };
     });
-    
+
     return applicantsWithProfiles as PostApplication[];
   } catch (error) {
     console.error("Error fetching applications:", error);
@@ -240,23 +242,25 @@ export const checkIfLiked = async (post_id: string, user_id: string) => {
 
 export const uploadPostMedia = async (file: File, userId: string) => {
   try {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${userId}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${userId}-${Math.random()
+      .toString(36)
+      .substring(2, 15)}.${fileExt}`;
     const filePath = `${userId}/${fileName}`;
-    
+
     const { data, error } = await supabase.storage
-      .from('post_media')
+      .from("post_media")
       .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
+        cacheControl: "3600",
+        upsert: false,
       });
-    
+
     if (error) throw error;
-    
-    const { data: { publicUrl } } = supabase.storage
-      .from('post_media')
-      .getPublicUrl(filePath);
-      
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("post_media").getPublicUrl(filePath);
+
     return publicUrl;
   } catch (error) {
     console.error("Error uploading file:", error);
@@ -272,39 +276,39 @@ export const getApplicantsByPostId = async (postId: string) => {
       .eq("post_id", postId);
 
     if (appsError) throw appsError;
-    
+
     if (!applications || applications.length === 0) {
       return [];
     }
-    
-    const userIds = applications.map(app => app.user_id);
-    
+
+    const userIds = applications.map((app) => app.user_id);
+
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("id, full_name, avatar_url, profession_type, location, email")
       .in("id", userIds);
-    
+
     if (profilesError) throw profilesError;
-    
+
     // Make sure we have profiles before we try to use them
     const profileData = profiles || [];
-    
-    const applicantsWithProfiles = applications.map(app => {
-      const profile = profileData.find(p => p.id === app.user_id) || {
+
+    const applicantsWithProfiles = applications.map((app) => {
+      const profile = profileData.find((p) => p.id === app.user_id) || {
         id: app.user_id,
         full_name: "User",
         avatar_url: "",
         profession_type: "Unknown",
         location: "",
-        email: ""
+        email: "",
       };
-      
+
       return {
         ...app,
-        profile
+        profile,
       };
     });
-    
+
     return applicantsWithProfiles;
   } catch (error) {
     console.error("Error fetching applicants:", error);

@@ -1,15 +1,16 @@
-
 export interface Event {
-  id: string;
+  id: number;
   title: string;
   description?: string;
   location: string;
   event_date: string;
   event_time: string;
-  status: 'upcoming' | 'completed' | 'registration' | 'cancelled';
+  event_status: string;
   attendees: number;
-  created_at?: string;
-  updated_at?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  event_type: string;
+  user_id: number;
 }
 
 export interface EventFormData {
@@ -18,6 +19,7 @@ export interface EventFormData {
   location: string;
   event_date: string;
   event_time: string;
-  status: 'upcoming' | 'completed' | 'registration' | 'cancelled';
+  status: "upcoming" | "completed" | "registration" | "cancelled";
   attendees: number;
+  event_type: string;
 }
