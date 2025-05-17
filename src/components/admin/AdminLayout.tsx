@@ -30,7 +30,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     setCollapsed(!collapsed);
   };
 
-  if (!user || !user.email.includes("admin")) {
+  if (!user || !user.user_role.includes("admin")) {
     return <AccessDenied />;
   }
 

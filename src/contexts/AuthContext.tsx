@@ -9,7 +9,7 @@ import { postData } from "@/api/ClientFuntion";
 export interface User {
   id: number;
   email: string;
-  role: string;
+  user_role: string;
   type: string;
   isLoggedIn: boolean;
   token: string;
@@ -218,7 +218,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const formattedUser: User = {
         id: loginResponse.user.id,
         email: loginResponse.user.email,
-        role: loginResponse.user.user_role,
+        user_role: loginResponse.user.user_role,
         type: loginResponse.user.user_type,
         isLoggedIn: true,
         token: loginResponse.token,
@@ -296,7 +296,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const formattedUser: User = {
         id: registerResponse.user.id,
         email: registerResponse.user.email,
-        role: registerResponse.user.user_role,
+        user_role: registerResponse.user.user_role,
         type: registerResponse.user.user_type,
         isLoggedIn: true,
         token: registerResponse.token,
