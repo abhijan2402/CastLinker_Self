@@ -189,7 +189,7 @@ const Chat = () => {
                       }
                     `}
                     >
-                      {chat.name.charAt(0)}
+                      {"NA"}
                     </AvatarFallback>
                   </Avatar>
                   {chat.online && (
@@ -203,7 +203,7 @@ const Chat = () => {
                         activeChat?.id === chat.id ? "text-gold" : "text-white"
                       }`}
                     >
-                      {chat.name}
+                      {chat.user?.username}
                     </h3>
                     <span className="text-xs text-gray-400">
                       {chat.lastMessageTime}
@@ -211,7 +211,7 @@ const Chat = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <p className="text-sm text-gray-400 truncate">
-                      {chat.lastMessage}
+                      {chat.content}
                     </p>
                     {chat.unread > 0 && (
                       <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-medium bg-gold text-black rounded-full">
@@ -254,7 +254,7 @@ const Chat = () => {
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={activeChat.avatar} alt={activeChat.name} />
                   <AvatarFallback className="bg-gold/20 text-gold">
-                    {activeChat.name.charAt(0)}
+                    {/* {activeChat.name.charAt(0)} */}
                   </AvatarFallback>
                 </Avatar>
                 <div>

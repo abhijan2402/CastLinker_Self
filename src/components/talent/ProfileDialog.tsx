@@ -108,7 +108,7 @@ export function ProfileDialog({ talent, isOpen, onClose, onMessage, onConnect }:
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Skills</h4>
             <div className="flex flex-wrap gap-2">
-              {talent.skills.map((skill, index) => (
+              {talent?.skills?.map((skill, index) => (
                 <Badge key={index} variant="secondary">{skill}</Badge>
               ))}
             </div>

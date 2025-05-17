@@ -496,7 +496,7 @@ const TalentDirectory = () => {
                 <div className="flex items-start gap-3">
                   <Avatar className="h-14 w-14 border-2 border-gold/30">
                     <AvatarImage src={profile.avatar} />
-                    <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback>{profile?.username?.charAt(0) || "NA"}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -506,7 +506,7 @@ const TalentDirectory = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-foreground/70">
-                      <span>{profile.role}</span>
+                      <span>{profile.user_role}</span>
                       <span className="text-xs">•</span>
                       <div className="flex items-center">
                         <MapPin className="h-3 w-3 mr-1" />
@@ -517,21 +517,21 @@ const TalentDirectory = () => {
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center">
                       <Star className="h-4 w-4 text-gold mr-1 fill-gold" />
-                      <span className="text-sm font-medium">{profile.rating.toFixed(1)}</span>
+                      <span className="text-sm font-medium">{profile?.rating?.toFixed(1) || 5}</span>
                     </div>
                     <div className="flex items-center">
                       <Heart className="h-3.5 w-3.5 text-rose-400 mr-1" />
-                      <span className="text-xs text-foreground/60">{profile.likesCount}</span>
+                      <span className="text-xs text-foreground/60">{profile?.likesCount}</span>
                     </div>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="p-4">
                 <p className="text-sm text-foreground/80 line-clamp-3 mb-3">
-                  {profile.bio}
+                  {profile?.bio}
                 </p>
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {profile.skills.slice(0, 3).map(skill => (
+                  {profile?.skills?.slice(0, 3).map(skill => (
                     <span 
                       key={`${profile.id}-${skill}`} 
                       className="text-xs px-2 py-0.5 bg-gold/10 text-gold/90 rounded-full"
@@ -539,22 +539,22 @@ const TalentDirectory = () => {
                       {skill}
                     </span>
                   ))}
-                  {profile.skills.length > 3 && (
+                  {profile?.skills?.length > 3 && (
                     <span className="text-xs px-2 py-0.5 bg-gold/5 text-gold/70 rounded-full">
-                      +{profile.skills.length - 3} more
+                      +{profile?.skills?.length - 3} more
                     </span>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-foreground/70">
                   <div>
                     <span className="block text-foreground/50">Experience</span>
-                    <span className="font-medium text-foreground/80">{profile.experience} years</span>
+                    <span className="font-medium text-foreground/80">{profile?.experience} years</span>
                   </div>
                   <div>
                     <span className="block text-foreground/50">Languages</span>
                     <span className="font-medium text-foreground/80">
-                      {profile.languages.length > 0 
-                        ? profile.languages.join(", ") 
+                      {profile?.languages?.length > 0 
+                        ? profile?.languages?.join(", ") 
                         : "English"}
                     </span>
                   </div>
@@ -565,28 +565,28 @@ const TalentDirectory = () => {
                     variant="outline"
                     size="sm"
                     className={`px-3 border-gold/20 ${
-                      likedProfiles.includes(profile.id) ? 'bg-rose-950/30 text-rose-400' : 'hover:bg-rose-950/20 hover:text-rose-400'
+                      likedProfiles?.includes(profile.id) ? 'bg-rose-950/30 text-rose-400' : 'hover:bg-rose-950/20 hover:text-rose-400'
                     }`}
                     onClick={() => handleLikeProfile(profile)}
                   >
                     <Heart 
-                      className={`h-4 w-4 mr-1 ${likedProfiles.includes(profile.id) ? 'fill-rose-400' : ''}`} 
+                      className={`h-4 w-4 mr-1 ${likedProfiles?.includes(profile.id) ? 'fill-rose-400' : ''}`} 
                     />
-                    {likedProfiles.includes(profile.id) ? 'Liked' : 'Like'}
+                    {likedProfiles?.includes(profile.id) ? 'Liked' : 'Like'}
                   </Button>
                   
                   <Button 
                     variant="outline"
                     size="sm"
                     className={`px-3 border-gold/20 ${
-                      wishlistedProfiles.includes(profile.id) ? 'bg-amber-950/30 text-amber-400' : 'hover:bg-amber-950/20 hover:text-amber-400'
+                      wishlistedProfiles?.includes(profile.id) ? 'bg-amber-950/30 text-amber-400' : 'hover:bg-amber-950/20 hover:text-amber-400'
                     }`}
                     onClick={() => toggleWishlist(profile.id)}
                   >
                     <Bookmark 
-                      className={`h-4 w-4 mr-1 ${wishlistedProfiles.includes(profile.id) ? 'fill-amber-400' : ''}`} 
+                      className={`h-4 w-4 mr-1 ${wishlistedProfiles?.includes(profile.id) ? 'fill-amber-400' : ''}`} 
                     />
-                    {wishlistedProfiles.includes(profile.id) ? 'Saved' : 'Save'}
+                    {wishlistedProfiles?.includes(profile.id) ? 'Saved' : 'Save'}
                   </Button>
                   
                   <Button 
