@@ -28,7 +28,7 @@ export const useAdminAuth = () => {
         setIsAdmin(true);
       } else if (user.user_role === "admin") {
         // If just "admin" without specific role, assign a default role like "moderator"
-        setAdminUser({ role: "moderator" });
+        setAdminUser({ role: "super_admin" });
         setIsAdmin(true);
       } else {
         setAdminUser(null);

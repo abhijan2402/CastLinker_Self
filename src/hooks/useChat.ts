@@ -182,48 +182,51 @@ export const useChat = (roomId: string) => {
   // Send message function
   const sendMessage = async (content: string, attachments: File[] = []) => {
     console.log(content);
-    if (!user || !content.trim()) return;
+    // if (!user || !content.trim()) return;
 
-    const newMessage: Message = {
-      id: uuidv4(),
-      room_id: roomId,
-      sender_id: user.id,
-      content,  
-      type: "text",
-      metadata: {},
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_edited: false,
-      is_deleted: false,
-      timestamp: "Just now",
-      status: "sent",
-      isMe: true,
-    };
+    // const newMessage: Message = {
+    //   id: uuidv4(),
+    //   room_id: roomId,
+    //   sender_id: user.id,
+    //   receiver_id: number;
+    //   content,  
+    //   type: "text",
+    //   metadata: {},
+    //   created_at: new Date().toISOString(),
+    //   updated_at: new Date().toISOString(),
+    //   is_edited: false,
+    //   is_deleted: false,
+    //   timestamp: "Just now",
+    //   status: "sent",
+    //   isMe: true,
+    // };
 
     // If there are attachments, add them to the message
-    if (attachments.length > 0) {
-      newMessage.attachments = attachments.map((file) => ({
-        id: uuidv4(),
-        messageId: newMessage.id,
-        fileUrl: URL.createObjectURL(file),
-        fileName: file.name,
-        fileType: file.type,
-        fileSize: file.size,
-      }));
-    }
+    // if (attachments.length > 0) {
+    //   newMessage.attachments = attachments.map((file) => ({
+    //     id: uuidv4(),
+    //     messageId: newMessage.id,
+    //     fileUrl: URL.createObjectURL(file),
+    //     fileName: file.name,
+    //     fileType: file.type,
+    //     fileSize: file.size,
+    //   }));
+    // }
 
-    setMessages((prev) => [...prev, newMessage]);
-    console.log("Called");
+    // setMessages((prev) => [...prev, newMessage]);
+    // console.log("Called");
 
     socket.emit("send_message", {
       sender_id: user?.id,
-      receiver_id: 29,
+      receiver_id: 25,
       content: content,
-      // You can also send attachments if needed
     });
 
     return true;
   };
+
+
+
   useEffect(() => {
     // Ensure user is defined and has a valid ID
     if (!user?.id || !socket) return;

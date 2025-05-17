@@ -154,7 +154,7 @@ const TeamManagement = () => {
     );
   };
 
-  const canEditRoles = adminUser?.role === 'admin';
+  const canEditRoles = adminUser?.role === 'super_admin';
 
   return (
     <div className="space-y-6">

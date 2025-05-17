@@ -232,7 +232,7 @@ const Chat = () => {
                   justifyContent: "center",
                   height: "40vh",
                   alignItems: "center",
-                  fontSize:"12px"
+                  fontSize: "12px",
                 }}
               >
                 No Recent Chats Found

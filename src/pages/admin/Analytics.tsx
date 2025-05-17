@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -7,10 +7,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  BarChart as RechartsBarChart, 
-  LineChart as RechartsLineChart, 
-  PieChart as RechartsPieChart, 
+import {
+  BarChart as RechartsBarChart,
+  LineChart as RechartsLineChart,
+  PieChart as RechartsPieChart,
   AreaChart as RechartsAreaChart,
   CartesianGrid,
   XAxis,
@@ -20,7 +20,7 @@ import {
   Area,
   Bar,
   Pie,
-  Cell
+  Cell,
 } from "recharts";
 import {
   Activity,
@@ -30,55 +30,65 @@ import {
   Film,
   ArrowUpRight,
   ArrowDownRight,
-  Download
+  Download,
 } from "lucide-react";
-
-// Sample data for charts
-const userActivityData = [
-  { name: "Jan", value: 2400 },
-  { name: "Feb", value: 1398 },
-  { name: "Mar", value: 9800 },
-  { name: "Apr", value: 3908 },
-  { name: "May", value: 4800 },
-  { name: "Jun", value: 3800 },
-  { name: "Jul", value: 4300 },
-];
-
-const jobsData = [
-  { name: "Jan", posted: 100, applications: 420 },
-  { name: "Feb", posted: 120, applications: 509 },
-  { name: "Mar", posted: 140, applications: 610 },
-  { name: "Apr", posted: 130, applications: 540 },
-  { name: "May", posted: 150, applications: 620 },
-  { name: "Jun", posted: 160, applications: 710 },
-  { name: "Jul", posted: 170, applications: 780 },
-];
-
-const userDemographicsData = [
-  { name: "Actors", value: 400 },
-  { name: "Directors", value: 300 },
-  { name: "Producers", value: 200 },
-  { name: "Crew", value: 278 },
-  { name: "Writers", value: 189 },
-];
-
-const jobCategoriesData = [
-  { name: "Acting", value: 400 },
-  { name: "Directing", value: 300 },
-  { name: "Production", value: 300 },
-  { name: "Writing", value: 200 },
-  { name: "Crew", value: 278 },
-  { name: "Other", value: 189 },
-];
+import { parse, format } from "date-fns";
+import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
 
 // Colors for pie charts
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28CFF', '#FF6B6B'];
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#A28CFF",
+  "#FF6B6B",
+];
 
 const Analytics = () => {
+  const {
+    jobCategoriesData,
+    userDemographicsData,
+    userActivityData,
+    jobMetricData,
+    analyticsStatsData,
+    loading,
+    error,
+  } = useAdminAnalytics();
+
+  const transformedUserDemographicsData = userDemographicsData.map((item) => ({
+    name: item.user_role,
+    value: parseInt(item.count, 10),
+  }));
+  const pieChartData = jobCategoriesData.map((item) => ({
+    name: item.role_category,
+    value: parseInt(item.count, 10),
+  }));
+
+  const transformedUserActivityData = userActivityData.map((item) => ({
+    name: format(new Date(item.month), "MMM"), // e.g., "Apr"
+    value: parseInt(item.activeUsers, 10),
+  }));
+
+  const transformedJobMetricsData = jobMetricData.map((item) => ({
+    name: format(parse(item.month, "yyyy-MM", new Date()), "MMM"),
+    posted: item.posted,
+    applications: item.applications,
+  }));
+
+  // console.log("analyticsStatsData", analyticsStatsData);
+  // console.log("userDemographicsData", userDemographicsData);
+  // console.log("jobCategoriesData", jobCategoriesData);
+  // console.log("userActivityData", userActivityData);
+  // console.log("jobMetricData", jobMetricData);
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold gold-gradient-text">Analytics Dashboard</h1>
-      <p className="text-muted-foreground">Track key metrics and performance indicators.</p>
+      <h1 className="text-3xl font-bold gold-gradient-text">
+        Analytics Dashboard
+      </h1>
+      <p className="text-muted-foreground">
+        Track key metrics and performance indicators.
+      </p>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -91,14 +101,16 @@ const Analytics = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12,345</div>
-            <div className="flex items-center pt-1 text-xs text-green-500">
+            <div className="text-2xl font-bold">
+              {analyticsStatsData.totalUsers ?? 0}
+            </div>
+            <div className="flex items-center pt-1 text-green-500 text-xs">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               <span>12% from last month</span>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
@@ -108,31 +120,37 @@ const Analytics = () => {
             <Film className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">867</div>
-            <div className="flex items-center pt-1 text-xs text-green-500">
+            <div className="text-2xl font-bold">
+              {analyticsStatsData.activeJobs ?? 0}
+            </div>
+            <div className="flex items-center pt-1 text-green-500 text-xs">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               <span>8% from last month</span>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-medium">Applications</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Applications
+              </CardTitle>
               <CardDescription>Last 30 days</CardDescription>
             </div>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4,129</div>
-            <div className="flex items-center pt-1 text-xs text-red-500">
+            <div className="text-2xl font-bold">
+              {analyticsStatsData.applicationsLast30Days ?? 0}
+            </div>
+            <div className="flex items-center pt-1 text-red-500 text-xs">
               <ArrowDownRight className="h-3 w-3 mr-1" />
               <span>3% from last month</span>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
@@ -142,8 +160,10 @@ const Analytics = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <div className="flex items-center pt-1 text-xs text-green-500">
+            <div className="text-2xl font-bold">
+              {analyticsStatsData.eventsThisMonth ?? 0}
+            </div>
+            <div className="flex items-center pt-1 text-green-500 text-xs">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               <span>20% from last month</span>
             </div>
@@ -168,30 +188,40 @@ const Analytics = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] w-full">
-              <RechartsAreaChart
-                width={500}
-                height={300}
-                data={userActivityData}
-                margin={{
-                  top: 10,
-                  right: 30,
-                  left: 0,
-                  bottom: 0,
-                }}
-              >
-                <defs>
-                  <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip />
-                <Area type="monotone" dataKey="value" stroke="#8884d8" fillOpacity={1} fill="url(#colorUv)" />
-              </RechartsAreaChart>
+            <div className="h-[300px] w-full flex items-center justify-center">
+              {transformedUserActivityData.length > 0 ? (
+                <RechartsAreaChart
+                  width={500}
+                  height={300}
+                  data={transformedUserActivityData}
+                  margin={{
+                    top: 10,
+                    right: 30,
+                    left: 0,
+                    bottom: 0,
+                  }}
+                >
+                  <defs>
+                    <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#8884d8"
+                    fillOpacity={1}
+                    fill="url(#colorUv)"
+                  />
+                </RechartsAreaChart>
+              ) : (
+                <p className="text-gray-500 text-sm">No data found</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -202,7 +232,9 @@ const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Job Metrics</CardTitle>
-                <CardDescription>Jobs posted vs applications received</CardDescription>
+                <CardDescription>
+                  Jobs posted vs applications received
+                </CardDescription>
               </div>
               <Button variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
@@ -211,26 +243,30 @@ const Analytics = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] w-full">
-              <RechartsBarChart
-                width={500}
-                height={300}
-                data={jobsData}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="posted" fill="#8884d8" />
-                <Bar dataKey="applications" fill="#82ca9d" />
-              </RechartsBarChart>
+            <div className="h-[300px] w-full flex items-center justify-center">
+              {transformedJobMetricsData.length > 0 ? (
+                <RechartsBarChart
+                  width={500}
+                  height={300}
+                  data={transformedJobMetricsData}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="posted" fill="#8884d8" />
+                  <Bar dataKey="applications" fill="#82ca9d" />
+                </RechartsBarChart>
+              ) : (
+                <p className="text-gray-500 text-sm">No data found</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -246,23 +282,32 @@ const Analytics = () => {
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full flex items-center justify-center">
-              <RechartsPieChart width={400} height={300}>
-                <Pie
-                  data={userDemographicsData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {userDemographicsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </RechartsPieChart>
+              {transformedUserDemographicsData.length > 0 ? (
+                <RechartsPieChart width={400} height={300}>
+                  <Pie
+                    data={transformedUserDemographicsData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
+                  >
+                    {userDemographicsData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </RechartsPieChart>
+              ) : (
+                <p className="text-gray-500 text-sm">No data found</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -275,23 +320,32 @@ const Analytics = () => {
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full flex items-center justify-center">
-              <RechartsPieChart width={400} height={300}>
-                <Pie
-                  data={jobCategoriesData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {jobCategoriesData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </RechartsPieChart>
+              {pieChartData.length > 0 ? (
+                <RechartsPieChart width={400} height={300}>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </RechartsPieChart>
+              ) : (
+                <p className="text-gray-500 text-sm">No data found</p>
+              )}
             </div>
           </CardContent>
         </Card>

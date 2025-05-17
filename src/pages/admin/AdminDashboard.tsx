@@ -38,11 +38,13 @@ import {
   Activity,
   Clock,
   Download,
+  ArrowDownRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fetchData } from "@/api/ClientFuntion";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isSameMonth, subMonths } from "date-fns";
+import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
 
 type UsersByRole = {
   role: string;
@@ -81,6 +83,13 @@ type EventListResponse = {
 };
 
 const AdminDashboard = () => {
+  const {
+    jobCategoriesData,
+    userDemographicsData,
+    userActivityData,
+    jobMetricData,
+    analyticsStatsData,
+  } = useAdminAnalytics();
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [usersByRole, setUsersByRole] = useState<UsersByRole[]>([]);
   const [percentageChange, setPercentageChange] = useState<number | null>(null);
@@ -89,13 +98,44 @@ const AdminDashboard = () => {
   const [selectedProfession, setSelectedProfession] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
 
-  console.log(usersByRole);
+  const now = new Date();
 
+  const currentMonthData = userActivityData.find((item) =>
+    isSameMonth(parseISO(item.month), now)
+  );
+
+  const previousMonthDate = subMonths(now, 1);
+  const previousMonthData = userActivityData.find((item) =>
+    isSameMonth(parseISO(item.month), previousMonthDate)
+  );
+
+  const currentActiveUsers = currentMonthData
+    ? Number(currentMonthData.activeUsers)
+    : 0;
+  const previousActiveUsers = previousMonthData
+    ? Number(previousMonthData.activeUsers)
+    : 0;
+
+  // Calculate percentage change safely
+  const percentageChanges =
+    previousActiveUsers === 0
+      ? currentActiveUsers === 0
+        ? 0
+        : 100
+      : ((currentActiveUsers - previousActiveUsers) / previousActiveUsers) *
+        100;
+
+  const isPositiveChange = percentageChanges >= 0;
+  const formattedPercentage = Math.abs(percentageChanges).toFixed(1);
   // Fetch users data
   useEffect(() => {
     const fetchUsersData = async () => {
       setLoading(true);
       try {
+        // const rep = fetchData("/api/admin/stats/recent-activities");
+        const rep = await fetchData("/api/admin/stats/posts-category");
+        console.log(rep);
+
         // Fetch event list
         const responseUserActivity = (await fetchData(
           "/api/events/list/admin/"
@@ -128,14 +168,12 @@ const AdminDashboard = () => {
           formattedData.sort(
             (a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()
           );
-          console.log(formattedData);
           // Finally, set state
           setUsersByMonth(formattedData);
         }
 
         // Fetch users by role
         const response = await fetchData("/api/admin/stats/team-summary");
-        console.log("Role data from API:", response);
 
         if (response && Array.isArray(response)) {
           setUsersByRole(response); // response is already in desired format
@@ -153,7 +191,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (usersByRole.length === 0) return;
-    console.log(usersByRole)
+    console.log(usersByRole);
 
     // Assume userGrowth is sorted ascending by month
     const lastIndex = usersByRole.length - 1;
@@ -197,7 +235,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? "..." : totalUsers}
+              {loading ? "..." : analyticsStatsData.totalUsers}
             </div>
             <div
               className={`flex items-center pt-1 text-xs ${
@@ -231,7 +269,10 @@ const AdminDashboard = () => {
             <FilmIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">86</div>
+            <div className="text-2xl font-bold">
+              {" "}
+              {analyticsStatsData.activeJobs ?? 0}
+            </div>
             <div className="flex items-center pt-1 text-xs text-green-500">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               <span>8% from last month</span>
@@ -248,7 +289,10 @@ const AdminDashboard = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">
+              {" "}
+              {analyticsStatsData.eventsThisMonth ?? 0}
+            </div>
             <div className="flex items-center pt-1 text-xs text-green-500">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               <span>20% from last month</span>
@@ -262,15 +306,23 @@ const AdminDashboard = () => {
               <CardTitle className="text-sm font-medium">
                 User Activity
               </CardTitle>
-              <CardDescription>Daily active users</CardDescription>
+              <CardDescription>Active users this month</CardDescription>
             </div>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">78</div>
-            <div className="flex items-center pt-1 text-xs text-green-500">
-              <ArrowUpRight className="h-3 w-3 mr-1" />
-              <span>5% from last week</span>
+            <div className="text-2xl font-bold">{currentActiveUsers}</div>
+            <div
+              className={`flex items-center pt-1 text-xs ${
+                isPositiveChange ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              {isPositiveChange ? (
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+              ) : (
+                <ArrowDownRight className="h-3 w-3 mr-1" />
+              )}
+              <span>{formattedPercentage}% from last month</span>
             </div>
           </CardContent>
         </Card>
