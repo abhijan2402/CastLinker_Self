@@ -184,7 +184,7 @@ const JobManagement = () => {
         error?: { message: string };
         message?: string;
       };
-console.log(result)
+      console.log(result);
       if (!result?.success) {
         throw new Error(result?.error?.message || result?.message);
       }
@@ -202,7 +202,6 @@ console.log(result)
         setCurrentJob(null);
       }
     } catch (error: any) {
-      console.error("Error saving job:", error);
       toast({
         variant: "destructive",
         title: "Error",
