@@ -1,11 +1,36 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -17,54 +42,85 @@ import { toast } from "sonner";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import RoleEditor from "@/components/admin/RoleEditor";
 import { AdminUserRole, AdminTeamRole } from "@/types/adminTypes";
+import { fetchData, postData } from "@/api/ClientFuntion";
 
 interface TeamMember {
-  id: string;
-  name: string;
+  id: number;
   email: string;
-  role: AdminTeamRole;
-  joined_date: string;
-  avatar_url?: string;
+  avatar_url: string;
+  user_role: string;
+  createdAt: string;
+  updatedAt: string;
+  acting_skills: string | null;
+  age_range: string | null;
+  bio: string | null;
+  eye_color: string | null;
+  hair_color: string | null;
+  height: string | null;
+  languages: string | null;
+  physical_attributes: string | null;
+  representation: string | null;
+  special_skills: string | null;
+  technical_skills: string | null;
+  union_status: string | null;
+  user_type: string | null;
+  username: string | null;
+  weight: string | null;
 }
-
+type CreateTeamMemberResponse = {
+  message: string;
+  user: {
+    id: number;
+    email: string;
+  };
+  plainPassword: string;
+};
 const TeamManagement = () => {
   const { adminUser, can } = useAdminAuth();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Dialog states
   const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [showRoleEditorDialog, setShowRoleEditorDialog] = useState(false);
   const [currentMember, setCurrentMember] = useState<TeamMember | null>(null);
-  
+
   // New member form data
   const [newMemberData, setNewMemberData] = useState({
     name: "",
     email: "",
-    role: "moderator" as AdminTeamRole
+    password: "",
+    role: "moderator" as AdminTeamRole,
   });
 
   // Fetch team members on component mount
   useEffect(() => {
     fetchTeamMembers();
   }, []);
-  
+
   const fetchTeamMembers = async () => {
     setLoading(true);
+
     try {
-      const { data, error } = await supabase
-        .from('users_management')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      
-      setTeamMembers(data as unknown as TeamMember[] || []);
-    } catch (error) {
-      console.error("Error fetching team members:", error);
-      toast.error("Failed to load team members");
+      const response = (await fetchData("/api/admin/users")) as {
+        error?: { message: string };
+      };
+
+      console.log(response);
+
+      if (response?.error) {
+        throw new Error(response.error.message || "Unknown error");
+      }
+
+      const data = response as TeamMember[];
+
+      setTeamMembers(data || []);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error("Error fetching users:", err.message);
+      toast.error(err.message || "Failed to load users. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -73,48 +129,60 @@ const TeamManagement = () => {
   const handleAddMember = async () => {
     try {
       const roleValue = newMemberData.role as unknown as AdminUserRole;
-      
-      const { data, error } = await supabase
-        .from('users_management')
-        .insert({
-          name: newMemberData.name,
-          email: newMemberData.email,
-          role: roleValue,
-          verified: true,
-          status: 'active'
-        })
-        .select();
-      
-      if (error) throw error;
-      
-      if (data) {
-        setTeamMembers(prev => [...prev, ...(data as unknown as TeamMember[])]);
-        setShowAddMemberDialog(false);
-        toast.success("Team member added successfully!");
-        setNewMemberData({ name: "", email: "", role: "moderator" });
-      }
-    } catch (error) {
+
+      const payload = {
+        name: newMemberData.name,
+        email: newMemberData.email,
+        generateRandomPassword: newMemberData.password,
+        role: roleValue,
+      };
+
+      const response = (await postData(
+        "/api/admin/team/create",
+        payload
+      )) as CreateTeamMemberResponse;
+
+      // Now TypeScript knows what `response.message` is
+      toast.success(response.message);
+
+      setNewMemberData({
+        name: "",
+        password: "",
+        email: "",
+        role: "moderator",
+      });
+
+      setShowAddMemberDialog(false);
+    } catch (error: any) {
       console.error("Error adding team member:", error);
-      toast.error("Failed to add team member");
+      toast.error(
+        typeof error?.message === "string"
+          ? error.message
+          : "Failed to add team member"
+      );
     }
   };
 
   const handleUpdateRole = async (selectedRole: string) => {
     if (!currentMember) return;
-    
+
     try {
       const roleValue = selectedRole as unknown as AdminUserRole;
-      
+
       const { error } = await supabase
-        .from('users_management')
+        .from("users_management")
         .update({ role: roleValue })
-        .eq('id', currentMember.id);
-      
+        .eq("id", currentMember.id);
+
       if (error) throw error;
-      
-      setTeamMembers(prev => prev.map(member => 
-        member.id === currentMember.id ? { ...member, role: selectedRole as AdminTeamRole } : member
-      ));
+
+      setTeamMembers((prev) =>
+        prev.map((member) =>
+          member.id === currentMember.id
+            ? { ...member, role: selectedRole as AdminTeamRole }
+            : member
+        )
+      );
       setShowRoleDialog(false);
       toast.success(`${currentMember.name}'s role updated to ${selectedRole}`);
     } catch (error) {
@@ -123,21 +191,22 @@ const TeamManagement = () => {
     }
   };
 
-  const filteredMembers = teamMembers.filter(member => 
-    member.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.role.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredMembers = teamMembers.filter(
+    (member) =>
+      member?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member?.user_role?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'super_admin':
+      case "super_admin":
         return "bg-red-500/10 text-red-500 border-red-500/30";
-      case 'content_manager':
+      case "content_manager":
         return "bg-blue-500/10 text-blue-500 border-blue-500/30";
-      case 'recruiter':
+      case "recruiter":
         return "bg-green-500/10 text-green-500 border-green-500/30";
-      case 'moderator':
+      case "moderator":
         return "bg-orange-500/10 text-orange-500 border-orange-500/30";
       default:
         return "bg-gray-500/10 text-gray-500 border-gray-500/30";
@@ -145,23 +214,30 @@ const TeamManagement = () => {
   };
 
   const renderRoleBadge = (role: string) => {
-    const roleInfo = roles.find(r => r.id === role) || { name: role, permissions: [] };
+    const roleInfo = roles.find((r) => r.id === role) || {
+      name: role,
+      permissions: [],
+    };
     return (
       <Badge className={getRoleColor(role)}>
         {roleInfo.name}
-        <span className="ml-1 text-xs opacity-70">({roleInfo.permissions.length})</span>
+        <span className="ml-1 text-xs opacity-70">
+          ({roleInfo.permissions.length})
+        </span>
       </Badge>
     );
   };
 
-  const canEditRoles = adminUser?.role === 'super_admin';
+  const canEditRoles = adminUser?.role === "super_admin";
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold gold-gradient-text">Team Management</h1>
+        <h1 className="text-3xl font-bold gold-gradient-text">
+          Team Management
+        </h1>
         {canEditRoles && (
-          <Button 
+          <Button
             className="bg-gold text-black hover:bg-gold/90"
             onClick={() => setShowAddMemberDialog(true)}
           >
@@ -173,7 +249,9 @@ const TeamManagement = () => {
       <Card className="bg-card-gradient backdrop-blur-sm border-gold/10">
         <CardHeader className="space-y-1">
           <CardTitle>Team Members</CardTitle>
-          <CardDescription>Manage your admin team and their permissions</CardDescription>
+          <CardDescription>
+            Manage your admin team and their permissions
+          </CardDescription>
           <div className="flex justify-between items-center mt-4">
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -185,8 +263,8 @@ const TeamManagement = () => {
               />
             </div>
             {canEditRoles && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowRoleEditorDialog(true)}
                 className="ml-2"
               >
@@ -215,26 +293,37 @@ const TeamManagement = () => {
                     </TableCell>
                   </TableRow>
                 ) : filteredMembers.length > 0 ? (
-                  filteredMembers.map(member => (
+                  filteredMembers.map((member) => (
                     <TableRow key={member.id}>
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8 border border-gold/10">
-                            <AvatarImage src={member.avatar_url || "/placeholder.svg"} alt={member.name} />
-                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage
+                              src={member?.avatar_url || "/placeholder.svg"}
+                              alt={member?.username}
+                            />
+                            <AvatarFallback>
+                              {member?.username?.charAt(0)}
+                            </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{member.name}</p>
-                            <p className="text-xs text-muted-foreground">{member.email}</p>
+                            <p className="font-medium">{member?.username}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {member?.email}
+                            </p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{renderRoleBadge(member.role)}</TableCell>
-                      <TableCell>{new Date(member.joined_date).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        {renderRoleBadge(member?.user_role)}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(member?.createdAt).toLocaleDateString()}
+                      </TableCell>
                       <TableCell className="text-right">
                         {canEditRoles && (
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             className="h-8 w-8 p-0 text-muted-foreground hover:text-gold"
                             onClick={() => {
                               setCurrentMember(member);
@@ -250,7 +339,10 @@ const TeamManagement = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
+                    <TableCell
+                      colSpan={4}
+                      className="text-center py-6 text-muted-foreground"
+                    >
                       No team members found.
                     </TableCell>
                   </TableRow>
@@ -270,38 +362,70 @@ const TeamManagement = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            {/* Name */}
             <div className="grid gap-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input 
-                id="name" 
-                placeholder="Enter name" 
+              <Input
+                id="name"
+                placeholder="Enter name"
                 value={newMemberData.name}
-                onChange={(e) => setNewMemberData({...newMemberData, name: e.target.value})}
+                onChange={(e) =>
+                  setNewMemberData({ ...newMemberData, name: e.target.value })
+                }
                 className="bg-background/50 border-gold/10"
               />
             </div>
+
+            {/* Email */}
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="Enter email address" 
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter email address"
                 value={newMemberData.email}
-                onChange={(e) => setNewMemberData({...newMemberData, email: e.target.value})}
+                onChange={(e) =>
+                  setNewMemberData({ ...newMemberData, email: e.target.value })
+                }
                 className="bg-background/50 border-gold/10"
               />
             </div>
+
+            {/* Password */}
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter password"
+                value={newMemberData.password}
+                onChange={(e) =>
+                  setNewMemberData({
+                    ...newMemberData,
+                    password: e.target.value,
+                  })
+                }
+                className="bg-background/50 border-gold/10"
+              />
+            </div>
+
+            {/* Role */}
             <div className="grid gap-2">
               <Label htmlFor="role">Role</Label>
-              <Select 
+              <Select
                 value={newMemberData.role}
-                onValueChange={(value: string) => setNewMemberData({...newMemberData, role: value as AdminTeamRole})}
+                onValueChange={(value: string) =>
+                  setNewMemberData({
+                    ...newMemberData,
+                    role: value as AdminTeamRole,
+                  })
+                }
               >
                 <SelectTrigger className="bg-background/50 border-gold/10">
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {roles.map(role => (
+                  {roles.map((role) => (
                     <SelectItem key={role.id} value={role.id}>
                       {role.name}
                     </SelectItem>
@@ -309,13 +433,28 @@ const TeamManagement = () => {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
-                {roles.find(role => role.id === newMemberData.role)?.description || ""}
+                {roles.find((role) => role.id === newMemberData.role)
+                  ?.description || ""}
               </p>
             </div>
           </div>
+
+          {/* Buttons */}
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowAddMemberDialog(false)}>Cancel</Button>
-            <Button onClick={handleAddMember} disabled={!newMemberData.name || !newMemberData.email}>
+            <Button
+              variant="outline"
+              onClick={() => setShowAddMemberDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddMember}
+              disabled={
+                !newMemberData.name ||
+                !newMemberData.email ||
+                !newMemberData.password
+              }
+            >
               Add Team Member
             </Button>
           </div>
@@ -327,43 +466,49 @@ const TeamManagement = () => {
           <DialogHeader>
             <DialogTitle>Change Role</DialogTitle>
             <DialogDescription>
-              Update the role and permissions for {currentMember?.name}
+              Update the role and permissions for {currentMember?.username}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="grid gap-4">
               <Label>Select Role</Label>
               <div className="grid grid-cols-1 gap-4">
-                {roles.map(role => (
-                  <div 
-                    key={role.id} 
+                {roles.map((role) => (
+                  <div
+                    key={role.id}
                     className={`flex items-start p-4 rounded-lg border cursor-pointer transition-colors ${
-                      currentMember?.role === role.id 
-                        ? 'bg-gold/10 border-gold' 
-                        : 'border-border hover:border-gold/50'
+                      currentMember?.user_role === role?.id
+                        ? "bg-gold/10 border-gold"
+                        : "border-border hover:border-gold/50"
                     }`}
                     onClick={() => handleUpdateRole(role.id)}
                   >
                     <div className="flex-1">
                       <div className="flex items-center">
-                        <h4 className="text-base font-medium">{role.name}</h4>
+                        <h4 className="text-base font-medium">{role?.name}</h4>
                         <Badge className={`ml-2 ${getRoleColor(role.id)}`}>
-                          {role.permissions.length} permissions
+                          {role?.permissions?.length} permissions
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">{role.description}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {role?.description || "NA"}
+                      </p>
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {role.permissions.slice(0, 3).map(permId => {
-                          const perm = permissions.find(p => p.id === permId);
+                        {role?.permissions?.slice(0, 3).map((permId) => {
+                          const perm = permissions.find((p) => p.id === permId);
                           return perm ? (
-                            <Badge key={perm.id} variant="outline" className="text-xs">
+                            <Badge
+                              key={perm.id}
+                              variant="outline"
+                              className="text-xs"
+                            >
                               {perm.name}
                             </Badge>
                           ) : null;
                         })}
-                        {role.permissions.length > 3 && (
+                        {role?.permissions?.length > 3 && (
                           <Badge variant="outline" className="text-xs">
-                            +{role.permissions.length - 3} more
+                            +{role?.permissions?.length - 3} more
                           </Badge>
                         )}
                       </div>
@@ -376,7 +521,10 @@ const TeamManagement = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showRoleEditorDialog} onOpenChange={setShowRoleEditorDialog}>
+      <Dialog
+        open={showRoleEditorDialog}
+        onOpenChange={setShowRoleEditorDialog}
+      >
         <DialogContent className="bg-card-gradient backdrop-blur-sm border-gold/10 sm:max-w-[800px] max-h-[90vh] overflow-auto">
           <DialogHeader>
             <DialogTitle>Role & Permission Editor</DialogTitle>

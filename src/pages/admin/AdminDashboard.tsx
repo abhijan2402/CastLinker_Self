@@ -134,7 +134,6 @@ const AdminDashboard = () => {
       try {
         // const rep = fetchData("/api/admin/stats/recent-activities");
         const rep = await fetchData("/api/admin/stats/posts-category");
-        console.log(rep);
 
         // Fetch event list
         const responseUserActivity = (await fetchData(

@@ -82,7 +82,7 @@ export const useJobsData = () => {
       }
 
       const queryString = queryParams.toString();
-      console.log(queryString);
+      console.log(queryString);z
       const endpoint = `/api/jobs${queryString ? `?${queryString}` : ""}`;
 
       console.log(endpoint);

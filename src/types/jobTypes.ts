@@ -7,7 +7,7 @@ export type PostedWithin = '24h' | '3d' | '7d' | '14d' | '30d' | 'any';
 
 export interface Job {
   id: string;
-  title: string;
+  ztitle: string;
   company: string;
   company_logo?: string;
   description: string;

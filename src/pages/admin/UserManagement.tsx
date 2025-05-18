@@ -55,7 +55,7 @@ import {
 import UserForm from "@/components/admin/UserForm";
 import { formatDistanceToNow } from "date-fns";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
-import { fetchData } from "@/api/ClientFuntion";
+import { deleteData, fetchData } from "@/api/ClientFuntion";
 
 const UserManagement = () => {
   // State for users and filters
@@ -122,6 +122,7 @@ const UserManagement = () => {
 
   // Handlers for user actions
   const handleAddUser = async (userData: UserFormData) => {
+    // console.log(userData);
     try {
       const { data, error } = await supabase
         .from("users_management" as any)
@@ -231,19 +232,28 @@ const UserManagement = () => {
     if (!currentUser) return;
 
     try {
-      const { error } = await supabase
-        .from("users_management" as any)
-        .delete()
-        .eq("id", currentUser.id);
+      // Await your custom API deletion call
+      const response = (await deleteData(`/api/admin/users/${currentUser.id}`)) as {
+        message?: string;
+      };
 
-      if (error) throw error;
+      // Optionally show message from response if available
+      if (response?.message) {
+        toast.success(response.message);
+      } else {
+        toast.success("User deleted successfully!");
+      }
 
+      // Update local state
       setUsers((prev) => prev.filter((user) => user.id !== currentUser.id));
       setShowDeleteDialog(false);
-      toast.success("User deleted successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting user:", error);
-      toast.error("Failed to delete user. Please try again.");
+      toast.error(
+        typeof error?.message === "string"
+          ? error.message
+          : "Failed to delete user. Please try again."
+      );
     }
   };
 
@@ -256,9 +266,9 @@ const UserManagement = () => {
 
       if (error) throw error;
 
-     setUsers((prev) =>
-       prev.filter((user) => !selectedUsers.includes(Number(user.id)))
-     );
+      setUsers((prev) =>
+        prev.filter((user) => !selectedUsers.includes(Number(user.id)))
+      );
 
       setSelectedUsers([]);
       toast.success("Selected users deleted successfully!");
@@ -551,7 +561,7 @@ const UserManagement = () => {
                       <TableHead>Status</TableHead>
                       <TableHead>Verified</TableHead>
                       <TableHead>Joined</TableHead>
-                      <TableHead>Last Active</TableHead>
+                      {/* <TableHead>Last Active</TableHead> */}
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -637,7 +647,7 @@ const UserManagement = () => {
                               <div className="flex items-center space-x-3">
                                 <Avatar className="h-8 w-8 border border-gold/10">
                                   <AvatarImage
-                                    src={user.avatar_url || "/placeholder.svg"}
+                                    src={user.avatar_url}
                                     alt={user.username}
                                   />
                                   <AvatarFallback>
