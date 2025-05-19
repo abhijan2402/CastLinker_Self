@@ -7,19 +7,19 @@ export type PostedWithin = '24h' | '3d' | '7d' | '14d' | '30d' | 'any';
 
 export interface Job {
   id: string;
-  ztitle: string;
+  job_title: string;
   company: string;
   company_logo?: string;
-  description: string;
+  job_description: string;
   requirements?: string[];
   responsibilities?: string[];
   job_type: JobType;
   role_category: RoleCategory;
   experience_level?: string;
-  salary_min?: number;
-  salary_max?: number;
-  salary_currency?: string;
-  salary_period?: string;
+  min_salary?: number;
+  max_salary?: number;
+  currency?: string;
+  payment_period?: string;
   location: string;
   location_type: LocationType;
   tags?: string[];
@@ -28,7 +28,7 @@ export interface Job {
   application_email?: string;
   is_featured?: boolean;
   is_verified?: boolean;
-  created_at?: string;
+  createdAt?: string;
   status?: string;
 }
 

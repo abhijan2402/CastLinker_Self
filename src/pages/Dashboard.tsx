@@ -175,7 +175,7 @@ const Dashboard = () => {
       <div className="flex flex-col space-y-1">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-gold to-gold-light">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-gold to-gold-light capitalize">
               Hello, {firstName}
             </span>
           </h1>

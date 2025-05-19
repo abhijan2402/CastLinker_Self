@@ -43,7 +43,7 @@ const JobCard = ({
         <div className="p-3 sm:p-4 space-y-2 sm:space-y-4">
           <div className="flex justify-between items-start">
             <div className="pr-2">
-              <h3 className="font-bold text-lg sm:text-xl leading-tight">{job.title}</h3>
+              <h3 className="font-bold text-lg sm:text-xl leading-tight">{job.job_title}</h3>
               <p className="text-sm text-muted-foreground">{job.company}</p>
             </div>
             <Button
@@ -72,10 +72,10 @@ const JobCard = ({
               </div>
             )}
             
-            {job.created_at && (
+            {job.createdAt && (
               <div className="flex items-center gap-1 text-muted-foreground">
                 <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span>Posted {formatDate(job.created_at)}</span>
+                <span>Posted {formatDate(job.createdAt)}</span>
               </div>
             )}
             
@@ -85,7 +85,7 @@ const JobCard = ({
             </div>
           </div>
           
-          <p className="text-xs sm:text-sm line-clamp-2">{job.description}</p>
+          <p className="text-xs sm:text-sm line-clamp-2">{job.job_description}</p>
           
           {job.requirements && job.requirements.length > 0 && (
             <div className="flex flex-wrap gap-1 sm:gap-2">

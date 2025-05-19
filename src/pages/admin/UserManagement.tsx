@@ -44,7 +44,6 @@ import {
   UserPlus,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   User,
@@ -55,7 +54,8 @@ import {
 import UserForm from "@/components/admin/UserForm";
 import { formatDistanceToNow } from "date-fns";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
-import { deleteData, fetchData } from "@/api/ClientFuntion";
+import { deleteData, fetchData, postData } from "@/api/ClientFuntion";
+import { toast } from "@/hooks/use-toast";
 
 const UserManagement = () => {
   // State for users and filters
@@ -97,7 +97,11 @@ const UserManagement = () => {
     } catch (error: unknown) {
       const err = error as Error;
       console.error("Error fetching users:", err.message);
-      toast.error(err.message || "Failed to load users. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to Fetch the user. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -122,32 +126,40 @@ const UserManagement = () => {
 
   // Handlers for user actions
   const handleAddUser = async (userData: UserFormData) => {
-    // console.log(userData);
     try {
-      const { data, error } = await supabase
-        .from("users_management" as any)
-        .insert([
-          {
-            name: userData.name,
-            email: userData.email,
-            role: userData.role as AdminUserRole,
-            status: userData.status,
-            verified: userData.verified,
-            avatar_url: userData.avatar_url || null,
-          },
-        ] as any)
-        .select();
+      const payload = {
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        status: userData.status,
+        verified: userData.verified,
+        avatar_url: userData.avatar_url || null,
+        password: userData.password,
+      };
 
-      if (error) throw error;
+      const response = (await postData("/admin/team/create", payload)) as {
+        success: boolean;
+        message?: string;
+        data?: User;
+      };
 
-      if (data) {
-        setUsers((prev) => [...prev, ...(data as unknown as User[])]);
+      if (response?.success) {
         setShowAddUserDialog(false);
-        toast.success("User created successfully!");
+        toast({
+          title: "Post Deleted",
+          description: "The post has been successfully deleted.",
+        });
+      } else {
+        throw new Error(response?.message || "Failed to create user");
       }
     } catch (error) {
       console.error("Error adding user:", error);
-      toast.error("Failed to create user. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to Add the user. Please try again.",
+        variant: "destructive",
+      });
+      setShowAddUserDialog(false);
     }
   };
 
@@ -177,10 +189,17 @@ const UserManagement = () => {
         )
       );
       setShowEditUserDialog(false);
-      toast.success("User updated successfully!");
+      toast({
+        title: "Edit User",
+        description: "The User has been successfully Edited.",
+      });
     } catch (error) {
       console.error("Error updating user:", error);
-      toast.error("Failed to update user. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to Edit the user. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -196,10 +215,17 @@ const UserManagement = () => {
       setUsers((prev) =>
         prev.map((u) => (u.id === user.id ? { ...u, verified: true } : u))
       );
-      toast.success(`${user.username} has been verified!`);
+      toast({
+        title: "Verfiy User",
+        description: "The User has been successfully Verified.",
+      });
     } catch (error) {
       console.error("Error verifying user:", error);
-      toast.error("Failed to verify user. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to Verify the user. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -221,10 +247,17 @@ const UserManagement = () => {
             : u
         )
       );
-      toast.success(`User status changed to ${newStatus}!`);
+      toast({
+        title: "Status Update",
+        description: "The Status has been successfully Changed.",
+      });
     } catch (error) {
       console.error("Error updating user status:", error);
-      toast.error("Failed to update user status. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to Change the status. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -233,15 +266,27 @@ const UserManagement = () => {
 
     try {
       // Await your custom API deletion call
-      const response = (await deleteData(`/api/admin/users/${currentUser.id}`)) as {
+      const response = (await deleteData(
+        `/api/admin/users/${currentUser.id}`
+      )) as {
         message?: string;
       };
 
       // Optionally show message from response if available
       if (response?.message) {
-        toast.success(response.message);
+        toast({
+          title: "Delete Update",
+          description:
+            response?.message || "The Status has been successfully Changed.",
+        });
+        setShowDeleteDialog(false);
       } else {
-        toast.success("User deleted successfully!");
+        toast({
+          title: "Error",
+          description: "Failed to Delete the user. Please try again.",
+          variant: "destructive",
+        });
+        setShowDeleteDialog(false);
       }
 
       // Update local state
@@ -249,11 +294,11 @@ const UserManagement = () => {
       setShowDeleteDialog(false);
     } catch (error: any) {
       console.error("Error deleting user:", error);
-      toast.error(
-        typeof error?.message === "string"
-          ? error.message
-          : "Failed to delete user. Please try again."
-      );
+      toast({
+        title: "Error",
+        description: "Failed to Delete the user. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -271,10 +316,17 @@ const UserManagement = () => {
       );
 
       setSelectedUsers([]);
-      toast.success("Selected users deleted successfully!");
+      toast({
+        title: "Delete Update",
+        description: "The Status has been successfully Changed.",
+      });
     } catch (error) {
       console.error("Error deleting users:", error);
-      toast.error("Failed to delete users. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to Delete the users. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

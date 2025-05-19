@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const applyForJob = async (
   jobId: string, 
-  userId: string | undefined, 
+  userId: number | undefined, 
   application: {
     resume_url?: string;
     cover_letter?: string;

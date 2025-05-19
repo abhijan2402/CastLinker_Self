@@ -62,8 +62,8 @@ const Navbar = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="rounded-full p-0 h-8 w-8">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar} />
-                      <AvatarFallback>{user.name ? user.name.charAt(0) : 'U'}</AvatarFallback>
+                      <AvatarImage src={user?.avatar_url} />
+                      <AvatarFallback>{user?.username ? user?.username.charAt(0) : 'U'}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -120,12 +120,12 @@ const Navbar = () => {
                 <>
                   <div className="flex items-center gap-3 py-2 border-b border-gold/10 mb-2">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.avatar} />
-                      <AvatarFallback>{user.name ? user.name.charAt(0) : 'U'}</AvatarFallback>
+                      <AvatarImage src={user?.avatar_url} />
+                      <AvatarFallback>{user?.username ? user?.username.charAt(0) : 'U'}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-foreground/60">{user.role}</p>
+                      <p className="font-medium">{user?.username}</p>
+                      <p className="text-sm text-foreground/60">{user?.user_role}</p>
                     </div>
                   </div>
                   <Link 

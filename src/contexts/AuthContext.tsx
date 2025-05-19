@@ -13,6 +13,7 @@ export interface User {
   type: string;
   isLoggedIn: boolean;
   token: string;
+  avatar_url?: string;
 
   username?: string;
   bio?: string;

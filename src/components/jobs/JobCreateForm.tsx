@@ -46,9 +46,9 @@ const JobCreateForm = ({
   onJobCreated,
 }: JobCreateFormProps) => {
   const [formData, setFormData] = useState<Partial<Job>>({
-    title: "",
+    job_title: "",
     company: "",
-    description: "",
+    job_description: "",
     job_type: "Full-time",
     role_category: "Acting",
     location: "",
@@ -148,16 +148,16 @@ const JobCreateForm = ({
       }
 
       const payload = {
-        job_title: formData.title,
+        job_title: formData.job_title,
         company: formData.company,
         company_logo_url: formData.company_logo,
         job_type: formData.job_type,
         role_category: formData.role_category,
         location: formData.location,
         location_type: formData.location_type,
-        min_salary: formData.salary_min,
-        max_salary: formData.salary_max,
-        job_description: formData.description,
+        min_salary: formData.min_salary,
+        max_salary: formData.max_salary,
+        job_description: formData.job_description,
         requirements: formData.requirements,
         responsibilities: formData.responsibilities,
         tags: formData.tags,
@@ -199,14 +199,14 @@ const JobCreateForm = ({
           {/* Basic Job Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <Label htmlFor="title" className="block mb-2">
-                Job Title*
+              <Label htmlFor="job_title" className="block mb-2">
+                Job title*
               </Label>
               <Input
-                id="title"
-                name="title"
+                id="job_title"
+                name="job_title"
                 placeholder="e.g., Lead Actor for Indie Film"
-                value={formData.title}
+                value={formData.job_title}
                 onChange={handleInputChange}
                 className="bg-cinematic-dark/50 border-gold/10 focus:border-gold"
                 required
@@ -343,44 +343,42 @@ const JobCreateForm = ({
             </div>
 
             <div>
-              <Label htmlFor="salary_min" className="block mb-2">
+              <Label htmlFor="min_salary" className="block mb-2">
                 Min Salary
               </Label>
               <Input
-                id="salary_min"
-                name="salary_min"
+                id="min_salary"
+                name="min_salary"
                 type="number"
                 placeholder="e.g., 50000"
-                value={formData.salary_min || ""}
+                value={formData.min_salary || ""}
                 onChange={handleInputChange}
                 className="bg-cinematic-dark/50 border-gold/10 focus:border-gold"
               />
             </div>
 
             <div>
-              <Label htmlFor="salary_max" className="block mb-2">
+              <Label htmlFor="max_salary" className="block mb-2">
                 Max Salary
               </Label>
               <Input
-                id="salary_max"
-                name="salary_max"
+                id="max_salary"
+                name="max_salary"
                 type="number"
                 placeholder="e.g., 80000"
-                value={formData.salary_max || ""}
+                value={formData.max_salary || ""}
                 onChange={handleInputChange}
                 className="bg-cinematic-dark/50 border-gold/10 focus:border-gold"
               />
             </div>
 
             <div>
-              <Label htmlFor="salary_currency" className="block mb-2">
+              <Label htmlFor="currency" className="block mb-2">
                 Currency
               </Label>
               <Select
-                value={formData.salary_currency || "INR"}
-                onValueChange={(value) =>
-                  handleSelectChange("salary_currency", value)
-                }
+                value={formData.currency || "INR"}
+                onValueChange={(value) => handleSelectChange("currency", value)}
               >
                 <SelectTrigger className="bg-cinematic-dark/50 border-gold/10 focus:border-gold">
                   <SelectValue placeholder="Select currency" />
@@ -396,13 +394,13 @@ const JobCreateForm = ({
             </div>
 
             <div>
-              <Label htmlFor="salary_period" className="block mb-2">
+              <Label htmlFor="payment_period" className="block mb-2">
                 Payment Period
               </Label>
               <Select
-                value={formData.salary_period || "yearly"}
+                value={formData.payment_period || "yearly"}
                 onValueChange={(value) =>
-                  handleSelectChange("salary_period", value)
+                  handleSelectChange("payment_period", value)
                 }
               >
                 <SelectTrigger className="bg-cinematic-dark/50 border-gold/10 focus:border-gold">
@@ -454,16 +452,16 @@ const JobCreateForm = ({
             </div>
           </div>
 
-          {/* Job Description */}
+          {/* Job job_description */}
           <div>
-            <Label htmlFor="description" className="block mb-2">
-              Job Description*
+            <Label htmlFor="job_description" className="block mb-2">
+              Job job_description*
             </Label>
             <Textarea
-              id="description"
-              name="description"
-              placeholder="Provide a detailed description of the job..."
-              value={formData.description}
+              id="job_description"
+              name="job_description"
+              placeholder="Provide a detailed job_description of the job..."
+              value={formData.job_description}
               onChange={handleInputChange}
               className="min-h-32 bg-cinematic-dark/50 border-gold/10 focus:border-gold"
               required

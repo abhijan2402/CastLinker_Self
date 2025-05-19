@@ -1,23 +1,22 @@
-
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Search, 
-  Bell, 
-  User, 
-  Settings, 
-  Shield, 
-  LogOut, 
-  CreditCard, 
-  HelpCircle, 
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Search,
+  Bell,
+  User,
+  Settings,
+  Shield,
+  LogOut,
+  CreditCard,
+  HelpCircle,
   ChevronDown,
   Menu,
-  X
-} from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+  X,
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,9 +25,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const TopBar = () => {
   const { user, logout } = useAuth();
@@ -36,21 +35,22 @@ const TopBar = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState(3); // Mock notification count
   const [isSearchOpen, setIsSearchOpen] = useState(false); // For mobile view
-  
+
   if (!user) return null;
-  
+
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
-  
-  const initials = user.name
-    ? user.name
-        .split(' ')
+
+  const initials = user.username
+    ? user.username
+        .split(" ")
         .map((n: string) => n[0])
-        .join('')
-    : '?';
-  
+        .join("")
+        .toUpperCase()
+    : "?";
+
   return (
     <div className="w-full border-b border-gold/10 bg-background/90 backdrop-blur-sm">
       <div className="flex h-16 items-center justify-between px-2 sm:px-4">
@@ -65,10 +65,10 @@ const TopBar = () => {
                 className="w-full bg-background/60 pl-9 focus-visible:ring-gold/30 rounded-xl"
                 autoFocus
               />
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="absolute right-1 top-1" 
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1"
                 onClick={() => setIsSearchOpen(false)}
               >
                 <X className="h-5 w-5" />
@@ -78,11 +78,7 @@ const TopBar = () => {
         ) : (
           <>
             {/* Mobile Menu Button - Could be linked to toggle sidebar */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="md:hidden"
-            >
+            <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-5 w-5" />
             </Button>
 
@@ -97,52 +93,59 @@ const TopBar = () => {
                 />
               </div>
             </div>
-            
+
             {/* Mobile search button */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="md:hidden" 
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
               onClick={() => setIsSearchOpen(true)}
             >
               <Search className="h-5 w-5" />
             </Button>
           </>
         )}
-        
+
         {/* Right Side Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Notifications */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="relative text-muted-foreground hover:text-foreground rounded-xl"
-            onClick={() => navigate('/notifications')}
+            onClick={() => navigate("/notifications")}
           >
             <Bell className="h-5 w-5" />
             {notifications > 0 && (
-              <Badge 
-                variant="destructive" 
+              <Badge
+                variant="destructive"
                 className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 p-0 flex items-center justify-center text-[10px] rounded-full"
               >
                 {notifications}
               </Badge>
             )}
           </Button>
-          
+
           {/* User Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-9 gap-1 sm:gap-2 px-1 sm:px-2 rounded-xl hover:bg-gold/5">
+              <Button
+                variant="ghost"
+                className="h-9 gap-1 sm:gap-2 px-1 sm:px-2 rounded-xl hover:bg-gold/5"
+              >
                 <Avatar className="h-7 w-7 sm:h-8 sm:w-8 border border-gold/20">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src={user?.avatar_url} alt={user.username} />
                   <AvatarFallback className="bg-gold/10 text-gold text-xs sm:text-sm">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:flex flex-col items-start text-left">
-                  <span className="text-sm font-medium leading-none">{user.name}</span>
-                  <span className="text-xs text-muted-foreground">{user.role}</span>
+                  <span className="text-sm font-medium leading-none capitalize">
+                    {user?.username}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {user?.user_role}
+                  </span>
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
               </Button>
@@ -151,41 +154,62 @@ const TopBar = () => {
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => navigate('/profile')} className="rounded-lg">
+                <DropdownMenuItem
+                  onClick={() => navigate("/profile")}
+                  className="rounded-lg"
+                >
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-lg">
+                <DropdownMenuItem
+                  onClick={() => navigate("/settings")}
+                  className="rounded-lg"
+                >
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/billing')} className="rounded-lg">
+                <DropdownMenuItem
+                  onClick={() => navigate("/billing")}
+                  className="rounded-lg"
+                >
                   <CreditCard className="mr-2 h-4 w-4" />
                   Billing
                 </DropdownMenuItem>
               </DropdownMenuGroup>
-              
+
               {isAdmin && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/admin/dashboard')} className="rounded-lg">
+                  <DropdownMenuItem
+                    onClick={() => navigate("/admin/dashboard")}
+                    className="rounded-lg"
+                  >
                     <Shield className="mr-2 h-4 w-4" />
                     Admin Dashboard
                   </DropdownMenuItem>
                 </>
               )}
-              
+
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/privacy')} className="rounded-lg">
+              <DropdownMenuItem
+                onClick={() => navigate("/privacy")}
+                className="rounded-lg"
+              >
                 <Shield className="mr-2 h-4 w-4" />
                 Privacy
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/help')} className="rounded-lg">
+              <DropdownMenuItem
+                onClick={() => navigate("/help")}
+                className="rounded-lg"
+              >
                 <HelpCircle className="mr-2 h-4 w-4" />
                 Help & Support
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:text-red-500 rounded-lg">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-red-500 focus:text-red-500 rounded-lg"
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>
