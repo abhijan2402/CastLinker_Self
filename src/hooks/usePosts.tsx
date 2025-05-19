@@ -28,25 +28,23 @@ export const usePosts = () => {
   });
 
   const { user } = useAuth();
-
+  const loadPosts = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchData(`/api/posts`);
+      // Ensure we're setting an array even if the API returns null/undefined
+      setPosts(data || []);
+    } catch (err) {
+      setError("Failed to load posts");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
   // Load all posts
-    useEffect(() => {
-      const loadPosts = async () => {
-        setLoading(true);
-        try {
-          const data = await fetchData(`/api/posts/${user.id}`);
-          // Ensure we're setting an array even if the API returns null/undefined
-          setPosts(data || []);
-        } catch (err) {
-          setError("Failed to load posts");
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      loadPosts();
-    }, []);
+  useEffect(() => {
+    loadPosts();
+  }, []);
 
   // Check which posts the current user has applied to
   useEffect(() => {
@@ -260,6 +258,7 @@ export const usePosts = () => {
     filters,
     updateFilters,
     clearFilters,
+    loadPosts,
   };
 };
 

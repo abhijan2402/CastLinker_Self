@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
@@ -16,79 +16,115 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "@/contexts/AuthContext";
 import { postData, updateData } from "@/api/ClientFuntion";
 import { useTalentProfile } from "@/hooks/useTalentProfile";
+import { toast } from "react-toastify";
 
 const AboutSection = () => {
   const [isEditing, setIsEditing] = useState(false);
   const { user } = useAuth();
   const { profile, fetchProfile } = useTalentProfile(user);
-  console.log(profile);
 
   // In a real app, this data would come from API/context
+  const parsedTechnicalSkills = (() => {
+    try {
+      const parsed = JSON.parse(profile?.technical_skills || "[]");
+      if (Array.isArray(parsed)) {
+        return parsed.map((skill) => skill.name).join(", ");
+      }
+      return "--";
+    } catch {
+      return "--";
+    }
+  })();
+
+  const parsedActingSkills = (() => {
+    try {
+      const parsed = JSON.parse(profile?.acting_skills || "[]");
+      if (Array.isArray(parsed)) {
+        return parsed.map((skill) => skill.name).join(", ");
+      }
+      return "--";
+    } catch {
+      return "--";
+    }
+  })();
+
+  const specialSkillsCleaned = (() => {
+    try {
+      const val = profile?.special_skills;
+      if (!val) return "--";
+      const parsed = JSON.parse(val); // handles the double quotes
+      return typeof parsed === "string" ? parsed : "--";
+    } catch {
+      return profile?.special_skills || "--";
+    }
+  })();
+
   const about = {
-    bio:
-      profile?.bio ||
-      `Award-winning actor with over 10 years of experience in film, television, and theater. Specialized in dramatic roles with a strong background in method acting. I've worked with directors such as Christopher Nolan and Denis Villeneuve on major studio productions.
-    
-    Currently seeking challenging roles that push artistic boundaries. Open to both independent and major studio projects.`,
+    bio: profile?.bio || `Add your bio`,
     details: [
-      { label: "Age Range", value: profile?.age_range || "30-40" },
-      { label: "Height", value: profile?.height || "6'1\" (185 cm)" },
-      { label: "Weight", value: profile?.weight || "180 lbs (82 kg)" },
-      { label: "Hair Color", value: profile?.hair_color || "Brown" },
-      { label: "Eye Color", value: profile?.eye_color || "Blue" },
-      {
-        label: "Languages",
-        value:
-          profile?.languages ||
-          "English (Native), Spanish (Conversational), French (Basic)",
-      },
-      { label: "Union Status", value: profile?.union_status || "SAG-AFTRA" },
-      {
-        label: "Representation",
-        value: profile?.representation || "Creative Artists Agency (CAA)",
-      },
+      { label: "Age Range", value: profile?.age_range || "--" },
+      { label: "Height", value: profile?.height || "--" },
+      { label: "Weight", value: profile?.weight || "--" },
+      { label: "Hair Color", value: profile?.hair_color || "--" },
+      { label: "Eye Color", value: profile?.eye_color || "--" },
+      { label: "Languages", value: profile?.languages || "--" },
+      { label: "Union Status", value: profile?.union_status || "--" },
+      { label: "Representation", value: profile?.representation || "--" },
     ],
   };
 
   // Define form for editing about section
+
   const form = useForm({
     defaultValues: {
-      bio: about.bio,
-      ageRange: "30-40",
-      height: "6'1\" (185 cm)",
-      weight: "180 lbs (82 kg)",
-      hairColor: "Brown",
-      eyeColor: "Blue",
-      languages: "English (Native), Spanish (Conversational), French (Basic)",
-      unionStatus: "SAG-AFTRA",
-      representation: "Creative Artists Agency (CAA)",
+      bio: "",
+      ageRange: "",
+      height: "",
+      weight: "",
+      hairColor: "",
+      eyeColor: "",
+      languages: "",
+      unionStatus: "",
+      representation: "",
     },
   });
+
+  // Reset form with profile data when dialog opens or profile updates
+  useEffect(() => {
+    if (isEditing && profile) {
+      form.reset({
+        bio: profile.bio || "",
+        ageRange: profile.age_range || "",
+        height: profile.height || "",
+        weight: profile.weight || "",
+        hairColor: profile.hair_color || "",
+        eyeColor: profile.eye_color || "",
+        languages: profile.languages || "",
+        unionStatus: profile.union_status || "",
+        representation: profile.representation || "",
+      });
+    }
+  }, [isEditing, profile]);
 
   const handleSave = async (data: any) => {
     // Map form data to match API schema
     const payload = {
-      bio: data.bio || "",
-      age_range: data.ageRange || "",
-      height: data.height || "",
-      weight: data.weight || "",
-      hair_color: data.hairColor || "",
-      eye_color: data.eyeColor || "",
-      languages: data.languages || "",
-      union_status: data.unionStatus || "",
-      representation: data.representation || "",
-      special_skills: data.special_skills || "", // Add field in form if needed
-      profile_image: data.profile_image || "", // Add field in form if needed
+      bio: data.bio,
+      age_range: data.ageRange,
+      height: data.height,
+      weight: data.weight,
+      hair_color: data.hairColor,
+      eye_color: data.eyeColor,
+      languages: data.languages,
+      union_status: data.unionStatus,
+      representation: data.representation,
+      profile_image: data.profile_image || "",
     };
 
-    // Send payload to API (you can replace console.log with your API call)
-    console.log("Saving about data:", payload);
-
     const res = await updateData("auth/update-profile", payload);
-    console.log(res);
-    fetchProfile();
-
-    // Example: await api.post("/update-profile", payload);
+    if (res) {
+      fetchProfile();
+    }
   };
 
   return (
@@ -116,14 +152,6 @@ const AboutSection = () => {
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Details</h3>
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              className="text-gold hover:text-gold hover:bg-gold/10"
-              onClick={() => setIsEditing(true)}
-            >
-              <Edit className="h-4 w-4 mr-1" /> Edit
-            </Button> */}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {about.details.map((detail, index) => (
@@ -144,127 +172,129 @@ const AboutSection = () => {
         onSave={form.handleSubmit(handleSave)}
       >
         <Form {...form}>
-          <FormField
-            control={form.control}
-            name="bio"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Biography</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Write about yourself..."
-                    className="h-32"
-                    {...field}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div className="max-h-[70vh] overflow-y-auto pr-2 pl-2">
             <FormField
               control={form.control}
-              name="ageRange"
+              name="bio"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Age Range</FormLabel>
+                  <FormLabel>Biography</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Textarea
+                      placeholder="Write about yourself..."
+                      className="h-32"
+                      {...field}
+                    />
                   </FormControl>
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="height"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Height</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <FormField
+                control={form.control}
+                name="ageRange"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Age Range</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="weight"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Weight</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="height"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Height</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="hairColor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Hair Color</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Weight</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="eyeColor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Eye Color</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="hairColor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hair Color</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="languages"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Languages</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="eyeColor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Eye Color</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="unionStatus"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Union Status</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="languages"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Languages</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="representation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Representation</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="unionStatus"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Union Status</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="representation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Representation</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         </Form>
       </EditProfileDialog>

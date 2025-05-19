@@ -1,77 +1,112 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import { EditProfileDialog } from "./EditProfileDialog";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { useForm } from "react-hook-form";
 import { Textarea } from "@/components/ui/textarea";
+import { updateData } from "@/api/ClientFuntion";
+import { toast } from "react-toastify";
+import { useTalentProfile } from "@/hooks/useTalentProfile";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SkillsSection = () => {
   const [isEditingActing, setIsEditingActing] = useState(false);
   const [isEditingTechnical, setIsEditingTechnical] = useState(false);
   const [isEditingSpecial, setIsEditingSpecial] = useState(false);
   const [isEditingPhysical, setIsEditingPhysical] = useState(false);
-  
-  const skills = {
-    acting: [
-      { name: "Method Acting", level: 90 },
-      { name: "Improvisation", level: 85 },
-      { name: "Voice Control", level: 75 },
-      { name: "Character Development", level: 95 },
-      { name: "Emotional Range", level: 88 }
-    ],
-    technical: [
-      { name: "Stage Combat", level: 70 },
-      { name: "Stunt Work", level: 65 },
-      { name: "Dialect/Accent Work", level: 80 },
-      { name: "Camera Awareness", level: 85 }
-    ],
-    specialSkills: [
-      "Horseback Riding",
-      "Swimming",
-      "Classical Piano",
-      "Fluent in Spanish",
-      "Martial Arts (Karate)",
-      "Ballroom Dancing",
-      "Fencing",
-      "Stage Combat",
-      "Professional Singing (Tenor)"
-    ],
-    physicalAttributes: [
-      { name: "Height", value: "6'1\" (185 cm)" },
-      { name: "Weight", value: "180 lbs (82 kg)" },
-      { name: "Build", value: "Athletic" },
-      { name: "Hair Color", value: "Brown" },
-      { name: "Eye Color", value: "Blue" }
-    ]
-  };
+  const { user } = useAuth();
+  const { profile, fetchProfile } = useTalentProfile(user);
+
+  const [skills, setSkills] = useState({
+    acting: [],
+    technical: [],
+    specialSkills: [],
+  });
+
+  useEffect(() => {
+    const updatedSkills = {
+      acting: [],
+      technical: [],
+      specialSkills: [],
+    };
+
+    try {
+      const parsedActing = JSON.parse(profile?.acting_skills || "[]");
+      if (Array.isArray(parsedActing)) {
+        updatedSkills.acting = parsedActing;
+      }
+    } catch (err) {
+      console.error("Error parsing acting skills:", err);
+    }
+
+    try {
+      const parsedTechnical = JSON.parse(profile?.technical_skills || "[]");
+      if (Array.isArray(parsedTechnical)) {
+        updatedSkills.technical = parsedTechnical;
+      }
+    } catch (err) {
+      console.error("Error parsing technical skills:", err);
+    }
+
+    try {
+      let raw = profile?.special_skills;
+
+      if (typeof raw === "string") {
+        raw = raw.trim().replace(/^"+|"+$/g, "");
+        raw = raw.replace(/\\"/g, '"');
+
+        if (raw.startsWith("[") && raw.endsWith("]")) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            updatedSkills.specialSkills = parsed.map((s) => s.trim());
+          }
+        } else {
+          updatedSkills.specialSkills = raw
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+        }
+      }
+    } catch (err) {
+      console.error("Error parsing special skills:", err);
+    }
+
+    setSkills(updatedSkills);
+  }, [profile]);
 
   const actingForm = useForm({
     defaultValues: {
-      acting: skills.acting.map(skill => ({
+      acting: skills.acting.map((skill) => ({
         name: skill.name,
-        level: skill.level
-      }))
-    }
+        level: skill.level,
+      })),
+    },
   });
 
   const technicalForm = useForm({
     defaultValues: {
-      technical: skills.technical.map(skill => ({
+      technical: skills.technical.map((skill) => ({
         name: skill.name,
-        level: skill.level
-      }))
-    }
+        level: skill.level,
+      })),
+    },
   });
 
   const specialSkillsForm = useForm({
     defaultValues: {
-      specialSkills: skills.specialSkills.join(", ")
-    }
+      specialSkills: skills.specialSkills.join(", "),
+    },
   });
 
   const physicalAttributesForm = useForm({
@@ -80,23 +115,67 @@ const SkillsSection = () => {
       weight: "180 lbs (82 kg)",
       build: "Athletic",
       hairColor: "Brown",
-      eyeColor: "Blue"
-    }
+      eyeColor: "Blue",
+    },
   });
 
-  const handleSaveActing = async (data: any) => {
-    console.log("Saving acting skills:", data);
-    return Promise.resolve();
+  useEffect(() => {
+    actingForm.reset({
+      acting: skills.acting.map((skill) => ({
+        name: skill.name || "",
+        level: skill.level || 0,
+      })),
+    });
+
+    technicalForm.reset({
+      technical: skills.technical.map((skill) => ({
+        name: skill.name || "",
+        level: skill.level || 0,
+      })),
+    });
+
+    specialSkillsForm.reset({
+      specialSkills: skills.specialSkills.join(", "),
+    });
+  }, [skills]);
+
+  const handleSaveActing = async () => {
+    const formData = actingForm.getValues();
+    const payload = {
+      acting_skills: formData.acting,
+    };
+
+    const res = await updateData("auth/update-profile", payload);
+    if (res) {
+      toast.success("Acting Skills Updated Successfully");
+       fetchProfile();
+    }
   };
 
   const handleSaveTechnical = async (data: any) => {
-    console.log("Saving technical skills:", data);
-    return Promise.resolve();
+    const formData = technicalForm.getValues();
+    const payload = {
+      technical_skills: formData.technical,
+    };
+
+    const res = await updateData("auth/update-profile", payload);
+    if (res) {
+      toast.success("Technical Skills Updated Successfully");
+      fetchProfile();
+    }
   };
 
   const handleSaveSpecialSkills = async (data: any) => {
-    console.log("Saving special skills:", data);
-    return Promise.resolve();
+    const formData = specialSkillsForm.getValues();
+    const payload = {
+      special_skills: formData.specialSkills,
+    };
+
+    const res = await updateData("auth/update-profile", payload);
+    if (res) {
+      toast.success("Technical Skills Updated Successfully");
+       fetchProfile();
+    }
   };
 
   const handleSavePhysical = async (data: any) => {
@@ -110,8 +189,8 @@ const SkillsSection = () => {
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Acting Skills</h3>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               className="text-gold hover:text-gold hover:bg-gold/10"
               onClick={() => setIsEditingActing(true)}
@@ -126,8 +205,8 @@ const SkillsSection = () => {
                   <span className="text-foreground/80">{skill.name}</span>
                   <span className="text-gold">{skill.level}%</span>
                 </div>
-                <Progress 
-                  value={skill.level} 
+                <Progress
+                  value={skill.level}
                   className="h-2 bg-cinematic-dark"
                   indicatorClassName="bg-gradient-to-r from-gold-light to-gold"
                 />
@@ -136,13 +215,13 @@ const SkillsSection = () => {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card className="bg-card-gradient border-gold/10">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Technical Skills</h3>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               className="text-gold hover:text-gold hover:bg-gold/10"
               onClick={() => setIsEditingTechnical(true)}
@@ -157,8 +236,8 @@ const SkillsSection = () => {
                   <span className="text-foreground/80">{skill.name}</span>
                   <span className="text-gold">{skill.level}%</span>
                 </div>
-                <Progress 
-                  value={skill.level} 
+                <Progress
+                  value={skill.level}
                   className="h-2 bg-cinematic-dark"
                   indicatorClassName="bg-gradient-to-r from-gold-light to-gold"
                 />
@@ -167,13 +246,13 @@ const SkillsSection = () => {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card className="bg-card-gradient border-gold/10">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Special Skills</h3>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               className="text-gold hover:text-gold hover:bg-gold/10"
               onClick={() => setIsEditingSpecial(true)}
@@ -183,36 +262,12 @@ const SkillsSection = () => {
           </div>
           <div className="flex flex-wrap gap-2">
             {skills.specialSkills.map((skill, index) => (
-              <span 
-                key={index} 
+              <span
+                key={index}
                 className="px-3 py-1 bg-cinematic-dark/70 text-foreground/80 text-sm rounded-full border border-gold/10"
               >
                 {skill}
               </span>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card className="bg-card-gradient border-gold/10">
-        <CardContent className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Physical Attributes</h3>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-gold hover:text-gold hover:bg-gold/10"
-              onClick={() => setIsEditingPhysical(true)}
-            >
-              <Edit className="h-4 w-4 mr-1" /> Edit
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {skills.physicalAttributes.map((attribute, index) => (
-              <div key={index} className="flex border-b border-gold/10 pb-2 last:border-0">
-                <div className="w-1/3 text-foreground/60">{attribute.name}:</div>
-                <div className="w-2/3 font-medium">{attribute.value}</div>
-              </div>
             ))}
           </div>
         </CardContent>
@@ -225,47 +280,60 @@ const SkillsSection = () => {
         onClose={() => setIsEditingActing(false)}
         onSave={handleSaveActing}
       >
-        <Form {...actingForm}>
-          {skills.acting.map((skill, index) => (
-            <div key={index} className="space-y-4">
-              <FormField
-                control={actingForm.control}
-                name={`acting.${index}.name`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Skill Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={actingForm.control}
-                name={`acting.${index}.level`}
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex justify-between">
-                      <FormLabel>Proficiency Level</FormLabel>
-                      <span className="text-sm text-gold">{field.value}%</span>
-                    </div>
-                    <FormControl>
-                      <Slider
-                        min={0}
-                        max={100}
-                        step={1}
-                        defaultValue={[field.value]}
-                        onValueChange={(vals) => field.onChange(vals[0])}
-                        className="py-4"
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              {index < skills.acting.length - 1 && <hr className="border-gold/10 my-4" />}
+        <div className="flex flex-col max-h-[60vh]">
+          {" "}
+          <Form {...actingForm}>
+            <div className="overflow-y-auto pr-2 pl-2 flex-1">
+              {" "}
+              {/* Scrolls if overflow */}
+              {skills.acting.map((skill, index) => (
+                <div key={index} className="mb-6">
+                  <FormField
+                    control={actingForm.control}
+                    name={`acting.${index}.name`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Skill Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={actingForm.control}
+                    name={`acting.${index}.level`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex justify-between mt-2">
+                          <FormLabel>Proficiency Level</FormLabel>
+                          <span className="text-sm text-gold">
+                            {field.value}%
+                          </span>
+                        </div>
+                        <FormControl>
+                          <Slider
+                            min={0}
+                            max={100}
+                            step={1}
+                            defaultValue={[field.value]}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                            className="py-4"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {index < skills.acting.length - 1 && (
+                    <hr className="border-gold/10 my-4" />
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
-        </Form>
+          </Form>
+        </div>
       </EditProfileDialog>
 
       <EditProfileDialog
@@ -275,47 +343,55 @@ const SkillsSection = () => {
         onClose={() => setIsEditingTechnical(false)}
         onSave={handleSaveTechnical}
       >
-        <Form {...technicalForm}>
-          {skills.technical.map((skill, index) => (
-            <div key={index} className="space-y-4">
-              <FormField
-                control={technicalForm.control}
-                name={`technical.${index}.name`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Skill Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={technicalForm.control}
-                name={`technical.${index}.level`}
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex justify-between">
-                      <FormLabel>Proficiency Level</FormLabel>
-                      <span className="text-sm text-gold">{field.value}%</span>
-                    </div>
-                    <FormControl>
-                      <Slider
-                        min={0}
-                        max={100}
-                        step={1}
-                        defaultValue={[field.value]}
-                        onValueChange={(vals) => field.onChange(vals[0])}
-                        className="py-4"
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              {index < skills.technical.length - 1 && <hr className="border-gold/10 my-4" />}
+        <div className="flex flex-col max-h-[60vh]">
+          <Form {...technicalForm}>
+            <div className="overflow-y-auto pr-2 pl-2 flex-1">
+              {skills.technical.map((skill, index) => (
+                <div key={index} className="space-y-4">
+                  <FormField
+                    control={technicalForm.control}
+                    name={`technical.${index}.name`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Skill Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={technicalForm.control}
+                    name={`technical.${index}.level`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex justify-between">
+                          <FormLabel>Proficiency Level</FormLabel>
+                          <span className="text-sm text-gold">
+                            {field.value}%
+                          </span>
+                        </div>
+                        <FormControl>
+                          <Slider
+                            min={0}
+                            max={100}
+                            step={1}
+                            defaultValue={[field.value]}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                            className="py-4"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  {index < skills.technical.length - 1 && (
+                    <hr className="border-gold/10 my-4" />
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
-        </Form>
+          </Form>
+        </div>
       </EditProfileDialog>
 
       <EditProfileDialog
@@ -333,7 +409,7 @@ const SkillsSection = () => {
               <FormItem>
                 <FormLabel>Special Skills</FormLabel>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     placeholder="Separate skills with commas"
                     className="h-32"
                     {...field}
@@ -366,7 +442,7 @@ const SkillsSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={physicalAttributesForm.control}
               name="weight"
@@ -379,7 +455,7 @@ const SkillsSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={physicalAttributesForm.control}
               name="build"
@@ -392,7 +468,7 @@ const SkillsSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={physicalAttributesForm.control}
               name="hairColor"
@@ -405,7 +481,7 @@ const SkillsSection = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={physicalAttributesForm.control}
               name="eyeColor"

@@ -137,7 +137,6 @@ const ExperienceSection = () => {
         }
 
         setExperiences(data.data || []);
-        toast.success("Experiences loaded successfully!");
       } catch (err: any) {
         console.error("Fetch error:", err);
         setError(err.message);
@@ -225,7 +224,6 @@ const ExperienceSection = () => {
     } catch (error: any) {
       console.error("Error saving experience:", error);
       toast.error(error.message || "Failed to save experience.");
-      // Optionally return or stop further logic
       return;
     }
   };

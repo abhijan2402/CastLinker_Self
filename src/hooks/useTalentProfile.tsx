@@ -6,9 +6,10 @@ import { useForm } from "react-hook-form";
 type TalentProfile = {
   id: number;
   email: string;
-  role: string;
+  user_role: string;
   type: string;
   isLoggedIn: boolean;
+  verified: boolean;
   token: string;
   username: string | null;
   bio: string;
@@ -21,6 +22,8 @@ type TalentProfile = {
   union_status: string;
   representation: string;
   special_skills: string;
+  technical_skills: string;
+  acting_skills: string;
   profile_image?: string;
   createdAt: string;
   updatedAt: string;
@@ -37,6 +40,8 @@ type ProfileFormValues = {
   unionStatus: string;
   representation: string;
   special_skills?: string;
+  technical_skills?: string;
+  acting_skills?: string;
   profile_image?: string;
 };
 
@@ -73,6 +78,8 @@ export const useTalentProfile = (user: any) => {
         unionStatus: profileData.union_status || "",
         representation: profileData.representation || "",
         special_skills: profileData.special_skills || "",
+        technical_skills: profileData.technical_skills || "",
+        acting_skills: profileData.acting_skills || "",
         profile_image: profileData.profile_image || "",
       });
     } catch (err) {
@@ -92,16 +99,19 @@ export const useTalentProfile = (user: any) => {
       union_status: data.unionStatus,
       representation: data.representation,
       special_skills: data.special_skills || "",
+      technical_skills: data.technical_skills || "",
+      acting_skills: data.acting_skills || "",
       profile_image: data.profile_image || "",
     };
+    console.log(payload);
 
-    try {
-      const res = await updateData("auth/update-profile", payload);
-      console.log("Profile updated:", res);
-      await fetchProfile();
-    } catch (err) {
-      console.error("Error saving profile:", err);
-    }
+    // try {
+    //   const res = await updateData("auth/update-profile", payload);
+    //   console.log("Profile updated:", res);
+    //   await fetchProfile();
+    // } catch (err) {
+    //   console.error("Error saving profile:", err);
+    // }
   };
 
   const fetchSavedJobs = async () => {

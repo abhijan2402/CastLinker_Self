@@ -20,17 +20,22 @@ const api = axios.create({
 const handleRequest = async <T,>(
   method: Method,
   url: string,
-  data: any = null
+  data: any = null,
+  customHeaders = {}
 ): Promise<T | any> => {
   const token = localStorage.getItem("token");
+
+  const isFormData = data instanceof FormData;
 
   try {
     const response = await api({
       method,
       url,
-      data: method !== "get" ? data : undefined,
+      data: method !== "get" && method !== "delete" ? data : undefined,
       params: method === "get" ? data : undefined,
       headers: {
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
+        ...customHeaders,
         Authorization: `Bearer ${token}`,
       },
     });

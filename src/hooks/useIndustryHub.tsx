@@ -23,6 +23,7 @@ export type NewsItem = {
   read_time: string;
   image: string;
   is_featured?: boolean;
+  featured_image_url: string;
 };
 
 export type EventItem = {
@@ -101,9 +102,9 @@ export const useIndustryHub = () => {
         setNews(newsResponse.data);
       }
 
+      console.log(newsResult);
       // Fetch Event Data
       const eventsResult = await fetchData("/api/events/list");
-      console.log(eventsResult);
       const eventsResponse = eventsResult as EventApiResponse;
       if (eventsResponse?.data) {
         setEvents(eventsResponse.data);
@@ -197,13 +198,23 @@ export const useIndustryHub = () => {
       switch (type) {
         case "news": {
           // API call to backend
-          const response = await postData("/api/articles/create", data);
-          console.log(response);
+          const formattedPayload = {
+            title: data.title,
+            excerpt: data.excerpt,
+            description: data.content,
+            category: data.category,
+            read_time: data.read_time,
+            featured_image_url: data.image,
+          };
+          const response = await postData(
+            "/api/articles/create",
+            formattedPayload
+          );
           fetchIndustryData();
-          // toast({
-          //   title: "Submission Successful",
-          //   description: "Your article has been created successfully",
-          // });
+          toast({
+            title: "Submission Successful",
+            description: "Your article has been created successfully",
+          });
 
           return { success: true };
           break;
@@ -227,10 +238,8 @@ export const useIndustryHub = () => {
             event_type: data.type,
             featured_image_url: data.image,
           };
-          console.log(payload);
 
           const response = await postData("/api/events/create", payload);
-          console.log(response);
           fetchIndustryData();
           // toast({
           //   title: "Submission Successful",
@@ -267,8 +276,18 @@ export const useIndustryHub = () => {
 
         case "resource": {
           console.log(data);
-          const response = await postData("/api/resources/create", data);
-          console.log(response);
+          const formattedPayload = {
+            title: data.title,
+            description: data.description,
+            category: data.category,
+            featured_image_url: data.image,
+            file_url: data.file_url,
+          };
+          const response = await postData(
+            "/api/resources/create",
+            formattedPayload
+          );
+          // console.log(response);
           // toast({
           //   title: "Submission Successful",
           //   description: "Your article has been created successfully",

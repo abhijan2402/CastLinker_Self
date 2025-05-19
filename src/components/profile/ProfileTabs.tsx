@@ -80,7 +80,6 @@ const ProfileTabs = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
-  console.log(savedJobs);
 
   useEffect(() => {
     if (user && activeTab === "saved-jobs") {

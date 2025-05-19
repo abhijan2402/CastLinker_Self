@@ -212,15 +212,39 @@ const CreatePostDialog = ({
     posts: any;
   };
   const onSubmit = async (values: FormValues) => {
-    const payload = {
-      ...values,
-      media: mediaFile,
-    };
-    console.log(mediaFile);
+    const formData = new FormData();
+
+    formData.append("title", values.title);
+    formData.append("description", values.description);
+    formData.append("category", values.category);
+
+    // Convert array of tags to JSON string or individual fields
+    values.tags.forEach((tag, i) => {
+      formData.append(`tags[${i}]`, tag);
+    });
+
+    if (values.event_date) {
+      formData.append("event_date", new Date(values.event_date).toISOString());
+    }
+
+    if (values.external_url) {
+      formData.append("external_url", values.external_url);
+    }
+
+    formData.append("place", values.place || "");
+    formData.append("location", values.location || "");
+    formData.append("pincode", values.pincode || "");
+    formData.append("landmark", values.landmark || "");
+
+    // Append media file if it exists
+    if (mediaFile) {
+      formData.append("media", mediaFile);
+    }
+    console.log(formData);
     try {
       const response = await postData<CreateProjectResponse>(
         "/api/posts",
-        payload
+        formData
       );
 
       console.log("✅ Posts created:", response);
