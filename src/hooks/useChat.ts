@@ -4,11 +4,12 @@ import { useAuth } from "./useAuth";
 import { E2EEncryption } from "../utils/encryption";
 import Socket from "@/socket";
 import socket from "@/socket";
+import { fetchData, postData } from "@/api/ClientFuntion";
 
 // Define types to match those used in the codebase
 export interface Message {
-  id: string;
-  room_id: string;
+  id: number;
+  room_id: number;
   sender_id: number;
   receiver_id: number;
   content: string;
@@ -37,7 +38,7 @@ export interface Message {
 }
 
 export interface Attachment {
-  id: string;
+  id: number;
   messageId: string;
   fileUrl: string;
   fileName: string;
@@ -47,12 +48,12 @@ export interface Attachment {
 }
 
 export interface MessageReaction {
-  userId: string;
+  userId: number;
   emoji: string;
 }
 
 export interface ChatRoom {
-  id: string;
+  id: number;
   type: "one_to_one" | "group";
   name: string;
   created_at: string;
@@ -67,7 +68,7 @@ export interface ChatRoom {
 }
 
 export interface UserPresence {
-  user_id: string;
+  user_id: number;
   status: "online" | "away" | "offline";
   last_active: string;
   typing_in_room?: string;
@@ -106,7 +107,6 @@ export const useChat = (roomId: string) => {
   const [isTyping, setIsTyping] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-
   const { user } = useAuth();
   const encryption = new E2EEncryption();
   // console.log(user);
@@ -156,6 +156,7 @@ export const useChat = (roomId: string) => {
 
   //   loadMockData();
   // }, [roomId, user]);
+
   useEffect(() => {
     //user whom we are chatting
 
@@ -180,8 +181,13 @@ export const useChat = (roomId: string) => {
   }, []);
 
   // Send message function
-  const sendMessage = async (content: string, attachments: File[] = []) => {
-    console.log(content);
+  const sendMessage = async (
+    content: string,
+    attachments: File[] = [],
+    rcid: number
+  ) => {
+    console.log(content, rcid);
+
     // if (!user || !content.trim()) return;
 
     // const newMessage: Message = {
@@ -189,7 +195,7 @@ export const useChat = (roomId: string) => {
     //   room_id: roomId,
     //   sender_id: user.id,
     //   receiver_id: number;
-    //   content,  
+    //   content,
     //   type: "text",
     //   metadata: {},
     //   created_at: new Date().toISOString(),
@@ -224,8 +230,6 @@ export const useChat = (roomId: string) => {
 
     return true;
   };
-
-
 
   useEffect(() => {
     // Ensure user is defined and has a valid ID
@@ -354,6 +358,7 @@ export const useChat = (roomId: string) => {
 
   return {
     messages,
+    setMessages,
     sendMessage,
     isTyping,
     onlineUsers,

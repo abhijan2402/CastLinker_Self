@@ -87,7 +87,7 @@ export function ProfileDialog({ talent, isOpen, onClose, onMessage, onConnect }:
             
             <div className="flex flex-col items-center justify-center p-3 bg-primary/5 rounded-lg">
               <Languages className="h-5 w-5 text-primary/70 mb-1" />
-              <span className="text-xs text-center">{talent.languages ? talent.languages.join(', ') : 'English'}</span>
+              {/* <span className="text-xs text-center">{talent.languages ? talent.languages.join(', ') : 'English'}</span> */}
             </div>
             
             <div className="flex flex-col items-center justify-center p-3 bg-primary/5 rounded-lg">

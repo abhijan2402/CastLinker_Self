@@ -9,16 +9,19 @@ import {
   ChatMessage as ChatMessageComponent,
   ChatMessage,
 } from "@/components/chat/ChatMessage";
-import { useChat } from "@/hooks/useChat";
+import { useChat, Message } from "@/hooks/useChat";
 import { useDebounce } from "@/hooks/useDebounce";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
-import { Message, MessageReaction as TypedMessageReaction } from "@/types/chat";
+import { format } from "date-fns";
 import socket from "@/socket";
-import { fetchData } from "@/api/ClientFuntion";
+import { fetchData, postData } from "@/api/ClientFuntion";
+import { Action } from "@radix-ui/react-toast";
 
 interface Chat {
-  id: string;
+  id: number;
   name: string;
+  receiver_id: number;
+  sender_id: number;
   lastMessage: string;
   lastMessageTime: string;
   unread: number;
@@ -27,66 +30,30 @@ interface Chat {
   online?: boolean;
 }
 
-interface ChatListResponse {
-  success: boolean;
-  data: Chat[];
-}
-
 const Chat = () => {
   const { user } = useAuth();
   const [inputMessage, setInputMessage] = useState("");
   const messageEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, sendMessage, isLoading } = useChat("");
+  const { messages, setMessages, sendMessage, isLoading } = useChat("");
 
-  const [mockChats, setMockChats] = useState<Chat[]>([
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      lastMessage: "When can you send the audition tape?",
-      lastMessageTime: "10:30 AM",
-      unread: 2,
-      avatar: "/placeholder.svg",
-      role: "Casting Director",
-      online: true,
-    },
-    {
-      id: "2",
-      name: "Michael Rodriguez",
-      lastMessage: "I loved your performance in that short film!",
-      lastMessageTime: "Yesterday",
-      unread: 0,
-      avatar: "/placeholder.svg",
-      role: "Director",
-      online: false,
-    },
-    {
-      id: "3",
-      name: "Emma Thompson",
-      lastMessage: "Let's discuss the contract details",
-      lastMessageTime: "Monday",
-      unread: 0,
-      avatar: "/placeholder.svg",
-      role: "Producer",
-      online: true,
-    },
-    {
-      id: "4",
-      name: "Film Project Team",
-      lastMessage: "Hey team, I've uploaded the latest schedule",
-      lastMessageTime: "08/10/2023",
-      unread: 3,
-      avatar: "/placeholder.svg",
-    },
-  ]);
-
+  const [mockChats, setMockChats] = useState<Chat[]>([]);
   const handleAllChats = async () => {
-    const res = await fetchData<ChatListResponse>(`/api/chat/list/${user.id}`);
+    const res = await fetchData<any>(`/api/chat/list/${user.id}`);
 
     if (res.success && Array.isArray(res.data)) {
-      // setMockChats(res.data);
-      console.log(res.data);
-      setMockChats(res?.data);
+      const formattedChats: Chat[] = res.data.map((chat: any) => ({
+        id: chat.id,
+        name: chat.user?.username || "Unknown User",
+        lastMessage: chat.content,
+        lastMessageTime: format(new Date(chat.created_at), "MMM d, h:mm a"),
+        unread: 0,
+        avatar: chat.user?.profile_image || "",
+        receiver_id: chat.receiver_id,
+        sender_id: chat.sender_id,
+      }));
+
+      setMockChats(formattedChats);
     } else {
       console.error("Failed to load chats");
     }
@@ -98,17 +65,71 @@ const Chat = () => {
 
   // console.log(messages)
 
-  const [activeChat, setActiveChat] = useState(mockChats[0]);
+  const [activeChat, setActiveChat] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchTerm = useDebounce(searchQuery, 300);
+  const loadMessages = async () => {
+    try {
+      const resp = await fetchData(
+        `/api/chat/conversation/${activeChat.sender_id}/${activeChat.receiver_id}`
+      );
+
+      const chatResponse = resp as {
+        success: boolean;
+        data: any[]; // You can define a proper APIRawMessage interface too
+      };
+
+      if (chatResponse.success) {
+        const fullMessages: Message[] = chatResponse.data.map((msg) => {
+          return {
+            id: msg.id,
+            sender_id: msg.sender_id,
+            receiver_id: msg.receiver_id,
+            content: msg.content || "",
+            room_id: 0, // default value or derive it
+            type: "text", // or derive from msg.type if available
+            metadata: {},
+            created_at: msg.created_at,
+            updated_at: msg.updated_at,
+            is_edited: false,
+            is_deleted: false,
+            reactions: [],
+            attachments: [],
+            timestamp: msg.created_at,
+            status: "sent",
+            isMe: msg.sender_id === user?.id,
+            reply_to_id: undefined,
+          };
+        });
+
+        setMessages(fullMessages); // ✅ This will now work
+      }
+    } catch (err) {
+      console.error("Error loading messages:", err);
+    }
+  };
+  useEffect(() => {
+    loadMessages();
+  }, [user, activeChat,inputMessage]);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  console.log(activeChat);
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
-      sendMessage(inputMessage);
+      // sendMessage(inputMessage, null, activeChat?.receiver_id);
+      const payload = {
+        sender_id: activeChat?.sender_id,
+        receiver_id: activeChat?.receiver_id,
+        content: inputMessage,
+      };
+      console.log(payload);
+      const res = postData("/api/chat/send", payload);
+      if (res) {
+      }
+      loadMessages();
       setInputMessage("");
     }
   };
@@ -203,7 +224,7 @@ const Chat = () => {
                         activeChat?.id === chat.id ? "text-gold" : "text-white"
                       }`}
                     >
-                      {chat.user?.username}
+                      {chat.name}
                     </h3>
                     <span className="text-xs text-gray-400">
                       {chat.lastMessageTime}
@@ -211,7 +232,7 @@ const Chat = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <p className="text-sm text-gray-400 truncate">
-                      {chat.content}
+                      {chat.lastMessage}
                     </p>
                     {chat.unread > 0 && (
                       <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-medium bg-gold text-black rounded-full">
@@ -254,7 +275,7 @@ const Chat = () => {
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={activeChat.avatar} alt={activeChat.name} />
                   <AvatarFallback className="bg-gold/20 text-gold">
-                    {/* {activeChat.name.charAt(0)} */}
+                    {activeChat.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
@@ -305,7 +326,7 @@ const Chat = () => {
             </div>
 
             <ScrollArea className="flex-1 p-6">
-              {isLoading ? (
+              {isLoading === false ? (
                 <div className="flex justify-center p-4">
                   <span className="text-gray-400">Loading messages...</span>
                 </div>
@@ -328,16 +349,19 @@ const Chat = () => {
                       ...message,
                       senderName:
                         message.sender_id === user?.id
-                          ? user?.email?.split("@")[0]
+                          ? user?.username
                           : "User",
-                      senderRole: message.sender_id === user?.id ? "" : "Role",
+                      senderRole:
+                        message.sender_id === user?.id
+                          ? user?.user_role
+                          : "Role",
                       isMe: message.sender_id === user?.id,
-                      status: "seen" as const,
+                      status: "seen",
                       reactions: typedReactions,
                     };
 
                     return (
-                      <ChatMessageComponent
+                      <ChatMessage
                         key={message.id}
                         message={chatMessage}
                         showAvatar={true}
@@ -345,6 +369,7 @@ const Chat = () => {
                       />
                     );
                   })}
+
                   <div ref={messageEndRef} />
                 </div>
               )}

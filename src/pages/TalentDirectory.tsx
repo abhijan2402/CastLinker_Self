@@ -550,14 +550,14 @@ const TalentDirectory = () => {
                     <span className="block text-foreground/50">Experience</span>
                     <span className="font-medium text-foreground/80">{profile?.experience} years</span>
                   </div>
-                  <div>
+                  {/* <div>
                     <span className="block text-foreground/50">Languages</span>
                     <span className="font-medium text-foreground/80">
                       {profile?.languages?.length > 0 
                         ? profile?.languages?.join(", ") 
                         : "English"}
                     </span>
-                  </div>
+                  </div> */}
                 </div>
                 
                 <div className="flex justify-between mt-4">
