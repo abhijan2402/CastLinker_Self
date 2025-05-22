@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 const Billing = () => {
   const currentPlan = {
     name: "Professional",
-    price: "$29.99",
+    price: "₹29.99",
     billingCycle: "monthly",
     nextBillingDate: "May 15, 2023",
     features: [
@@ -22,19 +22,19 @@ const Billing = () => {
     {
       id: "INV-001",
       date: "Apr 15, 2023",
-      amount: "$29.99",
+      amount: "₹29.99",
       status: "paid"
     },
     {
       id: "INV-002",
       date: "Mar 15, 2023",
-      amount: "$29.99",
+      amount: "₹29.99",
       status: "paid"
     },
     {
       id: "INV-003",
       date: "Feb 15, 2023",
-      amount: "$29.99",
+      amount: "₹29.99",
       status: "paid"
     }
   ];
