@@ -40,7 +40,7 @@ const EventManagement = () => {
     setSelectedDate,
     addEvent,
     updateEvent,
-    deleteEvent,
+    deleteEvent, 
     fetchEvents,
     featuredEvent,
     totalAttendees,
@@ -192,62 +192,7 @@ const EventManagement = () => {
           </Card>
         </div>
 
-        {/* Featured upcoming event */}
-        {featuredEvent && (
-          <Card className="bg-card shadow-md border border-gold/10">
-            <CardHeader>
-              <CardTitle>Featured Upcoming Event</CardTitle>
-              <CardDescription>The next major industry event</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="bg-secondary/30 rounded-lg p-4 flex items-center justify-center md:w-1/3">
-                  <Calendar className="h-12 w-12 text-gold opacity-80" />
-                </div>
-                <div className="md:w-2/3">
-                  <h3 className="text-xl font-semibold mb-2">
-                    {featuredEvent.title}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="text-sm">
-                        {formatDate(featuredEvent.date)}
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="text-sm">
-                        {featuredEvent.time}
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="text-sm">{featuredEvent.location}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="text-sm">
-                        {featuredEvent.expected_attribute} attendees
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => handleEditClick(featuredEvent)}
-              >
-                Edit Event
-              </Button>
-              <Button onClick={() => handleViewClick(featuredEvent)}>
-                View Details
-              </Button>
-            </CardFooter>
-          </Card>
-        )}
+
 
         {/* Search and filters */}
         <Card>

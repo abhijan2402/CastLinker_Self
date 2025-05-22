@@ -5,9 +5,6 @@ import { useForm } from "react-hook-form";
 // Types
 type TalentProfile = {
   id: number;
-  email: string;
-  user_role: string;
-  type: string;
   isLoggedIn: boolean;
   verified: boolean;
   token: string;
@@ -24,9 +21,24 @@ type TalentProfile = {
   special_skills: string;
   technical_skills: string;
   acting_skills: string;
-  profile_image?: string;
   createdAt: string;
   updatedAt: string;
+
+  total_connections: number;
+  total_likes: number;
+  total_ratings: number;
+  email: string;
+  user_role: string;
+  user_type: string;
+  avatar_url: string;
+  cover_image: string;
+  availableForWork: boolean;
+  profile_image?: string;
+  location: string;
+  twitter?: string;
+  instagram?: string;
+  linkedin?: string;
+  youtube?: string;
 };
 
 type ProfileFormValues = {

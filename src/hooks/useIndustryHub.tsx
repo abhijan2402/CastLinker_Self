@@ -36,6 +36,7 @@ export type EventItem = {
   type: string;
   image: string;
   is_featured?: boolean;
+  event_status?: string;
 };
 
 export type CourseItem = {
@@ -102,13 +103,13 @@ export const useIndustryHub = () => {
         setNews(newsResponse.data);
       }
 
-      console.log(newsResult);
       // Fetch Event Data
       const eventsResult = await fetchData("/api/events/list");
       const eventsResponse = eventsResult as EventApiResponse;
       if (eventsResponse?.data) {
         setEvents(eventsResponse.data);
       }
+      console.log(eventsResponse);
 
       // Fetch Course Data
       const coursesResult = await fetchData("/api/courses/list");
@@ -118,7 +119,6 @@ export const useIndustryHub = () => {
       }
       // Fetch Course Data
       const resourcesResult = await fetchData("/api/resources/list");
-      console.log(resourcesResult);
 
       const resourcesResponse = resourcesResult as ResourceApiResponse;
       if (resourcesResponse?.data) {
@@ -134,7 +134,7 @@ export const useIndustryHub = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     fetchIndustryData();

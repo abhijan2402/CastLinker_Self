@@ -71,28 +71,27 @@ export function ChatMessage({
   // console.log(message);
   return (
     <div
-      className={`flex ${
-        message.isMe ? "justify-end" : "justify-start"
-      } mb-4 group`}
+      className={`flex ${message.isMe ? "justify-end" : "justify-start"} mb-2`}
     >
+      {/* RECEIVER (other user) Avatar */}
       {!message.isMe && showAvatar && (
-        <Avatar className="h-10 w-10 mr-3 mt-1">
+        <Avatar className="h-10 w-10 mr-2">
           <AvatarImage
             src="/placeholder.svg"
             alt={message.senderName || "User"}
           />
           <AvatarFallback>
-            {(message.senderName || "U").charAt(0)}
+            {(message.senderName ?? "U").charAt(0)}
           </AvatarFallback>
         </Avatar>
       )}
 
-      <div className="flex flex-col max-w-[80%]">
+      {/* MESSAGE BUBBLE */}
+      <div className="max-w-[75%]">
+        {/* Optional Sender Name & Role */}
         {!message.isMe && showAvatar && (
           <div className="mb-1 text-sm text-gold/80">
-            {message.senderName && (
-              <span className="font-medium">{message.senderName}</span>
-            )}
+            <span className="font-medium">{message.senderName}</span>
             {message.senderRole && (
               <span className="text-xs ml-2 text-gold/60">
                 {message.senderRole}
@@ -101,15 +100,15 @@ export function ChatMessage({
           </div>
         )}
 
+        {/* Message Content */}
         <div
-          className={`p-4 rounded-2xl ${
+          className={`rounded-2xl p-3 text-sm ${
             message.isMe
               ? "bg-gold/20 text-white rounded-tr-none"
               : "bg-[#222222] text-white rounded-tl-none"
           }`}
         >
-          <p className="text-sm">{message.content}</p>
-
+          <p>{message.content}</p>
           {message.is_edited && (
             <span className="text-xs text-gold/40 mt-1 inline-block">
               (edited)
@@ -117,29 +116,28 @@ export function ChatMessage({
           )}
         </div>
 
+        {/* Timestamp and Status */}
         <div
-          className={`flex items-center mt-1 text-xs ${
+          className={`text-xs mt-1 flex items-center gap-1 ${
             message.isMe ? "justify-end" : "justify-start"
-          }`}
+          } text-gray-400`}
         >
-          <span className="text-gray-400">
+          <span>
             {message.created_at &&
               format(new Date(message.created_at), "h:mm a")}
           </span>
-
           {message.isMe && message.status === "seen" && (
-            <div className="ml-1 text-blue-400">
-              <Check size={14} />
-            </div>
+            <Check size={14} className="text-blue-400" />
           )}
         </div>
       </div>
 
-      {message.isMe && (
-        <Avatar className="h-10 w-10 ml-3 mt-1">
+      {/* SENDER (self) Avatar */}
+      {message.isMe && showAvatar && (
+        <Avatar className="h-10 w-10 ml-2">
           <AvatarImage src="/placeholder.svg" alt="You" />
           <AvatarFallback>
-            {(message.senderName || "Y").charAt(0)}
+            {(message.senderName ?? "Y").charAt(0)}
           </AvatarFallback>
         </Avatar>
       )}

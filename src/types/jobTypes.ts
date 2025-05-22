@@ -6,7 +6,7 @@ export type ExperienceLevel = 'Entry Level' | 'Mid Level' | 'Senior Level' | 'Ex
 export type PostedWithin = '24h' | '3d' | '7d' | '14d' | '30d' | 'any';
 
 export interface Job {
-  id: string;
+  id: number;
   job_title: string;
   company: string;
   company_logo?: string;

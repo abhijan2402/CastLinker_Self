@@ -60,16 +60,21 @@ const AboutSection = () => {
   })();
 
   const about = {
-    bio: profile?.bio || `Add your bio`,
+    bio:
+      profile?.bio ||
+      `Passionate actor with over 5 years of experience in film and theater.`,
     details: [
-      { label: "Age Range", value: profile?.age_range || "--" },
-      { label: "Height", value: profile?.height || "--" },
-      { label: "Weight", value: profile?.weight || "--" },
-      { label: "Hair Color", value: profile?.hair_color || "--" },
-      { label: "Eye Color", value: profile?.eye_color || "--" },
-      { label: "Languages", value: profile?.languages || "--" },
-      { label: "Union Status", value: profile?.union_status || "--" },
-      { label: "Representation", value: profile?.representation || "--" },
+      { label: "Age Range", value: profile?.age_range || "25-35" },
+      { label: "Height", value: profile?.height || "5'10\"" },
+      { label: "Weight", value: profile?.weight || "160 lbs" },
+      { label: "Hair Color", value: profile?.hair_color || "Brown" },
+      { label: "Eye Color", value: profile?.eye_color || "Hazel" },
+      { label: "Languages", value: profile?.languages || "English, Spanish" },
+      { label: "Union Status", value: profile?.union_status || "SAG-AFTRA" },
+      {
+        label: "Representation",
+        value: profile?.representation || "Elite Talent Agency",
+      },
     ],
   };
 

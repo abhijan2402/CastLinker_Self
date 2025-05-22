@@ -3,14 +3,15 @@ export interface Event {
   title: string;
   description?: string;
   location: string;
-  event_date: string;
-  event_time: string;
+  date: string;
+  time: string;
   event_status: string;
-  attendees: number;
+  expected_attribute: number;
   createdAt?: string;
   updatedAt?: string;
   event_type: string;
   user_id: number;
+  featured_image_url: string;
 }
 
 export interface EventFormData {

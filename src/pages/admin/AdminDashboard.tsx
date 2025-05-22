@@ -3,9 +3,17 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import {
   ChartContainer,
   ChartTooltip,
@@ -19,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AreaChart as RechartsAreaChart,
   BarChart,
   Bar,
   XAxis,
@@ -39,12 +48,16 @@ import {
   Clock,
   Download,
   ArrowDownRight,
+  MapPin,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fetchData } from "@/api/ClientFuntion";
 import { format, parseISO, isSameMonth, subMonths } from "date-fns";
 import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
+import { useEventsData } from "@/hooks/useEventsData";
+import EventDetail from "@/components/admin/EventDetail";
+import EventForm from "@/components/admin/EventForm";
 
 type UsersByRole = {
   role: string;
@@ -84,12 +97,33 @@ type EventListResponse = {
 
 const AdminDashboard = () => {
   const {
+    events,
+    isLoading,
+    searchQuery,
+    setSearchQuery,
+    selectedDate,
+    setSelectedDate,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    fetchEvents,
+    featuredEvent,
+    totalAttendees,
+    upcomingEventsCount,
+  } = useEventsData();
+  console.log(featuredEvent);
+  const {
     jobCategoriesData,
     userDemographicsData,
     userActivityData,
     jobMetricData,
     analyticsStatsData,
   } = useAdminAnalytics();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
+  console.log(analyticsStatsData);
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [usersByRole, setUsersByRole] = useState<UsersByRole[]>([]);
   const [percentageChange, setPercentageChange] = useState<number | null>(null);
@@ -215,6 +249,43 @@ const AdminDashboard = () => {
       ? usersByRole
       : usersByRole.filter((item) => item.role === selectedProfession);
 
+  const transformedUserActivityData = userActivityData.map((item) => ({
+    name: format(new Date(item.month), "MMM"), // e.g., "Apr"
+    value: parseInt(item.activeUsers, 10),
+  }));
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return format(date, "MMM d, yyyy");
+    } catch (error) {
+      return dateStr;
+    }
+  };
+
+  const handleUpdateEvent = async (data: any) => {
+    if (!currentEvent) return;
+
+    setIsSubmitting(true);
+    const success = await updateEvent(currentEvent.id, data);
+    setIsSubmitting(false);
+
+    if (success) {
+      setIsEditModalOpen(false);
+      fetchEvents();
+    }
+  };
+
+  const handleEditClick = (event: Event) => {
+    setCurrentEvent(event);
+    setIsEditModalOpen(true);
+  };
+
+  const handleViewClick = (event: Event) => {
+    setCurrentEvent(event);
+    setIsDetailModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold gold-gradient-text">Admin Dashboard</h1>
@@ -327,6 +398,61 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
+      {/* Featured upcoming event */}
+      {featuredEvent && (
+        <Card className="bg-card shadow-md border border-gold/10">
+          <CardHeader>
+            <CardTitle>Featured Upcoming Event</CardTitle>
+            <CardDescription>The next major industry event</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="bg-secondary/30 rounded-lg p-4 flex items-center justify-center md:w-1/3">
+                <Calendar className="h-12 w-12 text-gold opacity-80" />
+              </div>
+              <div className="md:w-2/3">
+                <h3 className="text-xl font-semibold mb-2">
+                  {featuredEvent.title}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm">
+                      {formatDate(featuredEvent.date)}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm">{featuredEvent.time}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm">{featuredEvent.location}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm">
+                      {featuredEvent.expected_attribute} attendees
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => handleEditClick(featuredEvent)}
+            >
+              Edit Event
+            </Button>
+            <Button onClick={() => handleViewClick(featuredEvent)}>
+              View Details
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
+
       {/* User growth chart */}
       <Card>
         <CardHeader>
@@ -430,6 +556,96 @@ const AdminDashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* User Activity Chart */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>User Activity</CardTitle>
+              <CardDescription>Daily active users over time</CardDescription>
+            </div>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full flex items-center justify-center">
+            {transformedUserActivityData.length > 0 ? (
+              <RechartsAreaChart
+                width={500}
+                height={300}
+                data={transformedUserActivityData}
+                margin={{
+                  top: 10,
+                  right: 30,
+                  left: 0,
+                  bottom: 0,
+                }}
+              >
+                <defs>
+                  <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" />
+                <Tooltip />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#8884d8"
+                  fillOpacity={1}
+                  fill="url(#colorUv)"
+                />
+              </RechartsAreaChart>
+            ) : (
+              <p className="text-gray-500 text-sm">No data found</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Edit Event Modal */}
+      <Sheet open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Edit Event</SheetTitle>
+            <SheetDescription>
+              Update details for the selected event.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="py-4">
+            {currentEvent && (
+              <EventForm
+                onSubmit={handleUpdateEvent}
+                initialData={currentEvent}
+                isSubmitting={isSubmitting}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Event Detail Modal */}
+      <Sheet open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+        <SheetContent className="sm:max-w-lg">
+          {currentEvent && (
+            <EventDetail
+              event={currentEvent}
+              onEdit={() => {
+                setIsDetailModalOpen(false);
+                setTimeout(() => handleEditClick(currentEvent), 100);
+              }}
+              onClose={() => setIsDetailModalOpen(false)}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

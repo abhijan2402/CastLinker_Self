@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { fetchData } from "@/api/ClientFuntion";
 
 export type Post = {
   id: string;
@@ -22,6 +23,7 @@ export type Post = {
   location?: string | null;
   pincode?: string | null;
   landmark?: string | null;
+  user_id: number;
 };
 
 export type PostApplication = {
@@ -42,7 +44,7 @@ export type PostApplication = {
 export const fetchPosts = async () => {
   try {
     const { data, error } = await supabase
-      .from("castlinker_posts")
+      .from("FilmCollab_posts")
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -54,16 +56,10 @@ export const fetchPosts = async () => {
   }
 };
 
-export const fetchPostById = async (id: string) => {
+export const fetchPostById = async (id: string): Promise<Post | null> => {
   try {
-    const { data, error } = await supabase
-      .from("castlinker_posts")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data as Post;
+    const post = await fetchData(`/api/posts/${id}`);
+    return post as Post;
   } catch (error) {
     console.error("Error fetching post:", error);
     return null;
@@ -75,7 +71,7 @@ export const createPost = async (
 ) => {
   try {
     const { data, error } = await supabase
-      .from("castlinker_posts")
+      .from("FilmCollab_posts")
       .insert(post)
       .select()
       .single();
@@ -91,7 +87,7 @@ export const createPost = async (
 export const updatePost = async (id: string, post: Partial<Post>) => {
   try {
     const { data, error } = await supabase
-      .from("castlinker_posts")
+      .from("FilmCollab_posts")
       .update(post)
       .eq("id", id)
       .select()
@@ -108,7 +104,7 @@ export const updatePost = async (id: string, post: Partial<Post>) => {
 export const deletePost = async (id: string) => {
   try {
     const { error } = await supabase
-      .from("castlinker_posts")
+      .from("FilmCollab_posts")
       .delete()
       .eq("id", id);
 
@@ -224,7 +220,7 @@ export const togglePostLike = async (post_id: string, user_id: string) => {
   }
 };
 
-export const checkIfLiked = async (post_id: string, user_id: string) => {
+export const checkIfLiked = async (post_id: number, user_id: number) => {
   try {
     const { data, error } = await supabase
       .from("post_likes")

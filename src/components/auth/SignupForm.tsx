@@ -88,7 +88,7 @@ const SignupForm = () => {
         <h1 className="text-3xl font-bold gold-gradient-text mb-2">
           Create an Account
         </h1>
-        <p className="text-muted-foreground">Join the CastLinker community</p>
+        <p className="text-muted-foreground">Join the FilmCollab community</p>
       </div>
 
       {error && (

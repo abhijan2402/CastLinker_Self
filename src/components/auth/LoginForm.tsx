@@ -73,7 +73,7 @@ const LoginForm = () => {
           Welcome Back
         </h1>
         <p className="text-muted-foreground">
-          Sign in to continue to CastLinker
+          Sign in to continue to FilmCollab
         </p>
       </div>
 

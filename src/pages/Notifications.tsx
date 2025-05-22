@@ -22,150 +22,38 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
-import { fetchData } from "@/api/ClientFuntion";
+import { useNotifications } from "@/hooks/useNotifications";
+import { updateData } from "@/api/ClientFuntion";
 
-// Define notification object type
-interface Notification {
-  id: number;
-  user_id: number;
-  sender_id: number | null;
-  type: string;
-  reference_id: number;
-  content: string;
-  is_read: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ApiResponse {
-  data: Notification[];
+interface MarkAsReadResponse {
+  success: boolean;
+  message: string;
 }
 
 const NotificationsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { notifications, isLoading } = useNotifications();
+
   const [activeTab, setActiveTab] = useState("all");
 
-  console.log(notifications)
-
-  // Fetch notifications (simulated)
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      setIsLoading(true);
-
-      try {
-        // Simulate API call with timeout
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Sample notifications with the type property added
-        const sampleNotifications: Notification[] = [
-          {
-            id: "1",
-            message:
-              'Your application for "Lead Role in Indie Feature" has been received.',
-            created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 minutes ago
-            read: false,
-            user_id: user?.id || "",
-            type: "application",
-          },
-          {
-            id: "2",
-            message:
-              "Sarah Johnson sent you a message about the upcoming project.",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-            read: true,
-            user_id: user?.id || "",
-            type: "message",
-          },
-          {
-            id: "3",
-            message: 'Casting call for "High Budget Thriller" has been posted.',
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
-            read: false,
-            user_id: user?.id || "",
-            type: "job",
-          },
-          {
-            id: "4",
-            message:
-              "Your profile has been viewed by 5 casting directors this week.",
-            created_at: new Date(
-              Date.now() - 1000 * 60 * 60 * 24
-            ).toISOString(), // 1 day ago
-            read: true,
-            user_id: user?.id || "",
-            type: "profile",
-          },
-          {
-            id: "5",
-            message:
-              'Reminder: Your audition for "Commercial Shoot" is tomorrow at 2 PM.',
-            created_at: new Date(
-              Date.now() - 1000 * 60 * 60 * 36
-            ).toISOString(), // 1.5 days ago
-            read: false,
-            user_id: user?.id || "",
-            type: "event",
-          },
-          {
-            id: "6",
-            message:
-              'New industry webinar: "Breaking into Hollywood" - Register now.',
-            created_at: new Date(
-              Date.now() - 1000 * 60 * 60 * 48
-            ).toISOString(), // 2 days ago
-            read: true,
-            user_id: user?.id || "",
-            type: "event",
-          },
-          {
-            id: "7",
-            message:
-              "Your subscription will renew in 3 days. Update payment method if needed.",
-            created_at: new Date(
-              Date.now() - 1000 * 60 * 60 * 72
-            ).toISOString(), // 3 days ago
-            read: false,
-            user_id: user?.id || "",
-            type: "billing",
-          },
-        ];
-
-        const res = (await fetchData("/api/notifications")) as ApiResponse;
-
-        setNotifications(res.data);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load notifications",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, [user?.id, toast]);
+  // console.log(notifications);
 
   // Filter notifications based on active tab
   const filteredNotifications = notifications.filter((notification) => {
     if (activeTab === "all") return true;
-    if (activeTab === "unread") return !notification.read;
+    if (activeTab === "unread") return !notification.is_read;
     return notification.type === activeTab;
   });
 
   // Get notification icon based on type
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case "application":
+      case "Info":
         return <Film className="h-5 w-5 text-blue-500" />;
-      case "message":
+      case "Important":
         return <MessageCircle className="h-5 w-5 text-purple-500" />;
-      case "job":
+      case "Alert":
         return <Building2 className="h-5 w-5 text-gold" />;
       case "profile":
         return <Award className="h-5 w-5 text-green-500" />;
@@ -199,24 +87,27 @@ const NotificationsPage = () => {
   };
 
   // Mark notification as read
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
+  const markAsRead = (id: number) => {
+    console.log(id);
   };
 
   // Mark all notifications as read
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, read: true }))
-    );
+  const markAllAsRead = async () => {
+    const resp = await updateData<MarkAsReadResponse>("/read-all", {});
 
-    toast({
-      title: "Success",
-      description: "All notifications marked as read",
-    });
+    console.log(resp);
+    if (resp?.success) {
+      toast({
+        title: "Success",
+        description: resp.message || "All notifications marked as read",
+      });
+    } else {
+      toast({
+        title: "Notice",
+        description: resp?.message || "No notifications to update.",
+        variant: "default",
+      });
+    }
   };
 
   return (

@@ -36,13 +36,12 @@ interface PostDataResponse {
 }
 
 const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
-  console.log(job)
   const { toast } = useToast();
   const { user } = useAuth();
   const [formData, setFormData] = useState<Partial<Job>>({
-    title: "",
+    job_title: "",
     company: "",
-    description: "",
+    job_description: "",
     job_type: "Full-time",
     role_category: "Acting",
     location: "",
@@ -57,9 +56,9 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
   useEffect(() => {
     if (job) {
       setFormData({
-        title: job.job_title || "",
+        job_title: job.job_title || "",
         company: job.company || "",
-        description: job.description || "",
+        job_description: job.job_description || "",
         company_logo: job.company_logo || "",
         job_type: job.job_type || "Full-time",
         role_category: job.role_category || "Acting",
@@ -67,19 +66,19 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
         location_type: job.location_type || "On-site",
         status: job.status || "active",
         is_featured: job.is_featured || false,
-        salary_min: job.salary_min,
-        salary_max: job.salary_max,
-        salary_currency: job.salary_currency || "INR",
-        salary_period: job.salary_period || "yearly",
+        min_salary: job.min_salary,
+        max_salary: job.max_salary,
+        currency: job.currency || "INR",
+        payment_period: job.payment_period || "yearly",
         application_url: job.application_url || "",
         application_email: job.application_email || "",
       });
     } else {
       // Reset form for new job
       setFormData({
-        title: "",
+        job_title: "",
         company: "",
-        description: "",
+        job_description: "",
         job_type: "Full-time",
         role_category: "Acting",
         location: "",
@@ -112,7 +111,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.title || !formData.company || !formData.description) {
+    if (!formData.job_title || !formData.company || !formData.job_description) {
       toast({
         variant: "destructive",
         title: "Missing fields",
@@ -126,10 +125,10 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
     try {
       // Add created_at for new jobs
       if (!job) {
-        formData.created_at = new Date().toISOString();
+        formData.createdAt = new Date().toISOString();
       }
       // console.log(formData);
-      if (user.role === "admin") {
+      if (user.user_role === "admin") {
         onSubmit(formData);
         return;
       }
@@ -170,9 +169,9 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
             <div className="col-span-2">
               <Label htmlFor="title">Job Title *</Label>
               <Input
-                id="title"
-                name="title"
-                value={formData.title}
+                id="job_title"
+                name="job_title"
+                value={formData.job_title}
                 onChange={handleInputChange}
                 placeholder="e.g. Lead Actor for Feature Film"
                 required
@@ -304,36 +303,34 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
             </div>
 
             <div>
-              <Label htmlFor="salary_min">Min Salary</Label>
+              <Label htmlFor="min_salary">Min Salary</Label>
               <Input
-                id="salary_min"
-                name="salary_min"
+                id="min_salary"
+                name="min_salary"
                 type="number"
-                value={formData.salary_min || ""}
+                value={formData.min_salary || ""}
                 onChange={handleNumberChange}
                 placeholder="e.g. 50000"
               />
             </div>
 
             <div>
-              <Label htmlFor="salary_max">Max Salary</Label>
+              <Label htmlFor="max_salary">Max Salary</Label>
               <Input
-                id="salary_max"
-                name="salary_max"
+                id="max_salary"
+                name="max_salary"
                 type="number"
-                value={formData.salary_max || ""}
+                value={formData.max_salary || ""}
                 onChange={handleNumberChange}
                 placeholder="e.g. 80000"
               />
             </div>
 
             <div>
-              <Label htmlFor="salary_currency">Currency</Label>
+              <Label htmlFor="currency">Currency</Label>
               <Select
-                value={formData.salary_currency || "INR"}
-                onValueChange={(value) =>
-                  handleSelectChange("salary_currency", value)
-                }
+                value={formData.currency || "INR"}
+                onValueChange={(value) => handleSelectChange("currency", value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select currency" />
@@ -349,11 +346,11 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
             </div>
 
             <div>
-              <Label htmlFor="salary_period">Payment Period</Label>
+              <Label htmlFor="payment_period">Payment Period</Label>
               <Select
-                value={formData.salary_period || "yearly"}
+                value={formData.payment_period || "yearly"}
                 onValueChange={(value) =>
-                  handleSelectChange("salary_period", value)
+                  handleSelectChange("payment_period", value)
                 }
               >
                 <SelectTrigger>
@@ -374,9 +371,9 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
             <div className="col-span-2">
               <Label htmlFor="description">Description *</Label>
               <Textarea
-                id="description"
-                name="description"
-                value={formData.description}
+                id="job_description"
+                name="job_description"
+                value={formData.job_description}
                 onChange={handleInputChange}
                 placeholder="Provide a detailed description of the job..."
                 rows={5}

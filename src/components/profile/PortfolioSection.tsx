@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteData, fetchData, postData } from "@/api/ClientFuntion";
 import { toast } from "react-toastify";
+import { useTalentProfile } from "@/hooks/useTalentProfile";
 
 // Define the types needed for this component
 interface ProfessionContent {
@@ -44,6 +45,7 @@ export function PortfolioSection() {
   const [isLoading, setIsLoading] = useState(false);
   const [contents, setContents] = useState<ProfessionContent[]>([]);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { profile, fetchProfile } = useTalentProfile(user);
 
   // Mock data for development
 
@@ -156,7 +158,7 @@ export function PortfolioSection() {
     const res = await deleteData<PortfolioDeleteResponse>(
       `/api/portfolio/delete/${id}`
     );
-    console.log(res);
+    // console.log(res);
     if (res.success) {
       toast.success(`Item deleted successfully`);
       loadContent();
@@ -170,14 +172,17 @@ export function PortfolioSection() {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">My Portfolio</h3>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleAddContent("document")}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Add Document
-          </Button>
+          {["writer", "Writer"].includes(profile?.user_type) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleAddContent("document")}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Add Document
+            </Button>
+          )}
+
           <Button
             variant="outline"
             size="sm"
@@ -194,24 +199,33 @@ export function PortfolioSection() {
             <Film className="h-4 w-4 mr-2" />
             Add Video
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleAddContent("audio")}
-          >
-            <Music className="h-4 w-4 mr-2" />
-            Add Audio
-          </Button>
+          {["singer", "Singer"].includes(profile?.user_type) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleAddContent("audio")}
+            >
+              <Music className="h-4 w-4 mr-2" />
+              Add Audio
+            </Button>
+          )}
         </div>
       </div>
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="document">Documents</TabsTrigger>
+
+          {["writer", "Writer"].includes(profile?.user_type) && (
+            <TabsTrigger value="document">Documents</TabsTrigger>
+          )}
+
+          {["singer", "Singer"].includes(profile?.user_type) && (
+            <TabsTrigger value="audio">Audio</TabsTrigger>
+          )}
+
           <TabsTrigger value="image">Images</TabsTrigger>
           <TabsTrigger value="video">Videos</TabsTrigger>
-          <TabsTrigger value="audio">Audio</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="pt-4">

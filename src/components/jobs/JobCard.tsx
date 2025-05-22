@@ -19,7 +19,7 @@ interface JobCardProps {
 const JobCard = ({ 
   job, 
   isSaved, 
-  onSaveClick, 
+  onSaveClick,  
   onViewDetailsClick, 
   onApplyClick 
 }: JobCardProps) => {

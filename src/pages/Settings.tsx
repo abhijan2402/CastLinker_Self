@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -9,7 +16,7 @@ const Settings = () => {
   const [notifications, setNotifications] = useState(true);
   const [marketing, setMarketing] = useState(false);
   const [newsletter, setNewsletter] = useState(true);
-  
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col space-y-2 border-b border-border/40 pb-5">
@@ -18,15 +25,35 @@ const Settings = () => {
           Manage your account settings and preferences.
         </p>
       </div>
-      
+
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="grid w-full md:w-auto grid-cols-4 mb-6 bg-card/80 border border-gold/10">
-          <TabsTrigger value="general" className="data-[state=active]:bg-gold/20 data-[state=active]:text-gold">General</TabsTrigger>
-          <TabsTrigger value="appearance" className="data-[state=active]:bg-gold/20 data-[state=active]:text-gold">Appearance</TabsTrigger>
-          <TabsTrigger value="notifications" className="data-[state=active]:bg-gold/20 data-[state=active]:text-gold">Notifications</TabsTrigger>
-          <TabsTrigger value="security" className="data-[state=active]:bg-gold/20 data-[state=active]:text-gold">Security</TabsTrigger>
+          <TabsTrigger
+            value="general"
+            className="data-[state=active]:bg-gold/20 data-[state=active]:text-gold"
+          >
+            General
+          </TabsTrigger>
+          <TabsTrigger
+            value="appearance"
+            className="data-[state=active]:bg-gold/20 data-[state=active]:text-gold"
+          >
+            Appearance
+          </TabsTrigger>
+          <TabsTrigger
+            value="notifications"
+            className="data-[state=active]:bg-gold/20 data-[state=active]:text-gold"
+          >
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger
+            value="security"
+            className="data-[state=active]:bg-gold/20 data-[state=active]:text-gold"
+          >
+            Security
+          </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="general">
           <Card className="border-gold/10 shadow-sm">
             <CardHeader className="px-6">
@@ -38,8 +65,8 @@ const Settings = () => {
             <CardContent className="space-y-4 px-6">
               <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
-                <select 
-                  id="language" 
+                <select
+                  id="language"
                   className="w-full p-2 border rounded bg-background text-foreground border-gold/10"
                   defaultValue="en"
                 >
@@ -49,11 +76,11 @@ const Settings = () => {
                   <option value="de">German</option>
                 </select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="timezone">Timezone</Label>
-                <select 
-                  id="timezone" 
+                <select
+                  id="timezone"
                   className="w-full p-2 border rounded bg-background text-foreground border-gold/10"
                   defaultValue="utc"
                 >
@@ -65,24 +92,26 @@ const Settings = () => {
               </div>
             </CardContent>
             <CardFooter className="px-6">
-              <Button className="bg-gold text-black hover:bg-gold/90">Save Changes</Button>
+              <Button className="bg-gold text-black hover:bg-gold/90">
+                Save Changes
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="appearance">
           <Card className="border-gold/10 shadow-sm">
             <CardHeader className="px-6">
               <CardTitle>Appearance</CardTitle>
               <CardDescription>
-                Customize how CastLinker looks on your device.
+                Customize how FilmCollab looks on your device.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 px-6">
               <div className="space-y-2">
                 <Label htmlFor="theme">Theme</Label>
-                <select 
-                  id="theme" 
+                <select
+                  id="theme"
                   className="w-full p-2 border rounded bg-background text-foreground border-gold/10"
                   defaultValue="dark"
                 >
@@ -93,11 +122,13 @@ const Settings = () => {
               </div>
             </CardContent>
             <CardFooter className="px-6">
-              <Button className="bg-gold text-black hover:bg-gold/90">Save Changes</Button>
+              <Button className="bg-gold text-black hover:bg-gold/90">
+                Save Changes
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="notifications">
           <Card className="border-gold/10 shadow-sm">
             <CardHeader className="px-6">
@@ -110,7 +141,9 @@ const Settings = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="notifications">Push Notifications</Label>
-                  <p className="text-muted-foreground text-sm">Receive notifications about new jobs and messages.</p>
+                  <p className="text-muted-foreground text-sm">
+                    Receive notifications about new jobs and messages.
+                  </p>
                 </div>
                 <Switch
                   id="notifications"
@@ -119,11 +152,13 @@ const Settings = () => {
                   className="data-[state=checked]:bg-gold"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="marketing">Marketing Emails</Label>
-                  <p className="text-muted-foreground text-sm">Receive emails about new features and special offers.</p>
+                  <p className="text-muted-foreground text-sm">
+                    Receive emails about new features and special offers.
+                  </p>
                 </div>
                 <Switch
                   id="marketing"
@@ -132,11 +167,13 @@ const Settings = () => {
                   className="data-[state=checked]:bg-gold"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="newsletter">Newsletter</Label>
-                  <p className="text-muted-foreground text-sm">Receive our weekly industry newsletter.</p>
+                  <p className="text-muted-foreground text-sm">
+                    Receive our weekly industry newsletter.
+                  </p>
                 </div>
                 <Switch
                   id="newsletter"
@@ -147,11 +184,13 @@ const Settings = () => {
               </div>
             </CardContent>
             <CardFooter className="px-6">
-              <Button className="bg-gold text-black hover:bg-gold/90">Save Changes</Button>
+              <Button className="bg-gold text-black hover:bg-gold/90">
+                Save Changes
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="security">
           <Card className="border-gold/10 shadow-sm">
             <CardHeader className="px-6">
@@ -163,28 +202,28 @@ const Settings = () => {
             <CardContent className="space-y-4 px-6">
               <div className="space-y-2">
                 <Label htmlFor="current-password">Current Password</Label>
-                <input 
-                  id="current-password" 
+                <input
+                  id="current-password"
                   type="password"
                   className="w-full p-2 border rounded bg-background text-foreground border-gold/10"
                   placeholder="••••••••"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="new-password">New Password</Label>
-                <input 
-                  id="new-password" 
+                <input
+                  id="new-password"
                   type="password"
                   className="w-full p-2 border rounded bg-background text-foreground border-gold/10"
                   placeholder="••••••••"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <input 
-                  id="confirm-password" 
+                <input
+                  id="confirm-password"
                   type="password"
                   className="w-full p-2 border rounded bg-background text-foreground border-gold/10"
                   placeholder="••••••••"
@@ -192,7 +231,9 @@ const Settings = () => {
               </div>
             </CardContent>
             <CardFooter className="px-6">
-              <Button className="bg-gold text-black hover:bg-gold/90">Update Password</Button>
+              <Button className="bg-gold text-black hover:bg-gold/90">
+                Update Password
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -201,4 +242,4 @@ const Settings = () => {
   );
 };
 
-export default Settings; 
+export default Settings;

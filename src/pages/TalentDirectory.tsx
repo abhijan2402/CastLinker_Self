@@ -121,7 +121,7 @@ const TalentDirectory = () => {
           throw error;
         }
         
-        toast.success(`You liked ${profile.name}'s profile`);
+        toast.success(`You liked ${profile.username}'s profile`);
       } else {
         // Remove from database
         const { error } = await supabase
@@ -136,7 +136,7 @@ const TalentDirectory = () => {
           throw error;
         }
         
-        toast.info(`You unliked ${profile.name}'s profile`);
+        toast.info(`You unliked ${profile.username}'s profile`);
       }
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -500,7 +500,7 @@ const TalentDirectory = () => {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg truncate">{profile.name}</CardTitle>
+                      <CardTitle className="text-lg truncate">{profile.username}</CardTitle>
                       {profile.isVerified && (
                         <Check className="h-4 w-4 text-gold bg-gold/20 rounded-full p-0.5" />
                       )}
@@ -531,7 +531,7 @@ const TalentDirectory = () => {
                   {profile?.bio}
                 </p>
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {profile?.skills?.slice(0, 3).map(skill => (
+                  {profile?.acting_skills?.slice(0, 3).map(skill => (
                     <span 
                       key={`${profile.id}-${skill}`} 
                       className="text-xs px-2 py-0.5 bg-gold/10 text-gold/90 rounded-full"
@@ -539,9 +539,9 @@ const TalentDirectory = () => {
                       {skill}
                     </span>
                   ))}
-                  {profile?.skills?.length > 3 && (
+                  {profile?.acting_skills?.length > 3 && (
                     <span className="text-xs px-2 py-0.5 bg-gold/5 text-gold/70 rounded-full">
-                      +{profile?.skills?.length - 3} more
+                      +{profile?.acting_skills?.length - 3} more
                     </span>
                   )}
                 </div>

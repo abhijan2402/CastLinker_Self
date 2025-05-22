@@ -33,13 +33,35 @@ const Index = () => {
   // Show a temporary loading state while checking user login
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${theme === 'light' ? 'bg-white' : 'bg-cinematic'}`}>
+      <div
+        className={`min-h-screen flex items-center justify-center ${
+          theme === "light" ? "bg-white" : "bg-cinematic"
+        }`}
+      >
         <div className="text-center">
-          <h1 className={`text-3xl font-bold ${theme === 'light' ? 'text-amber-600' : 'gold-gradient-text'} mb-4`}>CastLinker</h1>
+          <h1
+            className={`text-3xl font-bold ${
+              theme === "light" ? "text-amber-600" : "gold-gradient-text"
+            } mb-4`}
+          >
+            FilmCollab
+          </h1>
           <div className="flex space-x-2 justify-center">
-            <div className={`w-3 h-3 rounded-full ${theme === 'light' ? 'bg-amber-500' : 'bg-gold'} animate-pulse`}></div>
-            <div className={`w-3 h-3 rounded-full ${theme === 'light' ? 'bg-amber-500' : 'bg-gold'} animate-pulse [animation-delay:0.2s]`}></div>
-            <div className={`w-3 h-3 rounded-full ${theme === 'light' ? 'bg-amber-500' : 'bg-gold'} animate-pulse [animation-delay:0.4s]`}></div>
+            <div
+              className={`w-3 h-3 rounded-full ${
+                theme === "light" ? "bg-amber-500" : "bg-gold"
+              } animate-pulse`}
+            ></div>
+            <div
+              className={`w-3 h-3 rounded-full ${
+                theme === "light" ? "bg-amber-500" : "bg-gold"
+              } animate-pulse [animation-delay:0.2s]`}
+            ></div>
+            <div
+              className={`w-3 h-3 rounded-full ${
+                theme === "light" ? "bg-amber-500" : "bg-gold"
+              } animate-pulse [animation-delay:0.4s]`}
+            ></div>
           </div>
         </div>
       </div>

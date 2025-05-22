@@ -354,7 +354,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // toast({
       //   title: "Account created successfully!",
-      //   description: "Welcome to CastLinker!",
+      //   description: "Welcome to FilmCollab!",
       // });
     } catch (error: any) {
       setError("Failed to create account");

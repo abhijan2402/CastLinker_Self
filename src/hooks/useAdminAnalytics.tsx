@@ -48,7 +48,7 @@ export const useAdminAnalytics = () => {
   const [jobMetricData, setJobMetricData] = useState<JobMetric[]>([]);
  const [analyticsStatsData, setAnalyticsStatsData] = useState<AnalyticsStats>({
    totalUsers: 0,
-   activeJobs: 0,
+   activeJobs: 0, 
    applicationsLast30Days: 0,
    eventsThisMonth: 0,
    totalPost: 0,

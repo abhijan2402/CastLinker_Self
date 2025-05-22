@@ -45,8 +45,8 @@ const JobDetail = ({ job, isSaved, onToggleSave, onApply, isOpen, onClose }: Job
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: job.title,
-        text: `Check out this job: ${job.title} at ${job.company}`,
+        title: job.job_title,
+        text: `Check out this job: ${job.job_title} at ${job.company}`,
         url: window.location.href
       }).catch(err => console.error('Error sharing', err));
     } else {

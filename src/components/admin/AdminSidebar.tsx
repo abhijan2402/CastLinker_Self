@@ -97,12 +97,7 @@ const AdminSidebar = ({ collapsed, toggleSidebar }: AdminSidebarProps) => {
       icon: Bell,
       href: "/admin/notifications",
     },
-    {
-      title: "Settings",
-      icon: Settings,
-      href: "/admin/settings",
-      permission: "setting_view",
-    },
+
   ];
 
   const isActive = (href: string) => {

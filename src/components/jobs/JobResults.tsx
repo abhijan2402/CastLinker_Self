@@ -67,6 +67,7 @@ const JobResults = memo(({
 
   const handleCloseApplyForm = useCallback(() => {
     setIsApplyFormOpen(false);
+    setSelectedJob(null);
   }, []);
 
   const handleOpenApplyForm = useCallback(() => {

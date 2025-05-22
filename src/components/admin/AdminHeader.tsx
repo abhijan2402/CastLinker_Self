@@ -42,7 +42,7 @@ const AdminHeader = ({
   };
 
   if (!user) return null;
-  const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('') : '?';
+  const initials = user.username ? user.username.split(' ').map((n: string) => n[0]).join('') : '?';
 
   return <div className="border-b border-gold/10 bg-background/90 backdrop-blur-sm h-16">
       <div className="flex h-full items-center justify-between px-4">
@@ -90,7 +90,7 @@ const AdminHeader = ({
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:flex flex-col items-start text-left">
-                  <span className="text-sm font-medium leading-none">{user.name}</span>
+                  <span className="text-sm font-medium leading-none">{user.username}</span>
                   <span className="text-xs text-muted-foreground">Admin</span>
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
@@ -104,10 +104,10 @@ const AdminHeader = ({
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/projects')} className="rounded-lg hover:bg-gold/5">
+                {/* <DropdownMenuItem onClick={() => navigate('/projects')} className="rounded-lg hover:bg-gold/5">
                   <FolderKanban className="mr-2 h-4 w-4" />
                   Projects
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuItem onClick={() => navigate('/admin/settings')} className="rounded-lg hover:bg-gold/5">
                   <Settings className="mr-2 h-4 w-4" />
                   Settings

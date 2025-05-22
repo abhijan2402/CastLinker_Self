@@ -54,11 +54,29 @@ import {
 import UserForm from "@/components/admin/UserForm";
 import { formatDistanceToNow } from "date-fns";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
-import { deleteData, fetchData, postData } from "@/api/ClientFuntion";
+import {
+  deleteData,
+  fetchData,
+  patchData,
+  postData,
+  updateData,
+} from "@/api/ClientFuntion";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface StatusUpdateResponse {
+  message: string;
+}
+interface StatusVerifiedResponse {
+  message: string;
+}
+interface UserEditedResponse {
+  message: string;
+}
 
 const UserManagement = () => {
   // State for users and filters
+  const { user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<Number[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +85,8 @@ const UserManagement = () => {
     roleFilter: "all",
     statusFilter: "all",
   });
+
+  // console.log(users);
 
   // Dialog states
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
@@ -77,7 +97,7 @@ const UserManagement = () => {
   // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [user]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -112,11 +132,11 @@ const UserManagement = () => {
     const searchTerm = filters.searchTerm.toLowerCase();
 
     const matchesSearch =
-      (user.username?.toLowerCase().includes(searchTerm) ?? false) ||
-      (user.email?.toLowerCase().includes(searchTerm) ?? false);
+      (user?.username?.toLowerCase().includes(searchTerm) ?? false) ||
+      (user?.email?.toLowerCase().includes(searchTerm) ?? false);
 
     const matchesRole =
-      filters.roleFilter === "all" || filters.roleFilter === user.user_role;
+      filters.roleFilter === "all" || filters.roleFilter === user.user_type;
 
     const matchesStatus =
       filters.statusFilter === "all" || filters.statusFilter === user.status;
@@ -165,34 +185,32 @@ const UserManagement = () => {
 
   const handleEditUser = async (userData: UserFormData) => {
     if (!currentUser) return;
+    console.log(userData);
 
     try {
-      const { error } = await supabase
-        .from("users_management" as any)
-        .update({
-          name: userData.name,
-          email: userData.email,
-          role: userData.role as AdminUserRole,
-          status: userData.status,
-          verified: userData.verified,
-          avatar_url: userData.avatar_url || null,
-        } as any)
-        .eq("id", currentUser.id);
-
-      if (error) throw error;
-
-      setUsers((prev) =>
-        prev.map((user) =>
-          user.id === currentUser.id
-            ? ({ ...currentUser, ...userData } as User)
-            : user
-        )
+      const payload = {
+        username: userData?.name || "",
+        email: userData?.email || "",
+        user_role: "User",
+        user_type: userData?.role || "",
+        status: userData?.status || "Pending",
+        profile_pic_url: userData?.avatar_url,
+        verified: userData?.verified,
+      };
+      console.log(payload);
+      const rep: UserEditedResponse = await updateData(
+        `/api/admin/users/${currentUser?.id}`,
+        payload
       );
-      setShowEditUserDialog(false);
-      toast({
-        title: "Edit User",
-        description: "The User has been successfully Edited.",
-      });
+      console.log(rep);
+      if (rep?.message) {
+        setShowEditUserDialog(false);
+        toast({
+          title: "Edited User",
+          description: rep?.message || "The User has been successfully Edited.",
+        });
+        fetchUsers();
+      }
     } catch (error) {
       console.error("Error updating user:", error);
       toast({
@@ -205,20 +223,17 @@ const UserManagement = () => {
 
   const handleVerifyUser = async (user: User) => {
     try {
-      const { error } = await supabase
-        .from("users_management" as any)
-        .update({ verified: true } as any)
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      setUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, verified: true } : u))
+      const response: StatusVerifiedResponse = await patchData(
+        `/api/admin/users/${user.id}/verify`,
+        {}
       );
-      toast({
-        title: "Verfiy User",
-        description: "The User has been successfully Verified.",
-      });
+      if (response?.message) {
+        toast({
+          title: "Verification Update",
+          description: response.message,
+        });
+        fetchUsers();
+      }
     } catch (error) {
       console.error("Error verifying user:", error);
       toast({
@@ -233,29 +248,29 @@ const UserManagement = () => {
     const newStatus = user.status === "active" ? "suspended" : "active";
 
     try {
-      const { error } = await supabase
-        .from("users_management" as any)
-        .update({ status: newStatus } as any)
-        .eq("id", user.id);
+      const payload = { status: newStatus };
 
-      if (error) throw error;
-
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === user.id
-            ? { ...u, status: newStatus as "active" | "suspended" | "pending" }
-            : u
-        )
+      const response: StatusUpdateResponse = await patchData(
+        `/api/admin/users/${user.id}/status`,
+        payload
       );
-      toast({
-        title: "Status Update",
-        description: "The Status has been successfully Changed.",
-      });
-    } catch (error) {
+
+      if (response?.message) {
+        toast({
+          title: "Status Update",
+          description: response.message,
+        });
+        fetchUsers();
+      }
+    } catch (error: any) {
       console.error("Error updating user status:", error);
+
       toast({
         title: "Error",
-        description: "Failed to Change the status. Please try again.",
+        description:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to change the status. Please try again.",
         variant: "destructive",
       });
     }
@@ -275,11 +290,13 @@ const UserManagement = () => {
       // Optionally show message from response if available
       if (response?.message) {
         toast({
-          title: "Delete Update",
+          title: "Delete User",
           description:
             response?.message || "The Status has been successfully Changed.",
         });
         setShowDeleteDialog(false);
+        fetchUsers();
+        setCurrentUser(null);
       } else {
         toast({
           title: "Error",
@@ -289,8 +306,6 @@ const UserManagement = () => {
         setShowDeleteDialog(false);
       }
 
-      // Update local state
-      setUsers((prev) => prev.filter((user) => user.id !== currentUser.id));
       setShowDeleteDialog(false);
     } catch (error: any) {
       console.error("Error deleting user:", error);
@@ -303,28 +318,44 @@ const UserManagement = () => {
   };
 
   const handleDeleteSelected = async () => {
-    try {
-      const { error } = await supabase
-        .from("users_management" as any)
-        .delete()
-        .in("id", selectedUsers);
-
-      if (error) throw error;
-
-      setUsers((prev) =>
-        prev.filter((user) => !selectedUsers.includes(Number(user.id)))
-      );
-
-      setSelectedUsers([]);
+    if (!selectedUsers || selectedUsers.length === 0) {
       toast({
-        title: "Delete Update",
-        description: "The Status has been successfully Changed.",
+        title: "No Selection",
+        description: "Please select at least one user to delete.",
+        variant: "destructive",
       });
-    } catch (error) {
+      return;
+    }
+
+    try {
+      const idsQuery = selectedUsers.join(",");
+      const response = (await deleteData(
+        `/api/admin/users?ids=${idsQuery}`
+      )) as {
+        message?: string;
+      };
+
+      if (response?.message) {
+        toast({
+          title: "Delete User",
+          description: response.message,
+        });
+        setShowDeleteDialog(false);
+        fetchUsers();
+        setCurrentUser(null);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete the user(s). Please try again.",
+          variant: "destructive",
+        });
+        setShowDeleteDialog(false);
+      }
+    } catch (error: any) {
       console.error("Error deleting users:", error);
       toast({
         title: "Error",
-        description: "Failed to Delete the users. Please try again.",
+        description: "Failed to delete the user(s). Please try again.",
         variant: "destructive",
       });
     }
@@ -408,14 +439,15 @@ const UserManagement = () => {
             }
           />
         </TableCell>
+        <TableCell>{renderVerificationBadge(user.verified)}</TableCell>
+        <TableCell>{user?.username || "NA"}</TableCell>
         <TableCell>
           <div className="flex items-center space-x-3">
             <Avatar className="h-8 w-8 border border-gold/10">
-              <AvatarImage
-                src={user.avatar_url || "/placeholder.svg"}
-                alt={user.username}
-              />
-              {/* <AvatarFallback>{user?.username.charAt(0)}</AvatarFallback> */}
+              <AvatarImage src={user.avatar_url} alt={user.username} />
+              <AvatarFallback>
+                {user?.username?.charAt(0) || "U"}
+              </AvatarFallback>
             </Avatar>
             <div>
               <p className="font-medium">{user.username}</p>
@@ -423,11 +455,9 @@ const UserManagement = () => {
             </div>
           </div>
         </TableCell>
-        <TableCell>
-          {user.user_role.charAt(0).toUpperCase() + user.user_role.slice(1)}
-        </TableCell>
+        <TableCell>{user?.user_type?.toUpperCase() || "NA"}</TableCell>
+
         <TableCell>{renderStatusBadge(user.status || "Pending")}</TableCell>
-        <TableCell>{renderVerificationBadge(user.verified)}</TableCell>
         <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
         {/* <TableCell>{formatRelativeDate(user.last_active)}</TableCell> */}
         <TableCell className="text-right">
@@ -608,10 +638,11 @@ const UserManagement = () => {
                           onCheckedChange={handleCheckAll}
                         />
                       </TableHead>
+                      <TableHead>Verified</TableHead>
                       <TableHead>User</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Verified</TableHead>
                       <TableHead>Joined</TableHead>
                       {/* <TableHead>Last Active</TableHead> */}
                       <TableHead className="text-right">Actions</TableHead>
@@ -668,10 +699,11 @@ const UserManagement = () => {
                         />
                       </TableHead>
                       <TableHead>User</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Joined</TableHead>
-                      <TableHead>Last Active</TableHead>
+                      {/* <TableHead>Last Active</TableHead> */}
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -695,6 +727,7 @@ const UserManagement = () => {
                                 }
                               />
                             </TableCell>
+                            <TableCell>{user?.username || "NA"}</TableCell>
                             <TableCell>
                               <div className="flex items-center space-x-3">
                                 <Avatar className="h-8 w-8 border border-gold/10">
@@ -703,7 +736,7 @@ const UserManagement = () => {
                                     alt={user.username}
                                   />
                                   <AvatarFallback>
-                                    {user.username.charAt(0)}
+                                    {user?.username?.charAt(0) || "U"}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -715,11 +748,11 @@ const UserManagement = () => {
                               </div>
                             </TableCell>
                             <TableCell>
-                              {user.user_role.charAt(0).toUpperCase() +
-                                user.user_role.slice(1)}
+                              {user?.user_type?.charAt(0).toUpperCase() +
+                                user?.user_type?.slice(1)}
                             </TableCell>
                             <TableCell>
-                              {renderStatusBadge(user.status)}
+                              {renderStatusBadge(user.status || "Pending")}
                             </TableCell>
                             <TableCell>
                               {new Date(user.createdAt).toLocaleDateString()}
@@ -827,27 +860,29 @@ const UserManagement = () => {
                               <div className="flex items-center space-x-3">
                                 <Avatar className="h-8 w-8 border border-gold/10">
                                   <AvatarImage
-                                    src={user.avatar_url || "/placeholder.svg"}
-                                    alt={user.username}
+                                    src={user?.avatar_url}
+                                    alt={user?.username}
                                   />
-                                  {/* <AvatarFallback>
-                                    {user.username.charAt(0)}
-                                  </AvatarFallback> */}
+                                  <AvatarFallback>
+                                    {user?.username?.charAt(0) || "U"}
+                                  </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <p className="font-medium">{user.username}</p>
+                                  <p className="font-medium">
+                                    {user?.username}
+                                  </p>
                                   <p className="text-xs text-muted-foreground">
-                                    {user.email}
+                                    {user?.email}
                                   </p>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
-                              {user.user_role.charAt(0).toUpperCase() +
-                                user.user_role.slice(1)}
+                              {user?.user_type?.charAt(0).toUpperCase() +
+                                user?.user_type?.slice(1)}
                             </TableCell>
                             <TableCell>
-                              {renderStatusBadge(user.status)}
+                              {renderStatusBadge(user.status || "pending")}
                             </TableCell>
                             <TableCell>
                               {new Date(user.createdAt).toLocaleDateString()}

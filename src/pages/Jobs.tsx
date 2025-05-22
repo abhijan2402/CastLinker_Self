@@ -10,7 +10,7 @@ import JobFiltersComponent from "@/components/jobs/JobFilters";
 import JobResults from "@/components/jobs/JobResults";
 import JobCreateForm from "@/components/jobs/JobCreateForm";
 import { fetchData } from "@/api/ClientFuntion";
- 
+
 const Jobs = () => {
   const { user } = useAuth();
   const {
@@ -39,8 +39,6 @@ const Jobs = () => {
   const handleSearch = (searchFilters: Partial<JobFilters>) => {
     updateFilters(searchFilters);
   };
-
-
 
   return (
     <div className="space-y-6 px-2 sm:px-0">

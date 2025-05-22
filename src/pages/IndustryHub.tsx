@@ -46,7 +46,7 @@ const IndustryHub = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState({
     news: false,
-    events: false,
+    events: false, 
     courses: false,
     resources: false,
     subscribe: false,
@@ -66,7 +66,6 @@ const IndustryHub = () => {
     refreshData,
   } = useIndustryHub();
 
-  // Create featured items by finding any item with is_featured=true, or default to first item
   const featuredNews =
     news.find((item) => item.is_featured) || (news.length > 0 ? news[0] : null);
   const featuredEvent =
@@ -80,34 +79,35 @@ const IndustryHub = () => {
   const filteredNews = news.filter(
     (item) =>
       searchTerm === "" ||
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.category &&
-        item.category.toLowerCase().includes(searchTerm.toLowerCase()))
+      item?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item?.excerpt?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item?.category &&
+        item?.category?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const filteredEvents = events.filter(
     (item) =>
       searchTerm === "" ||
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.type && item.type.toLowerCase().includes(searchTerm.toLowerCase()))
+      item?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item?.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item?.type &&
+        item?.type.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const filteredCourses = courses.filter(
     (item) =>
       searchTerm === "" ||
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.level &&
-        item.level.toLowerCase().includes(searchTerm.toLowerCase()))
+      item?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item?.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item?.level &&
+        item?.level.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const filteredResources = resources.filter(
     (item) =>
       searchTerm === "" ||
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.type.toLowerCase().includes(searchTerm.toLowerCase())
+      (item?.title?.toLowerCase?.() || "").includes(searchTerm.toLowerCase()) ||
+      (item?.type?.toLowerCase?.() || "").includes(searchTerm.toLowerCase())
   );
 
   // Handle email subscription

@@ -25,9 +25,15 @@ interface JobApplicationFormProps {
 }
 
 const applicationSchema = z.object({
-  resume_url: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal('')),
-  cover_letter: z.string().min(20, { message: "Cover letter must be at least 20 characters" }),
-  additional_info: z.string().optional(),
+  resume_url: z
+    .string()
+    .url({ message: "Please enter a valid URL" })
+    .optional()
+    .or(z.literal("")),
+  cover_letter: z
+    .string()
+    .min(20, { message: "Cover letter must be at least 20 characters" }),
+  additional_information: z.string().optional(),
 });
 
 type ApplicationValues = z.infer<typeof applicationSchema>;
@@ -37,9 +43,9 @@ const JobApplicationForm = ({ job, isOpen, onClose, onSubmit }: JobApplicationFo
   const form = useForm<ApplicationValues>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
-      resume_url: '',
-      cover_letter: '',
-      additional_info: '',
+      resume_url: "",
+      cover_letter: "",
+      additional_information: "",
     },
   });
   
@@ -87,7 +93,7 @@ const JobApplicationForm = ({ job, isOpen, onClose, onSubmit }: JobApplicationFo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">Apply for: {job.title}</DialogTitle>
+          <DialogTitle className="text-xl">Apply for: {job.job_title}</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -126,7 +132,7 @@ const JobApplicationForm = ({ job, isOpen, onClose, onSubmit }: JobApplicationFo
             
             <FormField
               control={form.control}
-              name="additional_info"
+              name="additional_information"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Additional Information (Optional)</FormLabel>

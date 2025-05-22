@@ -48,7 +48,7 @@ const COLORS = [
 const Analytics = () => {
   const {
     jobCategoriesData,
-    userDemographicsData,
+    userDemographicsData, 
     userActivityData,
     jobMetricData,
     analyticsStatsData,

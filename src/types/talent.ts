@@ -49,7 +49,7 @@ export type TalentProfile = {
   id: string;
   user_id: string;
   profession_type: Profession;
-  skills: string[];
+  acting_skills: string[];
   experience_years: number;
   bio: string;
   location: string;
@@ -59,10 +59,10 @@ export type TalentProfile = {
   rating?: number;
   created_at: string;
   updated_at: string;
-  
+
   // Additional properties needed by the UI components
-  name?: string;
-  role?: Profession;
+  username?: string;
+  user_role?: Profession;
   avatar?: string;
   reviews?: number;
   isVerified?: boolean;

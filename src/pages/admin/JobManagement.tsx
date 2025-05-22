@@ -46,24 +46,7 @@ type FetchJobsResponse = {
   data: Job[];
   error?: string;
 };
-type Job = {
-  job_title: string;
-  company: string;
-  job_description: string;
-  job_type: string;
-  role_category: string;
-  location: string;
-  location_type: string;
-  status: string;
-  is_featured: boolean;
-  company_logo: string;
-  salary_min: number;
-  salary_max: number;
-  salary_currency: string;
-  application_url: string;
-  application_email: string;
-  created_at: string;
-};
+
 type DeleteEventResponse = {
   success: boolean;
   message: string;
@@ -85,7 +68,6 @@ const JobManagement = () => {
 
   useEffect(() => {
     const initializeData = async () => {
-      await seedJobsData();
       fetchJobs();
     };
 
@@ -140,7 +122,7 @@ const JobManagement = () => {
     } else {
       const filtered = jobs.filter(
         (job) =>
-          job.title?.toLowerCase().includes(query) ||
+          job.job_title?.toLowerCase().includes(query) ||
           job.company?.toLowerCase().includes(query) ||
           job.location?.toLowerCase().includes(query)
       );
@@ -149,64 +131,56 @@ const JobManagement = () => {
   };
 
   const handleJobSubmit = async (jobData: Partial<Job>) => {
-    console.log("Raw job data:", jobData);
+    // console.log("Raw job data:", jobData);
 
     const payload: Partial<Job> = {
-      job_title: jobData.title || "",
+      job_title: jobData.job_title || "",
       company: jobData.company || "",
-      job_description: jobData.description || "",
+      job_description: jobData.job_description || "",
       job_type: jobData.job_type || "Full-time",
-      role_category: jobData.role_category || "",
+      role_category: jobData.role_category,
       location: jobData.location || "",
       location_type: jobData.location_type || "On-site",
       status: jobData.status || "active",
       is_featured: jobData.is_featured ?? false,
       company_logo: jobData.company_logo || "",
-      salary_min: jobData.salary_min || 0,
-      salary_max: jobData.salary_max || 0,
-      salary_currency: jobData.salary_currency || "INR",
+      min_salary: jobData.min_salary || 0,
+      max_salary: jobData.max_salary || 0,
+      currency: jobData.currency || "INR",
       application_url: jobData.application_url || "",
       application_email: jobData.application_email || "",
-      created_at: jobData.created_at || new Date().toISOString(),
+      createdAt: jobData.createdAt || new Date().toISOString(),
     };
 
-    try {
-      const endpoint = currentJob
-        ? `/api/jobs/admin/${currentJob.id}` // Update
-        : "/api/jobs/admin"; // Create
+    const endpoint = currentJob
+      ? `/api/jobs/admin/${currentJob.id}` // Update
+      : "/api/jobs/admin"; // Create
 
-      const response = currentJob
-        ? await updateData(endpoint, payload)
-        : await postData(endpoint, payload);
+    const response = currentJob
+      ? await updateData(endpoint, payload)
+      : await postData(endpoint, payload);
 
-      const result = response as {
-        success?: boolean;
-        error?: { message: string };
-        message?: string;
-      };
-      console.log(result);
-      if (!result?.success) {
-        throw new Error(result?.error?.message || result?.message);
-      }
+    const result = response as {
+      success?: boolean;
+      error?: { message: string };
+      message?: string;
+    };
+    console.log(result);
+    if (!result) {
+      throw new Error(result?.error?.message || result?.message);
+    }
 
-      if (response) {
-        toast({
-          title: "Success",
-          description: currentJob
-            ? "Job updated successfully"
-            : "Job created successfully",
-        });
-
-        fetchJobs(); // Refresh job list
-        setIsJobFormOpen(false);
-        setCurrentJob(null);
-      }
-    } catch (error: any) {
+    if (response) {
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to save job",
+        title: "Success",
+        description: currentJob
+          ? "Job updated successfully"
+          : "Job created successfully",
       });
+
+      fetchJobs(); // Refresh job list
+      setIsJobFormOpen(false);
+      setCurrentJob(null);
     }
   };
 
@@ -222,7 +196,7 @@ const JobManagement = () => {
       const rawResponse = await deleteData(`/api/jobs/admin/${currentJob.id}`);
       const result = rawResponse as DeleteEventResponse;
 
-      console.log(result);
+      // console.log(result);
 
       if (!result.message) {
         throw new Error(result.message || "Failed to delete event");
@@ -250,12 +224,10 @@ const JobManagement = () => {
 
   const handleToggleJobStatus = async (job: Job) => {
     const newStatus = job.status === "active" ? "inactive" : "active";
-    console.log(newStatus);
     try {
-      const response = (await patchData(
-        `/api/jobs/admin/${job.id}/status`,
-        { status: newStatus } // ✅ Send as object
-      )) as {
+      const response = (await patchData(`/api/jobs/admin/${job.id}/status`, {
+        status: newStatus,
+      })) as {
         error?: string;
       };
 
@@ -282,7 +254,6 @@ const JobManagement = () => {
   };
 
   const handleApproveJob = async (job: Job) => {
-    console.log(job);
     try {
       // const response = (await fetchData(
       //   `/api/jobs/admin/${job.id}/status`
@@ -292,14 +263,14 @@ const JobManagement = () => {
 
       // if (response.error) {
       //   throw new Error(response.error);
+      // } else {
+      //   toast({
+      //     title: "Success",
+      //     description: "Job approved successfully",
+      //   });
+
+      //   fetchJobs();
       // }
-
-      toast({
-        title: "Success",
-        description: "Job approved successfully",
-      });
-
-      fetchJobs();
     } catch (error: any) {
       console.error("Error approving job:", error);
       toast({
@@ -576,7 +547,7 @@ const JobManagement = () => {
         }}
         onConfirm={handleDeleteJob}
         title="Delete Job"
-        description={`Are you sure you want to delete the job "${currentJob?.title}"? This action cannot be undone.`}
+        description={`Are you sure you want to delete the job "${currentJob?.job_title}"? This action cannot be undone.`}
       />
     </>
   );

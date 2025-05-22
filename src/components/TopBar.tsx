@@ -28,12 +28,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const TopBar = () => {
   const { user, logout } = useAuth();
   const { isAdmin } = useAdminAuth();
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState(3); // Mock notification count
+  const { notifications, isLoading } = useNotifications();
+
   const [isSearchOpen, setIsSearchOpen] = useState(false); // For mobile view
 
   if (!user) return null;
@@ -116,12 +118,12 @@ const TopBar = () => {
             onClick={() => navigate("/notifications")}
           >
             <Bell className="h-5 w-5" />
-            {notifications > 0 && (
+            {notifications?.length > 0 && (
               <Badge
                 variant="destructive"
                 className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 p-0 flex items-center justify-center text-[10px] rounded-full"
               >
-                {notifications}
+                {notifications?.length}
               </Badge>
             )}
           </Button>
