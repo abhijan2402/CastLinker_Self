@@ -21,12 +21,20 @@ type JobMetric = {
 
 interface AnalyticsStats {
   totalUsers: number;
+  newUsersThisMonth?: number;
+  usersChange?: string;
+
   activeJobs: number;
+  jobsChange?: string;
+
   applicationsLast30Days: number;
+  applicationsChange?: string;
+
   eventsThisMonth: number;
+  eventsChange?: string;
+
   totalPost: number;
 }
-
 
 // Api
 interface JobCategoriesResponse {
@@ -46,35 +54,33 @@ export const useAdminAnalytics = () => {
   >([]);
   const [userActivityData, setUseruserActivityData] = useState<any[]>([]);
   const [jobMetricData, setJobMetricData] = useState<JobMetric[]>([]);
- const [analyticsStatsData, setAnalyticsStatsData] = useState<AnalyticsStats>({
-   totalUsers: 0,
-   activeJobs: 0, 
-   applicationsLast30Days: 0,
-   eventsThisMonth: 0,
-   totalPost: 0,
- });
+  const [analyticsStatsData, setAnalyticsStatsData] = useState<AnalyticsStats>({
+    totalUsers: 0,
+    activeJobs: 0,
+    applicationsLast30Days: 0,
+    eventsThisMonth: 0,
+    totalPost: 0,
+  });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   // /api/adimn / stats / user - demographics;
   useEffect(() => {
-    
-      const fetchAdminStatsData = async () => {
-        try {
-          setLoading(true);
-          const res = await fetchData("/api/admin/stats");
+    const fetchAdminStatsData = async () => {
+      try {
+        setLoading(true);
+        const res = await fetchData("/api/admin/stats");
 
-          if (res && typeof res === "object" && !Array.isArray(res)) {
-            setAnalyticsStatsData(res);
-          } else {
-            setError("Failed to fetch admin stats");
-          }
-        } catch (err: any) {
-          setError(err.message || "Unknown error");
-        } finally {
-          setLoading(false);
+        if (res && typeof res === "object" && !Array.isArray(res)) {
+          setAnalyticsStatsData(res);
+        } else {
+          setError("Failed to fetch admin stats");
         }
-      };
-
+      } catch (err: any) {
+        setError(err.message || "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    };
 
     const fetchjobCategoriesData = async () => {
       try {

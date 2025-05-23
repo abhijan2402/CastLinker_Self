@@ -26,6 +26,7 @@ import {
   XCircle,
   Edit,
   AlertCircle,
+  BanIcon,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog } from "@/components/ui/dialog";
@@ -131,7 +132,6 @@ const JobManagement = () => {
   };
 
   const handleJobSubmit = async (jobData: Partial<Job>) => {
-    // console.log("Raw job data:", jobData);
 
     const payload: Partial<Job> = {
       job_title: jobData.job_title || "",
@@ -165,7 +165,6 @@ const JobManagement = () => {
       error?: { message: string };
       message?: string;
     };
-    console.log(result);
     if (!result) {
       throw new Error(result?.error?.message || result?.message);
     }
@@ -196,7 +195,6 @@ const JobManagement = () => {
       const rawResponse = await deleteData(`/api/jobs/admin/${currentJob.id}`);
       const result = rawResponse as DeleteEventResponse;
 
-      // console.log(result);
 
       if (!result.message) {
         throw new Error(result.message || "Failed to delete event");
@@ -255,12 +253,11 @@ const JobManagement = () => {
 
   const handleApproveJob = async (job: Job) => {
     try {
-      // const response = (await fetchData(
-      //   `/api/jobs/admin/${job.id}/status`
+      // const response = (await patchData(
+      //   `/api/admin/${job.id}/approve`, {}
       // )) as {
       //   error?: string;
       // };
-
       // if (response.error) {
       //   throw new Error(response.error);
       // } else {
@@ -268,7 +265,6 @@ const JobManagement = () => {
       //     title: "Success",
       //     description: "Job approved successfully",
       //   });
-
       //   fetchJobs();
       // }
     } catch (error: any) {
@@ -468,33 +464,27 @@ const JobManagement = () => {
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              {job.status === "pending" ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-green-500"
-                                  onClick={() => handleApproveJob(job)}
-                                >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className={
+                                  job.status === "active"
+                                    ? "text-green-500"
+                                    : job.status === "inactive"
+                                    ? "text-red-500"
+                                    : "text-amber-500"
+                                }
+                                onClick={() => handleToggleJobStatus(job)}
+                              >
+                                {job.status === "active" ? (
                                   <CheckCircle className="h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className={
-                                    job.status === "active"
-                                      ? "text-amber-500"
-                                      : "text-green-500"
-                                  }
-                                  onClick={() => handleToggleJobStatus(job)}
-                                >
-                                  {job.status === "active" ? (
-                                    <Clock className="h-4 w-4" />
-                                  ) : (
-                                    <CheckCircle className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              )}
+                                ) : job.status === "inactive" ? (
+                                  <BanIcon className="h-4 w-4" />
+                                ) : (
+                                  <Clock className="h-4 w-4" />
+                                )}
+                              </Button>
+
                               <Button
                                 variant="outline"
                                 size="sm"

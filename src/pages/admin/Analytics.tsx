@@ -31,6 +31,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Download,
+  Sparkles,
 } from "lucide-react";
 import { parse, format } from "date-fns";
 import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
@@ -48,7 +49,7 @@ const COLORS = [
 const Analytics = () => {
   const {
     jobCategoriesData,
-    userDemographicsData, 
+    userDemographicsData,
     userActivityData,
     jobMetricData,
     analyticsStatsData,
@@ -76,11 +77,50 @@ const Analytics = () => {
     applications: item.applications,
   }));
 
-  // console.log("analyticsStatsData", analyticsStatsData);
-  // console.log("userDemographicsData", userDemographicsData);
-  // console.log("jobCategoriesData", jobCategoriesData);
-  // console.log("userActivityData", userActivityData);
-  // console.log("jobMetricData", jobMetricData);
+  const getChangeMeta = (change: string | undefined | null) => {
+    if (!change) {
+      return {
+        icon: "...",
+        label: "...",
+        textColor: "text-muted-foreground",
+      };
+    }
+
+    if (change === "New") {
+      return {
+        icon: <Sparkles className="h-3 w-3 mr-1" />,
+        label: "New",
+        textColor: "text-blue-500",
+      };
+    }
+
+    const isPositive = change.startsWith("+");
+    const isNegative = change.startsWith("-");
+
+    return {
+      icon: isPositive ? (
+        <ArrowUpRight className="h-3 w-3 mr-1" />
+      ) : isNegative ? (
+        <ArrowDownRight className="h-3 w-3 mr-1" />
+      ) : (
+        "..."
+      ),
+      label: change,
+      textColor: isPositive
+        ? "text-green-500"
+        : isNegative
+        ? "text-red-500"
+        : "text-muted-foreground",
+    };
+  };
+
+  const usersChangeMeta = getChangeMeta(analyticsStatsData.usersChange);
+  const jobsChangeMeta = getChangeMeta(analyticsStatsData.jobsChange);
+  const applicationsChangeMeta = getChangeMeta(
+    analyticsStatsData.applicationsChange
+  );
+  const eventsChangeMeta = getChangeMeta(analyticsStatsData.eventsChange);
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold gold-gradient-text">
@@ -104,9 +144,11 @@ const Analytics = () => {
             <div className="text-2xl font-bold">
               {analyticsStatsData.totalUsers ?? 0}
             </div>
-            <div className="flex items-center pt-1 text-green-500 text-xs">
-              <ArrowUpRight className="h-3 w-3 mr-1" />
-              <span>12% from last month</span>
+            <div
+              className={`flex items-center pt-1 text-xs ${usersChangeMeta.textColor}`}
+            >
+              {usersChangeMeta.icon || ".."}
+              <span>{usersChangeMeta.label}</span>
             </div>
           </CardContent>
         </Card>
@@ -123,9 +165,11 @@ const Analytics = () => {
             <div className="text-2xl font-bold">
               {analyticsStatsData.activeJobs ?? 0}
             </div>
-            <div className="flex items-center pt-1 text-green-500 text-xs">
-              <ArrowUpRight className="h-3 w-3 mr-1" />
-              <span>8% from last month</span>
+            <div
+              className={`flex items-center pt-1 text-xs ${jobsChangeMeta.textColor}`}
+            >
+              {jobsChangeMeta.icon || ".."}
+              <span>{jobsChangeMeta.label}</span>
             </div>
           </CardContent>
         </Card>
@@ -144,9 +188,11 @@ const Analytics = () => {
             <div className="text-2xl font-bold">
               {analyticsStatsData.applicationsLast30Days ?? 0}
             </div>
-            <div className="flex items-center pt-1 text-red-500 text-xs">
-              <ArrowDownRight className="h-3 w-3 mr-1" />
-              <span>3% from last month</span>
+            <div
+              className={`flex items-center pt-1 text-xs ${applicationsChangeMeta.textColor}`}
+            >
+              {applicationsChangeMeta.icon || ".."}
+              <span>{applicationsChangeMeta.label}</span>
             </div>
           </CardContent>
         </Card>
@@ -163,9 +209,11 @@ const Analytics = () => {
             <div className="text-2xl font-bold">
               {analyticsStatsData.eventsThisMonth ?? 0}
             </div>
-            <div className="flex items-center pt-1 text-green-500 text-xs">
-              <ArrowUpRight className="h-3 w-3 mr-1" />
-              <span>20% from last month</span>
+            <div
+              className={`flex items-center pt-1 text-xs ${eventsChangeMeta.textColor}`}
+            >
+              {eventsChangeMeta.icon || ".."}
+              <span>{eventsChangeMeta.label}</span>
             </div>
           </CardContent>
         </Card>

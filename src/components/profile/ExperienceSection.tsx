@@ -203,10 +203,10 @@ const ExperienceSection = () => {
     try {
       let res: any;
 
-      if (editingExperience) {
+      if (isAddingExperience) {
         res = await postData("/api/experience", formattedData);
         console.log(res);
-      } else if (isAddingExperience) {
+      } else if (editingExperience) {
         res = await postData(`/api/experience/${user.id}`, formattedData);
         console.log(res);
       }

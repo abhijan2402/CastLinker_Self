@@ -49,6 +49,7 @@ import {
   Download,
   ArrowDownRight,
   MapPin,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -111,7 +112,6 @@ const AdminDashboard = () => {
     totalAttendees,
     upcomingEventsCount,
   } = useEventsData();
-  console.log(featuredEvent);
   const {
     jobCategoriesData,
     userDemographicsData,
@@ -123,7 +123,6 @@ const AdminDashboard = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
-  console.log(analyticsStatsData);
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [usersByRole, setUsersByRole] = useState<UsersByRole[]>([]);
   const [percentageChange, setPercentageChange] = useState<number | null>(null);
@@ -224,7 +223,6 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (usersByRole.length === 0) return;
-    console.log(usersByRole);
 
     // Assume userGrowth is sorted ascending by month
     const lastIndex = usersByRole.length - 1;
@@ -286,6 +284,50 @@ const AdminDashboard = () => {
     setIsDetailModalOpen(true);
   };
 
+const getChangeMeta = (change: string | undefined | null) => {
+  if (!change) {
+    return {
+      icon: "...",
+      label: "...",
+      textColor: "text-muted-foreground",
+    };
+  }
+
+  if (change === "New") {
+    return {
+      icon: <Sparkles className="h-3 w-3 mr-1" />,
+      label: "New",
+      textColor: "text-blue-500",
+    };
+  }
+
+  const isPositive = change.startsWith("+");
+  const isNegative = change.startsWith("-");
+
+  return {
+    icon: isPositive ? (
+      <ArrowUpRight className="h-3 w-3 mr-1" />
+    ) : isNegative ? (
+      <ArrowDownRight className="h-3 w-3 mr-1" />
+    ) : (
+      "..."
+    ),
+    label: change,
+    textColor: isPositive
+      ? "text-green-500"
+      : isNegative
+      ? "text-red-500"
+      : "text-muted-foreground",
+  };
+};
+
+
+  const usersChangeMeta = getChangeMeta(analyticsStatsData.usersChange);
+  const jobsChangeMeta = getChangeMeta(analyticsStatsData.jobsChange);
+  const applicationsChangeMeta = getChangeMeta(
+    analyticsStatsData.applicationsChange
+  );
+  const eventsChangeMeta = getChangeMeta(analyticsStatsData.eventsChange);
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold gold-gradient-text">Admin Dashboard</h1>
@@ -305,27 +347,18 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? "..." : analyticsStatsData.totalUsers}
+              { analyticsStatsData.totalUsers ?? 0}
             </div>
+
             <div
               className={`flex items-center pt-1 text-xs ${
-                percentageChange && percentageChange >= 0
-                  ? "text-green-500"
-                  : "text-red-500"
+                usersChangeMeta?.textColor ?? ""
               }`}
             >
-              {percentageChange !== null ? (
-                <>
-                  <ArrowUpRight
-                    className={`h-3 w-3 mr-1 ${
-                      percentageChange >= 0 ? "" : "transform rotate-180"
-                    }`}
-                  />
-                  <span>{percentageChange.toFixed(2)}% from last month</span>
-                </>
-              ) : (
-                <span>No previous data</span>
-              )}
+              <span className="flex items-center gap-1">
+                {usersChangeMeta?.icon ?? "..."}
+                {usersChangeMeta?.label ?? "..."}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -343,9 +376,11 @@ const AdminDashboard = () => {
               {" "}
               {analyticsStatsData.activeJobs ?? 0}
             </div>
-            <div className="flex items-center pt-1 text-xs text-green-500">
-              <ArrowUpRight className="h-3 w-3 mr-1" />
-              <span>8% from last month</span>
+            <div
+              className={`flex items-center pt-1 text-xs ${jobsChangeMeta.textColor}`}
+            >
+              {jobsChangeMeta.icon || ".."}
+              <span>{jobsChangeMeta.label}</span>
             </div>
           </CardContent>
         </Card>
@@ -363,9 +398,11 @@ const AdminDashboard = () => {
               {" "}
               {analyticsStatsData.eventsThisMonth ?? 0}
             </div>
-            <div className="flex items-center pt-1 text-xs text-green-500">
-              <ArrowUpRight className="h-3 w-3 mr-1" />
-              <span>20% from last month</span>
+            <div
+              className={`flex items-center pt-1 text-xs ${eventsChangeMeta.textColor}`}
+            >
+              {eventsChangeMeta.icon || ".."}
+              <span>{eventsChangeMeta.label}</span>
             </div>
           </CardContent>
         </Card>
@@ -575,7 +612,7 @@ const AdminDashboard = () => {
           <div className="h-[300px] w-full flex items-center justify-center">
             {transformedUserActivityData.length > 0 ? (
               <RechartsAreaChart
-                width={500}
+                width={1100}
                 height={300}
                 data={transformedUserActivityData}
                 margin={{

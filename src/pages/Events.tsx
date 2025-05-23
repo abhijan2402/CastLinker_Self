@@ -23,9 +23,9 @@ type FormattedEvent = {
 };
 
 const Events = () => {
-  // const { events } = useIndustryHub();
-  // console.log(events);
-  const events = [
+  const { events } = useIndustryHub();
+  console.log(events);
+  const eventss = [
     {
       id: 3,
       title: "new event ",
@@ -43,7 +43,7 @@ const Events = () => {
     },
   ];
 
-  const formattedUpcomingEvents: FormattedEvent[] = events
+  const formattedUpcomingEvents: FormattedEvent[] = eventss
     .filter((event) => event.event_status === "upcoming")
     .map((event) => {
       const date = new Date(event.date);
@@ -62,7 +62,7 @@ const Events = () => {
       };
     });
 
-  console.log(formattedUpcomingEvents);
+  // console.log(formattedUpcomingEvents);
 
   return (
     <div className="min-h-screen bg-cinematic text-foreground">

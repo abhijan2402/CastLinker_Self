@@ -148,29 +148,31 @@ const UserManagement = () => {
   const handleAddUser = async (userData: UserFormData) => {
     try {
       const payload = {
-        name: userData.name,
+        username: userData.name,
         email: userData.email,
-        role: userData.role,
+        password: userData.password,
+        user_role: "User",
+        user_type: userData.role,
         status: userData.status,
         verified: userData.verified,
-        avatar_url: userData.avatar_url || null,
-        password: userData.password,
+        process_pic_url: userData.avatar_url || null,
       };
 
-      const response = (await postData("/admin/team/create", payload)) as {
+      console.log(userData);
+
+      const response = (await postData("/api/admin/register", payload)) as {
         success: boolean;
         message?: string;
         data?: User;
       };
 
-      if (response?.success) {
+      if (response?.message) {
         setShowAddUserDialog(false);
         toast({
           title: "Post Deleted",
           description: "The post has been successfully deleted.",
         });
-      } else {
-        throw new Error(response?.message || "Failed to create user");
+        fetchUsers();
       }
     } catch (error) {
       console.error("Error adding user:", error);

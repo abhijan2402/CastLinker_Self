@@ -19,20 +19,20 @@ import { fetchData } from "@/api/ClientFuntion";
 
 // Type for raw job data from database
 interface RawJobData {
-  id: string;
-  title: string;
+  id: number;
+  job_title: string;
   company: string;
   company_logo?: string;
-  description: string;
+  job_description: string;
   requirements?: string[];
   responsibilities?: string[];
   job_type: string;
   role_category: string;
   experience_level?: string;
-  salary_min?: number;
-  salary_max?: number;
-  salary_currency?: string;
-  salary_period?: string;
+  min_salary?: number;
+  max_salary?: number;
+  currency?: string;
+  payment_period?: string;
   location: string;
   location_type: string;
   tags?: string[];
@@ -41,26 +41,26 @@ interface RawJobData {
   application_email?: string;
   is_featured?: boolean;
   is_verified?: boolean;
-  created_at?: string;
+  createdAt?: string;
   status?: string;
 }
 
 // Convert raw job data to Job type
 const mapRawJobToJob = (rawJob: RawJobData): Job => ({
   id: rawJob.id,
-  title: rawJob.title,
+  job_title: rawJob.job_title,
   company: rawJob.company,
   company_logo: rawJob.company_logo,
-  description: rawJob.description,
+  job_description: rawJob.job_description,
   requirements: rawJob.requirements,
   responsibilities: rawJob.responsibilities,
   job_type: rawJob.job_type as JobType,
   role_category: rawJob.role_category as RoleCategory,
   experience_level: rawJob.experience_level,
-  salary_min: rawJob.salary_min,
-  salary_max: rawJob.salary_max,
-  salary_currency: rawJob.salary_currency,
-  salary_period: rawJob.salary_period,
+  min_salary: rawJob.min_salary,
+  max_salary: rawJob.max_salary,
+  currency: rawJob.currency,
+  payment_period: rawJob.payment_period,
   location: rawJob.location,
   location_type: rawJob.location_type as LocationType,
   tags: rawJob.tags,
@@ -69,7 +69,7 @@ const mapRawJobToJob = (rawJob: RawJobData): Job => ({
   application_email: rawJob.application_email,
   is_featured: rawJob.is_featured,
   is_verified: rawJob.is_verified,
-  created_at: rawJob.created_at,
+  createdAt: rawJob.createdAt,
   status: rawJob.status,
 });
 
@@ -79,7 +79,6 @@ const ProfileTabs = () => {
   const [appliedJobs, setAppliedJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
-
 
   useEffect(() => {
     if (user && activeTab === "saved-jobs") {
