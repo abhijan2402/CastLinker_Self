@@ -108,7 +108,7 @@ export const useJobsData = () => {
       setIsLoading(false);
       fetchInProgress.current = false;
     }
-  }, [toast, filters, sort]);
+  }, [toast, filters, sort]); 
 
   const getSavedJobs = useCallback(async () => {
     try {
@@ -154,7 +154,6 @@ export const useJobsData = () => {
       // Extract job IDs and convert them to strings
       const jobIds = data?.map((job) => job.job_id.toString());
       setSavedJobs(jobIds);
-      console.log("Saved Jobs:", savedJobs);
     } catch (error: any) {
       console.error("Error fetching saved jobs:", error);
     }
@@ -250,6 +249,7 @@ export const useJobsData = () => {
     resetFilters,
     toggleSaveJob,
     applyForJob,
+    getSavedJobs,
     refetchJobs: getJobs,
   };
 };

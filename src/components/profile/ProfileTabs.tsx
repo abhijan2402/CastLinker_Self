@@ -75,68 +75,26 @@ const mapRawJobToJob = (rawJob: RawJobData): Job => ({
 
 const ProfileTabs = () => {
   const [activeTab, setActiveTab] = useState("about");
-  const [savedJobs, setSavedJobs] = useState<Job[]>([]);
+  // const [savedJobs, setSavedJobs] = useState<Job[]>([]);
   const [appliedJobs, setAppliedJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
+  const { jobs, savedJobs, toggleSaveJob, getSavedJobs, refetchJobs } =
+    useJobsData();
 
   useEffect(() => {
     if (user && activeTab === "saved-jobs") {
-      fetchSavedJobs();
+      getSavedJobs();
     }
     if (user && activeTab === "applications") {
       fetchAppliedJobs();
     }
   }, [user, activeTab]);
-
-  const fetchSavedJobs = async () => {
-    if (!user) return;
-    setIsLoading(true);
-
-    try {
-      const response = await fetchData(`/api/jobs/user-saved-jobs`);
-      // Define the expected structure of the response
-      type Job = {
-        id: number;
-        job_title: string;
-        company: string;
-        company_logo_url: string;
-        job_type: string;
-        role_category: string;
-        location: string;
-        location_type: string;
-        min_salary: number;
-        max_salary: number;
-        currency: string;
-        payment_period: string;
-        application_deadline: string | null;
-        job_description: string;
-        requirements: string[];
-        responsibilities: string[];
-        tags: string[];
-        application_url: string;
-        application_email: string;
-        is_featured: boolean;
-        status: string;
-        user_id: number;
-        createdAt: string;
-        updatedAt: string;
-      };
-
-      type SavedJobsResponse = {
-        success: boolean;
-        data: Job[];
-      };
-
-      // Assert the type of the response
-      const { data } = response as SavedJobsResponse;
-      console.log(data);
-    } catch (error: any) {
-      console.error("Error fetching saved jobs:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  console.log(jobs);
+  console.log(savedJobs)
+  const savedJobList = jobs.filter(
+    (job) => savedJobs.includes(String(job.id)) // Convert job.id to string for comparison
+  );
 
   const fetchAppliedJobs = async () => {
     if (!user) return;
@@ -258,9 +216,10 @@ const ProfileTabs = () => {
       </TabsContent>
       <TabsContent value="saved-jobs" className="pt-6">
         <SavedJobsSection
-          jobs={savedJobs}
+          jobs={savedJobList}
           isLoading={isLoading}
-          onRefresh={fetchSavedJobs}
+          onRefresh={refetchJobs}
+          onRemove={toggleSaveJob}
         />
       </TabsContent>
       <TabsContent value="applications" className="pt-6">
