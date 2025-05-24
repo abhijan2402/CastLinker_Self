@@ -138,6 +138,7 @@ export const useJobsData = () => {
         is_featured: boolean;
         status: string;
         user_id: number;
+        job_id: number;
         createdAt: string;
         updatedAt: string;
       };
@@ -151,7 +152,7 @@ export const useJobsData = () => {
       const { data } = response as SavedJobsResponse;
 
       // Extract job IDs and convert them to strings
-      const jobIds = data?.map((job) => job.id.toString());
+      const jobIds = data?.map((job) => job.job_id.toString());
       setSavedJobs(jobIds);
       console.log("Saved Jobs:", savedJobs);
     } catch (error: any) {

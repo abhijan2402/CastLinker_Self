@@ -39,6 +39,7 @@ const JobResults = memo(({
   const [isApplyFormOpen, setIsApplyFormOpen] = useState(false);
   const [retryCount, setRetryCount] = useState(0); // Track retry attempts
   const [isRetrying, setIsRetrying] = useState(false);
+// console.log(savedJobs)
   
   const handleJobClick = useCallback((job: Job) => {
     console.log(selectedJob)
@@ -75,9 +76,11 @@ const JobResults = memo(({
   }, []);
 
   // Avoid unnecessary calculation on each render
-  const isSaved = useCallback((jobId: string) => {
-    return savedJobs.includes(jobId);
-  }, [savedJobs]);
+const isSaved = useCallback(
+  (jobId: string | number) => savedJobs.includes(String(jobId)),
+  [savedJobs]
+);
+
   
   // Handle retry with exponential backoff
   const handleRetry = useCallback(async () => {

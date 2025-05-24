@@ -22,37 +22,39 @@ export const fetchSavedJobs = async (userId: string | undefined) => {
 };
 
 export const toggleSaveJob = async (
-  jobId: string,
+  jobId: string | number,
   userId: string | number,
   savedJobs: string[]
 ) => {
-  console.log(jobId, userId, savedJobs);
-
-  const isSaved = jobId ;
+  const jobIdStr = String(jobId);
+  const isSaved = savedJobs.includes(jobIdStr);
 
   const newSavedJobs = isSaved
-    ? savedJobs?.filter((id) => id !== jobId)
-    : [...savedJobs, jobId];
+    ? savedJobs.filter((id) => id !== jobIdStr)
+    : [...(savedJobs || []), jobIdStr];
 
   const message = {
     title: isSaved ? "Job removed" : "Job saved",
     description: isSaved
       ? "This job has been removed from your saved list"
-      : "This job hasdsfs been saved for later",
+      : "This job has been saved for later",
   };
 
   if (!userId) {
     return { newSavedJobs, message };
   }
 
-  try {
-    const payload = {
-      job_id: jobId,
-      user_id: userId,
-      action: isSaved ? "remove" : "save",
-    };
+  const payload = {
+    job_id: jobId,
+    user_id: userId,
+  };
 
-    await postData(`/api/jobs/Save`, payload);
+  try {
+    if (isSaved) {
+      await postData(`/api/jobs/unsave`, payload);
+    } else {
+      await postData(`/api/jobs/Save`, payload);
+    }
 
     return { newSavedJobs, message };
   } catch (error) {
@@ -60,3 +62,4 @@ export const toggleSaveJob = async (
     throw error;
   }
 };
+
