@@ -77,132 +77,180 @@ const JobFiltersComponent = ({ onFilterChange, onResetFilters }: JobFiltersProps
           Reset
         </Button>
       </div>
-      
+
       <div>
         <h4 className="font-medium mb-2">Job Type</h4>
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="full-time" 
-              checked={jobTypes.includes('Full-time')} 
-              onCheckedChange={(checked) => handleJobTypeChange(checked, 'Full-time')} 
+            <Checkbox
+              id="full-time"
+              checked={jobTypes.includes("Full-time")}
+              onCheckedChange={(checked) =>
+                handleJobTypeChange(checked, "Full-time")
+              }
             />
-            <label htmlFor="full-time" className="text-sm">Full-time</label>
+            <label htmlFor="full-time" className="text-sm">
+              Full-time
+            </label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="part-time" 
-              checked={jobTypes.includes('Part-time')} 
-              onCheckedChange={(checked) => handleJobTypeChange(checked, 'Part-time')} 
+            <Checkbox
+              id="part-time"
+              checked={jobTypes.includes("Part-time")}
+              onCheckedChange={(checked) =>
+                handleJobTypeChange(checked, "Part-time")
+              }
             />
-            <label htmlFor="part-time" className="text-sm">Part-time</label>
+            <label htmlFor="part-time" className="text-sm">
+              Part-time
+            </label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="contract" 
-              checked={jobTypes.includes('Contract')} 
-              onCheckedChange={(checked) => handleJobTypeChange(checked, 'Contract')} 
+            <Checkbox
+              id="contract"
+              checked={jobTypes.includes("Contract")}
+              onCheckedChange={(checked) =>
+                handleJobTypeChange(checked, "Contract")
+              }
             />
-            <label htmlFor="contract" className="text-sm">Contract</label>
+            <label htmlFor="contract" className="text-sm">
+              Contract
+            </label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="temporary" 
-              checked={jobTypes.includes('Temporary')} 
-              onCheckedChange={(checked) => handleJobTypeChange(checked, 'Temporary')} 
+            <Checkbox
+              id="temporary"
+              checked={jobTypes.includes("Temporary")}
+              onCheckedChange={(checked) =>
+                handleJobTypeChange(checked, "Temporary")
+              }
             />
-            <label htmlFor="temporary" className="text-sm">Temporary</label>
+            <label htmlFor="temporary" className="text-sm">
+              Temporary
+            </label>
           </div>
         </div>
       </div>
-      
+
       <Separator className="bg-border/60" />
-      
+
       <div>
         <h4 className="font-medium mb-2">Role Category</h4>
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="acting" 
-              checked={roleCategories.includes('Acting')} 
-              onCheckedChange={(checked) => handleRoleCategoryChange(checked, 'Acting')} 
+            <Checkbox
+              id="acting"
+              checked={roleCategories.includes("Acting")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Acting")
+              }
             />
-            <label htmlFor="acting" className="text-sm">Acting</label>
+            <label htmlFor="acting" className="text-sm">
+              Acting
+            </label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="directing" 
-              checked={roleCategories.includes('Directing')} 
-              onCheckedChange={(checked) => handleRoleCategoryChange(checked, 'Directing')} 
+            <Checkbox
+              id="directing"
+              checked={roleCategories.includes("Directing")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Directing")
+              }
             />
-            <label htmlFor="directing" className="text-sm">Directing</label>
+            <label htmlFor="directing" className="text-sm">
+              Directing
+            </label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="production" 
-              checked={roleCategories.includes('Production')} 
-              onCheckedChange={(checked) => handleRoleCategoryChange(checked, 'Production')} 
+            <Checkbox
+              id="production"
+              checked={roleCategories.includes("Production")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Production")
+              }
             />
-            <label htmlFor="production" className="text-sm">Production</label>
+            <label htmlFor="production" className="text-sm">
+              Production
+            </label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="writing" 
-              checked={roleCategories.includes('Writing')} 
-              onCheckedChange={(checked) => handleRoleCategoryChange(checked, 'Writing')} 
+            <Checkbox
+              id="writing"
+              checked={roleCategories.includes("Writing")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Writing")
+              }
             />
-            <label htmlFor="writing" className="text-sm">Writing</label>
+            <label htmlFor="writing" className="text-sm">
+              Writing
+            </label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="cinematography" 
-              checked={roleCategories.includes('Cinematography')} 
-              onCheckedChange={(checked) => handleRoleCategoryChange(checked, 'Cinematography')} 
+            <Checkbox
+              id="cinematography"
+              checked={roleCategories.includes("Cinematography")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Cinematography")
+              }
             />
-            <label htmlFor="technical" className="text-sm">Technical</label>
+            <label htmlFor="technical" className="text-sm">
+              Technical
+            </label>
           </div>
         </div>
       </div>
-      
+
       <Separator className="bg-border/60" />
-      
+
       <div>
         <h4 className="font-medium mb-2">Experience Level</h4>
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="entry-level" 
-              checked={experienceLevels.includes('Entry Level')} 
-              onCheckedChange={(checked) => handleExperienceChange(checked, 'Entry Level')} 
+            <Checkbox
+              id="entry-level"
+              checked={experienceLevels.includes("Entry Level")}
+              onCheckedChange={(checked) =>
+                handleExperienceChange(checked, "Entry Level")
+              }
             />
-            <label htmlFor="entry-level" className="text-sm">Entry Level</label>
+            <label htmlFor="entry-level" className="text-sm">
+              Entry Level
+            </label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="mid-level" 
-              checked={experienceLevels.includes('Mid Level')} 
-              onCheckedChange={(checked) => handleExperienceChange(checked, 'Mid Level')} 
+            <Checkbox
+              id="mid-level"
+              checked={experienceLevels.includes("Mid Level")}
+              onCheckedChange={(checked) =>
+                handleExperienceChange(checked, "Mid Level")
+              }
             />
-            <label htmlFor="mid-level" className="text-sm">Mid Level</label>
+            <label htmlFor="mid-level" className="text-sm">
+              Mid Level
+            </label>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="senior-level" 
-              checked={experienceLevels.includes('Senior Level')} 
-              onCheckedChange={(checked) => handleExperienceChange(checked, 'Senior Level')} 
+            <Checkbox
+              id="senior-level"
+              checked={experienceLevels.includes("Senior Level")}
+              onCheckedChange={(checked) =>
+                handleExperienceChange(checked, "Senior Level")
+              }
             />
-            <label htmlFor="senior-level" className="text-sm">Senior Level</label>
+            <label htmlFor="senior-level" className="text-sm">
+              Senior Level
+            </label>
           </div>
         </div>
       </div>
-      
+
       <Separator className="bg-border/60" />
-      
+
       <div>
         <div className="flex justify-between mb-2">
           <h4 className="font-medium">Pay Range</h4>
           <span className="text-sm text-muted-foreground">
-            ${payRange[0].toLocaleString()} - ${payRange[1].toLocaleString()}
+            ₹{payRange[0].toLocaleString()} - ₹{payRange[1].toLocaleString()}
           </span>
         </div>
         <Slider

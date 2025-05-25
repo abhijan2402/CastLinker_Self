@@ -100,6 +100,7 @@ const Posts = () => {
     filters,
     updateFilters,
     clearFilters,
+    loadPosts,
   } = usePosts();
 
   const confirmDeletePost = (postId: string) => {
@@ -125,7 +126,7 @@ const Posts = () => {
     }
   };
 
-  const handleViewDetails = (post) => {
+  const handleViewDetails = (post:any) => {
     navigate(`/posts/${post.id}`);
   };
 
@@ -152,14 +153,14 @@ const Posts = () => {
     }
 
     if (postDateRange?.from) {
-      const postDate = new Date(post.created_at);
+      const postDate = new Date(post.createdAt);
       if (isBefore(postDate, postDateRange.from)) {
         return false;
       }
     }
 
     if (postDateRange?.to) {
-      const postDate = new Date(post.created_at);
+      const postDate = new Date(post.createdAt);
       if (isAfter(postDate, postDateRange.to)) {
         return false;
       }
@@ -320,7 +321,7 @@ const Posts = () => {
                 />
               </PopoverContent>
             </Popover> */}
-{/* 
+            {/* 
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -406,6 +407,7 @@ const Posts = () => {
                 onApply={handleApplyToPost}
                 onLike={handleLikePost}
                 onViewDetails={handleViewDetails}
+                loadPosts={loadPosts}
               />
             ))}
           </div>
@@ -476,6 +478,7 @@ const Posts = () => {
       <CreatePostDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
+        loadPosts={loadPosts}
       />
 
       <AlertDialog

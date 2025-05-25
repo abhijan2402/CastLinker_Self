@@ -3,6 +3,29 @@ import Footer from "@/components/Footer";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIndustryHub } from "@/hooks/useIndustryHub";
+import { fetchData } from "@/api/ClientFuntion";
+import { useEffect, useState } from "react";
+
+export type EventItem = {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  event_type: string;
+  featured_image_url: any;
+  user_id: number;
+  event_status: string;
+  expected_attribute: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+interface EventApiResponse {
+  data: EventItem[];
+}
+
 type FormattedEvent = {
   id: number;
   title: string;
@@ -23,27 +46,19 @@ type FormattedEvent = {
 };
 
 const Events = () => {
-  const { events } = useIndustryHub();
-  console.log(events);
-  const eventss = [
-    {
-      id: 3,
-      title: "new event ",
-      description: "new event new event new event ",
-      date: "2025-05-15",
-      time: "18:00:00",
-      location: "New York",
-      event_type: "Seminar",
-      featured_image_url: null,
-      user_id: 0,
-      event_status: "upcoming",
-      expected_attribute: 100,
-      createdAt: "2025-05-15T15:43:08.523Z",
-      updatedAt: "2025-05-15T15:43:08.523Z",
-    },
-  ];
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const fetchEvents = async () => {
+    const resp = await fetchData("/api/events/list/admin");
+    const eventrep = resp as EventApiResponse;
+    if (eventrep?.data) {
+      setEvents(eventrep?.data);
+    }
+  };
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
-  const formattedUpcomingEvents: FormattedEvent[] = eventss
+  const formattedUpcomingEvents: FormattedEvent[] = events
     .filter((event) => event.event_status === "upcoming")
     .map((event) => {
       const date = new Date(event.date);
@@ -55,14 +70,24 @@ const Events = () => {
       const year = date.getFullYear();
 
       return {
-        ...event,
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        date: event.date,
+        time: event.time,
+        location: event.location,
+        event_type: event.event_type,
+        featured_image_url: event.featured_image_url,
+        user_id: event.user_id,
+        event_status: event.event_status,
+        expected_attribute: event.expected_attribute,
+        createdAt: event.createdAt,
+        updatedAt: event.updatedAt,
         month: monthAbbr,
         day,
         year,
       };
     });
-
-  // console.log(formattedUpcomingEvents);
 
   return (
     <div className="min-h-screen bg-cinematic text-foreground">

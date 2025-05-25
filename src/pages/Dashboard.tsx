@@ -230,6 +230,49 @@ const Dashboard = () => {
         )}
 
         {loading ? (
+          <Card className="border-gold/10 shadow-lg bg-card/60 backdrop-blur-sm">
+            <CardHeader className="pb-2 pt-4 px-4">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+              </div>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <Skeleton className="h-10 w-16 mb-2" />
+              <Skeleton className="h-4 w-full" />
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-gold/10 hover:border-gold/30 transition-colors duration-300 shadow-lg bg-card/60 backdrop-blur-sm">
+            <CardHeader className="pb-2 pt-4 px-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <span className="text-base font-semibold text-foreground/80">
+                    Projects
+                  </span>
+                </CardTitle>
+                <div className="rounded-full bg-gold/10 p-2">
+                  <Briefcase className="h-4 w-4 text-gold" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="flex flex-col">
+                <div className="text-3xl font-bold">{stats.applications}</div>
+                <div className="flex items-center mt-1.5">
+                  <span className="text-xs text-green-500 font-medium flex items-center">
+                    <TrendingUp className="h-3 w-3 mr-1" /> +2
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-1.5">
+                    since last week
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {loading ? (
           <Card className="border-indigo-500/10 shadow-lg bg-card/60 backdrop-blur-sm">
             <CardHeader className="pb-2 pt-4 px-4">
               <div className="flex items-center justify-between">
@@ -309,59 +352,6 @@ const Dashboard = () => {
                   <span className="text-xs text-muted-foreground ml-1.5">
                     new likes this week
                   </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {loading ? (
-          <Card className="border-amber-500/10 shadow-lg bg-card/60 backdrop-blur-sm">
-            <CardHeader className="pb-2 pt-4 px-4">
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-8 w-8 rounded-full" />
-              </div>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <Skeleton className="h-10 w-16 mb-2" />
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-2 w-full" />
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="border-amber-500/10 hover:border-amber-500/30 transition-colors duration-300 shadow-lg bg-card/60 backdrop-blur-sm">
-            <CardHeader className="pb-2 pt-4 px-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <span className="text-base font-semibold text-foreground/80">
-                    Rating
-                  </span>
-                </CardTitle>
-                <div className="rounded-full bg-amber-500/10 p-2">
-                  <Star className="h-4 w-4 text-amber-500" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <div className="flex flex-col">
-                <div className="text-3xl font-bold">{stats.ratings}</div>
-                <div className="mt-2">
-                  <div className="flex items-center">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`h-3 w-3 ${
-                          star <= Math.floor(stats.ratings)
-                            ? "text-amber-500 fill-amber-500"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    ))}
-                    <span className="text-xs text-muted-foreground ml-2">
-                      from 24 reviews
-                    </span>
-                  </div>
                 </div>
               </div>
             </CardContent>

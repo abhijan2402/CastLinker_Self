@@ -92,6 +92,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface CreatePostDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  loadPosts: () => void;
   editPost?: any;
 }
 
@@ -99,6 +100,7 @@ const CreatePostDialog = ({
   open,
   onOpenChange,
   editPost,
+  loadPosts,
 }: CreatePostDialogProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -255,6 +257,7 @@ const CreatePostDialog = ({
         form.reset();
         setMediaFile(null);
         onOpenChange(false);
+        loadPosts();
       }
     } catch (error) {
       console.error("❌ Unexpected error:", error);
