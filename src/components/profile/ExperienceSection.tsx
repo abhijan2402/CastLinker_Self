@@ -13,12 +13,29 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
-import { fetchData, postData } from "@/api/ClientFuntion";
+import { fetchData, postData, updateData } from "@/api/ClientFuntion";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-toastify";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+const CATEGORIES = [
+  "Film",
+  "Casting Call",
+  "Collaboration",
+  "Content Creation",
+  "Event",
+  "Job Opportunity",
+  "Mentorship",
+  "Other",
+];
 interface Experience {
-  id: string;
+  id: number;
+  user_id: number;
   type: string;
   project_title: string;
   role: string;
@@ -38,97 +55,33 @@ interface ExperienceAPIResponse {
 const ExperienceSection = () => {
   const { user } = useAuth();
   const [experiences, setExperiences] = useState<Experience[]>([]);
+  console.log(experiences);
+  const [filters, setFilters] = useState({
+    category: "film",
+    searchTerm: "",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [editingExperience, setEditingExperience] = useState<{
     type: string;
     index: number;
+    id: number;
   } | null>(null);
   const [isAddingExperience, setIsAddingExperience] = useState<string | null>(
     null
   );
-
-  // In a real app, this data would come from API/context
-  const experiencess = {
-    film: [
-      {
-        title: "The Last Journey",
-        role: "Supporting Actor (Mark Reynolds)",
-        director: "Christopher Stevens",
-        company: "Universal Pictures",
-        year: "2022",
-        description:
-          "Played a pivotal supporting role in this award-winning drama. Character required deep emotional range and physical transformation.",
-      },
-      {
-        title: "City Lights",
-        role: "Lead Actor (David Mitchell)",
-        director: "Sarah Johnson",
-        company: "Paramount Pictures",
-        year: "2021",
-        description:
-          "Starred as the protagonist in this critically acclaimed urban drama. Role involved extensive dialogue in multiple languages and challenging emotional scenes.",
-      },
-      {
-        title: "Eternal Echo",
-        role: "Supporting Actor (Officer James)",
-        director: "Michael Rodriguez",
-        company: "Warner Bros",
-        year: "2020",
-        description:
-          "Played a police officer in this science fiction thriller. Role included various stunt sequences and combat scenes.",
-      },
-    ],
-    television: [
-      {
-        title: "Criminal Minds",
-        role: "Guest Star (Episode: 'Shadows')",
-        director: "Various",
-        company: "CBS",
-        year: "2021",
-        description:
-          "Appeared as a complex antagonist in this long-running crime drama series.",
-      },
-      {
-        title: "The Morning Show",
-        role: "Recurring Role (5 Episodes)",
-        director: "Various",
-        company: "Apple TV+",
-        year: "2019-2020",
-        description:
-          "Played a recurring character across multiple episodes of this award-winning drama series.",
-      },
-    ],
-    theater: [
-      {
-        title: "Hamlet",
-        role: "Hamlet",
-        director: "Elizabeth Taylor",
-        company: "Broadway Theater Company",
-        year: "2019",
-        description:
-          "Lead role in this contemporary adaptation of Shakespeare's classic. Performed for a three-month run to sold-out audiences.",
-      },
-      {
-        title: "Death of a Salesman",
-        role: "Biff Loman",
-        director: "Robert Wilson",
-        company: "West End Production",
-        year: "2018",
-        description:
-          "Supporting role in this classic Arthur Miller play. Production received critical acclaim and multiple award nominations.",
-      },
-    ],
+  const updateFilters = (newFilters: Partial<typeof filters>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   };
-
-  useEffect(() => {
     const fetchExperiences = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const res = await fetchData(`/api/experience?type=`);
+        const res = await fetchData(
+          `/api/experience?type=${filters?.category?.toLowerCase()}`
+        );
         const data = res as ExperienceAPIResponse;
         console.log(data);
 
@@ -145,9 +98,11 @@ const ExperienceSection = () => {
         setLoading(false);
       }
     };
+  useEffect(() => {
+
 
     fetchExperiences();
-  }, [user]);
+  }, [user, filters]);
 
   // Form for editing experience
   const experienceForm = useForm({
@@ -163,16 +118,25 @@ const ExperienceSection = () => {
 
   // Set form values when editing an experience
   const handleEdit = (type: string, index: number) => {
-    const experience = experiences[type as keyof typeof experiences][index];
+    const filteredExperiences = experiences.filter((exp) => exp.type === type);
+
+    if (!filteredExperiences[index]) {
+      console.warn(`No experience found for type "${type}" at index ${index}`);
+      return;
+    }
+
+    const experience = filteredExperiences[index];
+
     experienceForm.reset({
-      title: experience.title,
+      title: experience.project_title,
       role: experience.role,
       director: experience.director,
-      company: experience.company,
+      company: experience.production_company,
       year: experience.year,
       description: experience.description,
     });
-    setEditingExperience({ type, index });
+
+    setEditingExperience({ type, index, id:experience.id });
   };
 
   // Set empty form values when adding a new experience
@@ -207,7 +171,10 @@ const ExperienceSection = () => {
         res = await postData("/api/experience", formattedData);
         console.log(res);
       } else if (editingExperience) {
-        res = await postData(`/api/experience/${user.id}`, formattedData);
+        res = await updateData(
+          `/api/experience/${editingExperience.id}`,
+          formattedData
+        );
         console.log(res);
       }
 
@@ -218,6 +185,7 @@ const ExperienceSection = () => {
             ? "Experience updated successfully!"
             : "New experience added successfully!"
         );
+        fetchExperiences();
       } else {
         throw new Error(res?.message || "Something went wrong");
       }
@@ -234,55 +202,84 @@ const ExperienceSection = () => {
   };
 
   // Helper function to render experience cards
-  const renderExperienceCards = (
-    type: string,
-    data: typeof experiencess.film
-  ) => (
+  const renderExperienceCards = (type: string, data: typeof experiences) => (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-semibold text-gold">
           {type.charAt(0).toUpperCase() + type.slice(1)}
         </h3>
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-gold border-gold/30 hover:bg-gold/10"
-          onClick={() => handleAdd(type)}
-        >
-          <Plus className="h-4 w-4 mr-1" /> Add{" "}
-          {type.charAt(0).toUpperCase() + type.slice(1)} Experience
-        </Button>
+        <div className="flex gap-2 items-center">
+          <Select
+            value={filters.category}
+            onValueChange={(value) => updateFilters({ category: value })}
+          >
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="film">Film</SelectItem>
+              {CATEGORIES.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-gold border-gold/30 hover:bg-gold/10"
+            onClick={() => handleAdd(type)}
+          >
+            <Plus className="h-4 w-4 mr-1" /> Add{" "}
+            {type.charAt(0).toUpperCase() + type.slice(1)} Experience
+          </Button>
+        </div>
       </div>
       <div className="space-y-4">
-        {data.map((exp, index) => (
-          <Card key={index} className="bg-card-gradient border-gold/10">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-3">
-                <h4 className="text-lg font-medium">{exp.title}</h4>
-                <div className="flex items-center gap-2">
-                  <span className="text-foreground/60 text-sm">{exp.year}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gold hover:text-gold hover:bg-gold/10"
-                    onClick={() => handleEdit(type, index)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <p className="text-gold mb-2">{exp.role}</p>
-              <div className="flex flex-col md:flex-row gap-2 md:gap-6 text-sm text-foreground/70 mb-4">
-                <span>Director: {exp.director}</span>
-                <span>
-                  {type === "television" ? "Network" : "Production"}:{" "}
-                  {exp.company}
-                </span>
-              </div>
-              <p className="text-foreground/80 text-sm">{exp.description}</p>
-            </CardContent>
+        {data.length === 0 ? (
+          <Card className="bg-card-gradient border-gold/10 p-8 text-center">
+            <div className="space-y-3">
+              <h3 className="text-xl font-medium">No Experiences Available</h3>
+              <p className="text-foreground/70">
+                You haven't added any experiences yet. Add the experience to
+                find opportunities that interest you.
+              </p>
+            </div>
           </Card>
-        ))}
+        ) : (
+          data.map((exp, index) => (
+            <Card key={index} className="bg-card-gradient border-gold/10">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-3">
+                  <h4 className="text-lg font-medium">{exp.project_title}</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="text-foreground/60 text-sm">
+                      {exp.year}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gold hover:text-gold hover:bg-gold/10"
+                      onClick={() => handleEdit(type?.toLowerCase(), index)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-gold mb-2">{exp.role}</p>
+                <div className="flex flex-col md:flex-row gap-2 md:gap-6 text-sm text-foreground/70 mb-4">
+                  <span>Director: {exp.director}</span>
+                  <span>
+                    {type === "television" ? "Network" : "Production"}:{" "}
+                    {exp.production_company}
+                  </span>
+                </div>
+                <p className="text-foreground/80 text-sm">{exp.description}</p>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );
@@ -290,13 +287,7 @@ const ExperienceSection = () => {
   return (
     <div className="space-y-8">
       {/* Film Experience */}
-      {renderExperienceCards("film", experiencess.film)}
-
-      {/* Television Experience */}
-      {renderExperienceCards("television", experiencess.television)}
-
-      {/* Theater Experience */}
-      {renderExperienceCards("theater", experiencess.theater)}
+      {renderExperienceCards(filters?.category || "All", experiences)}
 
       {/* Edit Experience Dialog */}
       <EditProfileDialog
