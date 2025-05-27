@@ -90,8 +90,7 @@ const ProfileTabs = () => {
       fetchAppliedJobs();
     }
   }, [user, activeTab]);
-  console.log(jobs);
-  console.log(savedJobs)
+
   const savedJobList = jobs.filter(
     (job) => savedJobs.includes(String(job.id)) // Convert job.id to string for comparison
   );

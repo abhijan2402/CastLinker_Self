@@ -37,6 +37,7 @@ import { dashboardData } from "@/utils/dummyData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { fetchData } from "@/api/ClientFuntion";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 interface DashboardData {
   applications: number;
@@ -67,18 +68,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const firstName = user?.username?.split(" ")[0] || "Actor";
-  const [stats, setStats] = useState<Stats>({
-    applications: 0,
-    connections: 0,
-    likes: 0,
-    ratings: 0,
-    profileViews: 0,
-    callbacks: 0,
-    activityScore: 0,
-  });
-  const [recentOpportunities, setRecentOpportunities] = useState<any[]>([]);
-  const [recentMessages, setRecentMessages] = useState<any[]>([]);
-  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const { stats, recentOpportunities, recentMessages, upcomingEvents } =
+    useDashboardData(fetchData);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -121,52 +113,17 @@ const Dashboard = () => {
     });
   };
 
-  const handleApplyToJob = (jobId: number) => {
-    const updatedOpportunities = recentOpportunities.map((job) =>
-      job.id === jobId ? { ...job, applied: true } : job
-    );
-    setRecentOpportunities(updatedOpportunities);
+  // const handleApplyToJob = (jobId: number) => {
+  //   const updatedOpportunities = recentOpportunities.map((job) =>
+  //     job.id === jobId ? { ...job, applied: true } : job
+  //   );
+  //   setRecentOpportunities(updatedOpportunities);
 
-    setStats((prev) => ({
-      ...prev,
-      applications: prev.applications + 1,
-    }));
-  };
-
-  const fetchDashboardData = async () => {
-    try {
-      const res = (await fetchData("/api/dashboard")) as ApiResponse;
-      console.log(res);
-
-      if (res) {
-        setStats({
-          applications: res.data.applications,
-          connections: res.data.connections || 0,
-          likes: res.data.likes || 0,
-          ratings: parseFloat(res.data.rating) || 0.0,
-          profileViews: 0,
-          callbacks: 0,
-          activityScore: 0,
-        });
-
-        setRecentOpportunities(
-          (res.data.recentJobs || []).map((job) => ({
-            ...job,
-            applied: false,
-          }))
-        );
-
-        setRecentMessages(res.data.recentMessages || []);
-        setUpcomingEvents(res.data.upcomingEvents || []);
-      }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  //   setStats((prev) => ({
+  //     ...prev,
+  //     applications: prev.applications + 1,
+  //   }));
+  // };
 
   // console.log(recentOpportunities);
 

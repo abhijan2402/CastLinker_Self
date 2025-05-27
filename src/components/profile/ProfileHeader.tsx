@@ -20,7 +20,6 @@ const ProfileHeader = () => {
   const { profile, fetchProfile } = useTalentProfile(user);
 
   console.log(profile);
-  // In a real app, this would come from a profile context/API
 
   return (
     <div className="rounded-xl bg-card-gradient border border-gold/10 overflow-hidden">
@@ -61,13 +60,13 @@ const ProfileHeader = () => {
             <MessageCircle className="h-4 w-4 mr-2" />
             Message
           </Button>
-          {/* <Button
+          <Button
             size="sm"
             className="bg-gold hover:bg-gold-dark text-cinematic"
           >
             <UserPlus className="h-4 w-4 mr-2" />
-            Connect
-          </Button> */}
+            Social Links
+          </Button>
         </div>
 
         {/* Profile Details */}
