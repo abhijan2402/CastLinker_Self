@@ -39,6 +39,7 @@ type TalentProfile = {
   instagram?: string;
   linkedin?: string;
   youtube?: string;
+  website?: string;
 };
 
 type ProfileFormValues = {

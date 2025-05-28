@@ -13,13 +13,53 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTalentProfile } from "@/hooks/useTalentProfile";
 import { useNavigate } from "react-router-dom";
+import { updateData } from "../../api/ClientFuntion";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
+import { Input } from "../ui/input";
+import { EditProfileDialog } from "./EditProfileDialog";
+import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
 
 const ProfileHeader = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, fetchProfile } = useTalentProfile(user);
+  const [isEditing, setIsEditing] = useState(false);
+  const form = useForm({
+    defaultValues: {
+      website: "",
+      twitter: "",
+      instagram: "",
+      linkedin: "",
+      youtube: "",
+    },
+  });
 
-  console.log(profile);
+  useEffect(() => {
+    if (isEditing && profile) {
+      form.reset({
+        website: profile.website || "",
+        twitter: profile.twitter || "",
+        instagram: profile.instagram || "",
+        linkedin: profile.linkedin || "",
+        youtube: profile.youtube || "",
+      });
+    }
+  }, [isEditing, profile]);
+
+  const handleSave = async (data: any) => {
+    const payload = {
+      website: data.website,
+      twitter: data.twitter,
+      instagram: data.instagram,
+      linkedin: data.linkedin,
+      youtube: data.youtube,
+    };
+    const res = await updateData("auth/update-social-links", payload);
+    if (res) {
+      fetchProfile();
+    }
+  };
 
   return (
     <div className="rounded-xl bg-card-gradient border border-gold/10 overflow-hidden">
@@ -61,6 +101,7 @@ const ProfileHeader = () => {
             Message
           </Button>
           <Button
+            onClick={() => setIsEditing(true)}
             size="sm"
             className="bg-gold hover:bg-gold-dark text-cinematic"
           >
@@ -163,6 +204,97 @@ const ProfileHeader = () => {
           </div>
         </div>
       </div>
+
+      <EditProfileDialog
+        title="Add Social Media Links"
+        description="Include links to your online presence and social platforms"
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+        onSave={form.handleSubmit(handleSave)}
+      >
+        <Form {...form}>
+          <div className="max-h-[70vh] overflow-y-auto pr-2 pl-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <FormField
+                control={form.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://yourwebsite.com" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="twitter"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Twitter</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://twitter.com/username"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="instagram"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Instagram</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://instagram.com/username"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="linkedin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>LinkedIn</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://linkedin.com/in/username"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="youtube"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>YouTube</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://youtube.com/username"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        </Form>
+      </EditProfileDialog>
     </div>
   );
 };
