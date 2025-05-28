@@ -20,6 +20,29 @@ import { toast } from "react-toastify";
 import { useTalentProfile } from "@/hooks/useTalentProfile";
 import { useAuth } from "@/contexts/AuthContext";
 
+const getDefaultSkillsForRole = (role: string): string[] => {
+  switch (role) {
+    case "Actor":
+      return ["Method Acting", "Improvisation", "Voice Acting"];
+    case "Director":
+      return ["Shot Composition", "Script Analysis", "Team Leadership"];
+    case "Producer":
+      return ["Project Management", "Budgeting", "Team Coordination"];
+    case "Screenwriter":
+      return ["Story Development", "Character Creation", "Dialogue Writing"];
+    case "Cinematographer":
+      return ["Camera Operation", "Lighting", "Shot Composition"];
+    case "Editor":
+      return ["Video Editing", "Sound Editing", "Color Correction"];
+    case "Sound Designer":
+      return ["Sound Mixing", "Foley Art", "Audio Post-production"];
+    case "Production Designer":
+      return ["Set Design", "Art Direction", "Visual Storytelling"];
+    default:
+      return [];
+  }
+};
+
 const SkillsSection = () => {
   const [isEditingActing, setIsEditingActing] = useState(false);
   const [isEditingTechnical, setIsEditingTechnical] = useState(false);
@@ -28,27 +51,44 @@ const SkillsSection = () => {
   const { user } = useAuth();
   const { profile, fetchProfile } = useTalentProfile(user);
 
+  const actingForm = useForm({
+    defaultValues: {
+      acting: [],
+    },
+  });
+
+  useEffect(() => {
+    const defaultSkillNames = getDefaultSkillsForRole(
+      profile?.user_type || "Actor"
+    );
+    const defaultSkills = defaultSkillNames.map((name) => ({ name, level: 0 }));
+
+    actingForm.reset({
+      acting: defaultSkills,
+    });
+  }, [profile?.user_type]);
+
   const [skills, setSkills] = useState({
-    acting: [],
+    // acting: [],
     technical: [],
     specialSkills: [],
   });
 
   useEffect(() => {
     const updatedSkills = {
-      acting: [],
+      // acting: [],
       technical: [],
       specialSkills: [],
     };
 
-    try {
-      const parsedActing = JSON.parse(profile?.acting_skills || "[]");
-      if (Array.isArray(parsedActing)) {
-        updatedSkills.acting = parsedActing;
-      }
-    } catch (err) {
-      console.error("Error parsing acting skills:", err);
-    }
+    // try {
+    //   const parsedActing = JSON.parse(profile?.acting_skills || "[]");
+    //   if (Array.isArray(parsedActing)) {
+    //     updatedSkills.acting = parsedActing;
+    //   }
+    // } catch (err) {
+    //   console.error("Error parsing acting skills:", err);
+    // }
 
     try {
       const parsedTechnical = JSON.parse(profile?.technical_skills || "[]");
@@ -85,14 +125,14 @@ const SkillsSection = () => {
     setSkills(updatedSkills);
   }, [profile]);
 
-  const actingForm = useForm({
-    defaultValues: {
-      acting: skills.acting.map((skill) => ({
-        name: skill.name,
-        level: skill.level,
-      })),
-    },
-  });
+  // const actingForm = useForm({
+  //   defaultValues: {
+  //     acting: skills.acting.map((skill) => ({
+  //       name: skill.name,
+  //       level: skill.level,
+  //     })),
+  //   },
+  // });
 
   const technicalForm = useForm({
     defaultValues: {
@@ -120,12 +160,12 @@ const SkillsSection = () => {
   });
 
   useEffect(() => {
-    actingForm.reset({
-      acting: skills.acting.map((skill) => ({
-        name: skill.name || "",
-        level: skill.level || 0,
-      })),
-    });
+    // actingForm.reset({
+    //   acting: skills.acting.map((skill) => ({
+    //     name: skill.name || "",
+    //     level: skill.level || 0,
+    //   })),
+    // });
 
     technicalForm.reset({
       technical: skills.technical.map((skill) => ({
@@ -148,7 +188,7 @@ const SkillsSection = () => {
     const res = await updateData("auth/update-profile", payload);
     if (res) {
       toast.success("Acting Skills Updated Successfully");
-       fetchProfile();
+      fetchProfile();
     }
   };
 
@@ -174,7 +214,7 @@ const SkillsSection = () => {
     const res = await updateData("auth/update-profile", payload);
     if (res) {
       toast.success("Technical Skills Updated Successfully");
-       fetchProfile();
+      fetchProfile();
     }
   };
 
@@ -199,8 +239,8 @@ const SkillsSection = () => {
             </Button>
           </div>
           <div className="space-y-4">
-            {skills.acting.map((skill) => (
-              <div key={skill.name}>
+            {actingForm.watch("acting")?.map((skill, index) => (
+              <div key={index}>
                 <div className="flex justify-between mb-1">
                   <span className="text-foreground/80">{skill.name}</span>
                   <span className="text-gold">{skill.level}%</span>
@@ -281,13 +321,11 @@ const SkillsSection = () => {
         onSave={handleSaveActing}
       >
         <div className="flex flex-col max-h-[60vh]">
-          {" "}
           <Form {...actingForm}>
             <div className="overflow-y-auto pr-2 pl-2 flex-1">
-              {" "}
-              {/* Scrolls if overflow */}
-              {skills.acting.map((skill, index) => (
+              {actingForm.watch("acting")?.map((skill, index) => (
                 <div key={index} className="mb-6">
+                  {/* Skill Name */}
                   <FormField
                     control={actingForm.control}
                     name={`acting.${index}.name`}
@@ -301,6 +339,7 @@ const SkillsSection = () => {
                     )}
                   />
 
+                  {/* Skill Level */}
                   <FormField
                     control={actingForm.control}
                     name={`acting.${index}.level`}
@@ -326,7 +365,7 @@ const SkillsSection = () => {
                     )}
                   />
 
-                  {index < skills.acting.length - 1 && (
+                  {index < actingForm.watch("acting")?.length - 1 && (
                     <hr className="border-gold/10 my-4" />
                   )}
                 </div>

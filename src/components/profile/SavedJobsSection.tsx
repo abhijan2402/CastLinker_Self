@@ -14,7 +14,7 @@ interface SavedJobsSectionProps {
   jobs: Job[];
   isLoading: boolean;
   onRefresh: () => void;
-  onRemove: () => void;
+  onRemove: (jobId: string) => void;
 }
 
 const SavedJobsSection = ({
@@ -33,7 +33,7 @@ const SavedJobsSection = ({
     if (!user) return;
 
     try {
-      onRemove(jobId);
+      onRemove(jobId.toString());
 
       toast({
         title: "Job removed",
@@ -225,7 +225,7 @@ const SavedJobsSection = ({
           isOpen={isApplicationOpen}
           onClose={() => setIsApplicationOpen(false)}
           onSubmit={(application) =>
-            handleApplyForJob(selectedJob.id, application)
+            handleApplyForJob(selectedJob.id.toString(), application)
           }
         />
       )}

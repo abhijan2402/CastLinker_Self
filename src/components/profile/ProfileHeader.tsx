@@ -23,7 +23,7 @@ import { useEffect, useState } from "react";
 const ProfileHeader = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { profile, fetchProfile } = useTalentProfile(user);
+  const { profile, fetchProfile, UpdateSocialLinks } = useTalentProfile(user);
   const [isEditing, setIsEditing] = useState(false);
   const form = useForm({
     defaultValues: {
@@ -48,17 +48,7 @@ const ProfileHeader = () => {
   }, [isEditing, profile]);
 
   const handleSave = async (data: any) => {
-    const payload = {
-      website: data.website,
-      twitter: data.twitter,
-      instagram: data.instagram,
-      linkedin: data.linkedin,
-      youtube: data.youtube,
-    };
-    const res = await updateData("auth/update-social-links", payload);
-    if (res) {
-      fetchProfile();
-    }
+    UpdateSocialLinks(data);
   };
 
   return (

@@ -1,5 +1,5 @@
 import { fetchData, updateData } from "@/api/ClientFuntion";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 // Types
@@ -143,6 +143,28 @@ export const useTalentProfile = (user: any) => {
     }
   };
 
+  const UpdateSocialLinks = useCallback(
+    async (data: any) => {
+      const payload = {
+        website: data.website,
+        twitter: data.twitter,
+        instagram: data.instagram,
+        linkedin: data.linkedin,
+        youtube: data.youtube,
+      };
+
+      try {
+        const res = await updateData("auth/update-social-links", payload);
+        if (res) {
+          fetchProfile();
+        }
+      } catch (error) {
+        console.error("Failed to update social links", error);
+      }
+    },
+    [fetchProfile]
+  );
+
   useEffect(() => {
     if (user?.id) fetchProfile();
   }, [user?.id]);
@@ -155,5 +177,6 @@ export const useTalentProfile = (user: any) => {
     fetchSavedJobs,
     savedJobs,
     isLoading,
+    UpdateSocialLinks,
   };
 };

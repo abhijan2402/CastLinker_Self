@@ -112,22 +112,7 @@ export const useAuth = () => {
   return useContext(AuthContext);
 };
 
-// Convert Supabase user to our User format
-// const formatUser = (supabaseUser: SupabaseUser | null): User | null => {
-//   if (!supabaseUser) return null;
 
-//   return {
-//     id: supabaseUser.id,
-//     name:
-//       supabaseUser.user_metadata?.name ||
-//       supabaseUser.email?.split("@")[0] ||
-//       "",
-//     email: supabaseUser.email || "",
-//     role: supabaseUser.user_metadata?.role || "Actor",
-//     avatar: supabaseUser.user_metadata?.avatar_url || "/images/avatar.png",
-//     isLoggedIn: true,
-//     token: "ssasgf",
-//   };-
 
 // Auth Provider component
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -138,54 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Check for existing session on mount
-  // useEffect(() => {
-  //   // First set up the auth state listener to prevent missing auth events
-  //   const {
-  //     data: { subscription },
-  //   } = supabase.auth.onAuthStateChange((event, session) => {
-  //     const formattedUser = formatUser(session?.user || null);
-  //     setUser(formattedUser);
-  //     setIsLoading(false);
 
-  //     if (event === "SIGNED_IN" && formattedUser) {
-  //       toast({
-  //         title: "Welcome back!",
-  //         description: `You are logged in as ${formattedUser.name}`,
-  //       });
-  //     }
-
-  //     if (event === "SIGNED_OUT") {
-  //       toast({
-  //         title: "Signed out",
-  //         description: "You have been logged out successfully",
-  //       });
-  //     }
-  //   });
-
-  //   // Then check for existing session
-  //   const checkSession = async () => {
-  //     try {
-  //       const { data, error } = await supabase.auth.getSession();
-  //       if (error) throw error;
-
-  //       if (data.session) {
-  //         const formattedUser = formatUser(data.session.user);
-  //         setUser(formattedUser);
-  //       }
-  //     } catch (err) {
-  //       console.error("Error checking auth session:", err);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   checkSession();
-
-  //   return () => {
-  //     subscription?.unsubscribe();
-  //   };
-  // }, [toast]);
 
   const login = async (
     email: string,
