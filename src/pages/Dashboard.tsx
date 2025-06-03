@@ -129,17 +129,22 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-4 pr-1">
-      <div className="flex flex-col space-y-1">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-gold to-gold-light capitalize">
-              Hello, {firstName}
-            </span>
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Here's your activity summary and upcoming opportunities
-          </p>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col space-y-1">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-gold to-gold-light capitalize">
+                Hello, {firstName}
+              </span>
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Here's your activity summary and upcoming opportunities
+            </p>
+          </div>
         </div>
+          <Button variant="outline" onClick={() => navigate("/manage")}>
+            Manage
+          </Button>
       </div>
 
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

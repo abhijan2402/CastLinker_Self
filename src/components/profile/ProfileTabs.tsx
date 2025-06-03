@@ -17,61 +17,7 @@ import SavedJobsSection from "./SavedJobsSection";
 import ApplicationsSection from "./ApplicationsSection";
 import { fetchData } from "@/api/ClientFuntion";
 
-// Type for raw job data from database
-interface RawJobData {
-  id: number;
-  job_title: string;
-  company: string;
-  company_logo?: string;
-  job_description: string;
-  requirements?: string[];
-  responsibilities?: string[];
-  job_type: string;
-  role_category: string;
-  experience_level?: string;
-  min_salary?: number;
-  max_salary?: number;
-  currency?: string;
-  payment_period?: string;
-  location: string;
-  location_type: string;
-  tags?: string[];
-  application_deadline?: string;
-  application_url?: string;
-  application_email?: string;
-  is_featured?: boolean;
-  is_verified?: boolean;
-  createdAt?: string;
-  status?: string;
-}
 
-// Convert raw job data to Job type
-const mapRawJobToJob = (rawJob: RawJobData): Job => ({
-  id: rawJob.id,
-  job_title: rawJob.job_title,
-  company: rawJob.company,
-  company_logo: rawJob.company_logo,
-  job_description: rawJob.job_description,
-  requirements: rawJob.requirements,
-  responsibilities: rawJob.responsibilities,
-  job_type: rawJob.job_type as JobType,
-  role_category: rawJob.role_category as RoleCategory,
-  experience_level: rawJob.experience_level,
-  min_salary: rawJob.min_salary,
-  max_salary: rawJob.max_salary,
-  currency: rawJob.currency,
-  payment_period: rawJob.payment_period,
-  location: rawJob.location,
-  location_type: rawJob.location_type as LocationType,
-  tags: rawJob.tags,
-  application_deadline: rawJob.application_deadline,
-  application_url: rawJob.application_url,
-  application_email: rawJob.application_email,
-  is_featured: rawJob.is_featured,
-  is_verified: rawJob.is_verified,
-  createdAt: rawJob.createdAt,
-  status: rawJob.status,
-});
 
 const ProfileTabs = () => {
   const [activeTab, setActiveTab] = useState("about");

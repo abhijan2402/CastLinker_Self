@@ -123,7 +123,7 @@ const PostCard = ({
                 size="icon"
                 className={cn(
                   "rounded-full bg-background/80 backdrop-blur-sm border-muted",
-                  isLiked && "text-red-500 border-red-500"
+                  Number(post?.total_likes) > 0 && "text-red-500 border-red-500"
                 )}
                 onClick={(e) => {
                   e.stopPropagation();

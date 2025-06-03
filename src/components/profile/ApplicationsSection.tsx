@@ -73,7 +73,7 @@ const ApplicationsSection = ({
             Reviewed
           </Badge>
         );
-      case "accepted":
+      case "hired":
         return (
           <Badge
             variant="outline"

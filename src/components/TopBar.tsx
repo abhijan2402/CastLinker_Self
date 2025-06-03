@@ -177,6 +177,13 @@ const TopBar = () => {
                   <CreditCard className="mr-2 h-4 w-4" />
                   Billing
                 </DropdownMenuItem>
+                {/* <DropdownMenuItem
+                  onClick={() => navigate("/pricing")}
+                  className="rounded-lg"
+                >
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Pricing
+                </DropdownMenuItem> */}
               </DropdownMenuGroup>
 
               {isAdmin && (

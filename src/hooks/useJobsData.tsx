@@ -80,7 +80,7 @@ export const useJobsData = () => {
       }
 
       const queryString = queryParams.toString();
-      const endpoint = `/api/jobs${queryString ? `?${queryString}` : ""}`;
+      const endpoint = `/api/jobs/admin${queryString ? `?${queryString}` : ""}`;
 
       const result = await fetchData(endpoint);
 
@@ -91,8 +91,11 @@ export const useJobsData = () => {
         "data" in result
       ) {
         const res = result as { data: any[]; length: number };
-        setJobs(res.data);
-        setTotalCount(res.data.length);
+        // ✅ Filter only active jobs
+        const activeJobs = res.data.filter((job) => job.status === "active");
+
+        setJobs(activeJobs);
+        setTotalCount(activeJobs.length);
       }
     } catch (error: any) {
       console.error("Error in getJobs:", error);
@@ -108,7 +111,7 @@ export const useJobsData = () => {
       setIsLoading(false);
       fetchInProgress.current = false;
     }
-  }, [toast, filters, sort]); 
+  }, [toast, filters, sort]);
 
   const getSavedJobs = useCallback(async () => {
     try {

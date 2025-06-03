@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchData } from "@/api/ClientFuntion";
+import { fetchData, postData } from "@/api/ClientFuntion";
 
 export type Post = {
   id: string;
@@ -40,6 +40,12 @@ export type PostApplication = {
     email?: string;
   };
 };
+
+interface LikeResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}
 
 export const fetchPosts = async () => {
   try {
@@ -189,30 +195,20 @@ export const getApplicationsForPost = async (post_id: string) => {
 
 export const togglePostLike = async (post_id: string, user_id: string) => {
   try {
-    const { data: existingLike, error: checkError } = await supabase
-      .from("post_likes")
-      .select("*")
-      .eq("post_id", post_id)
-      .eq("user_id", user_id);
+    const response = await postData<LikeResponse>("/api/likes/like", {
+      post_id,
+      user_id,
+    });
 
-    if (checkError) throw checkError;
-
-    if (existingLike && existingLike.length > 0) {
-      const { error: deleteError } = await supabase
-        .from("post_likes")
-        .delete()
-        .eq("post_id", post_id)
-        .eq("user_id", user_id);
-
-      if (deleteError) throw deleteError;
-      return false;
-    } else {
-      const { error: insertError } = await supabase
-        .from("post_likes")
-        .insert({ post_id, user_id });
-
-      if (insertError) throw insertError;
+    const likeres = await fetchData(`/api/likes/count/${post_id}`);
+  
+    console.log(likeres);
+    if (response.success) {
+      // Post was liked
       return true;
+    } else {
+      // Post already liked (i.e., this acts like an "unlike")
+      return false;
     }
   } catch (error) {
     console.error("Error toggling like:", error);

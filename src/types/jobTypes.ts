@@ -1,12 +1,27 @@
-
-export type JobType = 'Full-time' | 'Part-time' | 'Contract' | 'Temporary';
-export type LocationType = 'On-site' | 'Remote' | 'Hybrid';
-export type RoleCategory = 'Acting' | 'Directing' | 'Production' | 'Cinematography' | 'Writing' | 'Editing' | 'Sound' | 'VFX' | 'Costume' | 'Makeup' | 'Other';
-export type ExperienceLevel = 'Entry Level' | 'Mid Level' | 'Senior Level' | 'Executive';
-export type PostedWithin = '24h' | '3d' | '7d' | '14d' | '30d' | 'any';
+export type JobType = "Full-time" | "Part-time" | "Contract" | "Temporary";
+export type LocationType = "On-site" | "Remote" | "Hybrid";
+export type RoleCategory =
+  | "Acting"
+  | "Directing"
+  | "Production"
+  | "Cinematography"
+  | "Writing"
+  | "Editing"
+  | "Sound"
+  | "VFX"
+  | "Costume"
+  | "Makeup"
+  | "Other";
+export type ExperienceLevel =
+  | "Entry Level"
+  | "Mid Level"
+  | "Senior Level"
+  | "Executive";
+export type PostedWithin = "24h" | "3d" | "7d" | "14d" | "30d" | "any";
 
 export interface Job {
   id: number;
+  job_id: number;
   job_title: string;
   company: string;
   company_logo?: string;
@@ -45,6 +60,6 @@ export interface JobFilters {
 }
 
 export interface JobSort {
-  field: 'relevance' | 'created_at' | 'salary_max';
-  direction: 'asc' | 'desc';
+  field: "relevance" | "created_at" | "salary_max";
+  direction: "asc" | "desc";
 }

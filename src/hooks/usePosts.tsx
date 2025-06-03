@@ -31,7 +31,7 @@ export const usePosts = () => {
   const loadPosts = async () => {
     setLoading(true);
     try {
-      const data = await fetchData(`/api/posts`);
+      const data: any = await fetchData(`/api/posts`);
       // Ensure we're setting an array even if the API returns null/undefined
       setPosts(data || []);
     } catch (err) {
