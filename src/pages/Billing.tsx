@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { fetchData, postData } from "@/api/ClientFuntion";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { ArrowRight, Check } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface RazorpayOrderResponse {
   order: {
@@ -53,10 +55,57 @@ declare global {
 }
 
 const Billing = () => {
+  const planFeatures: any = {
+    free: {
+      type: "Free",
+      price: "0",
+      features: [
+        "Create up to 2 projects per month",
+        "Send up to 5 chat messages monthly",
+        "Apply to 5 job opportunities each month",
+        "Send 3 connection requests",
+        "Share up to 5 posts per month",
+      ],
+    },
+    professional: {
+      type: "professional",
+      price: "499",
+      features: [
+        "Create up to 5 projects per month",
+        "Send up to 10 chat messages monthly",
+        "Apply to 10 job opportunities each month",
+        "Get early access to casting calls",
+        "Send 10 connection requests",
+        "Share up to 10 posts per month",
+      ],
+    },
+    premium: {
+      type: "premium",
+      price: "999",
+      features: [
+        "Create up to 15 projects per month",
+        "Send up to 15 chat messages monthly",
+        "Apply to 20 job opportunities each month",
+        "Send 30 connection requests",
+        "Share up to 35 posts per month",
+      ],
+    },
+  };
+  const getNextBillingDate = (createdAt: string): string => {
+    const date = new Date(createdAt);
+    date.setMonth(date.getMonth() + 1);
+
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   const { user } = useAuth();
   const [transaction, setTransaction] = useState([]);
   const [activePlan, setActivePlan] = useState<any>([]);
-  const currentPlan = {
+  const currentPlans = {
     name: "Professional",
     price: "29.99",
     billingCycle: "monthly",
@@ -101,8 +150,15 @@ const Billing = () => {
     },
   ];
 
+  const currentPlanKey = Object.keys(planFeatures).find(
+    (key) =>
+      planFeatures[key]?.type?.toLowerCase() ===
+      activePlan?.plan_name?.toLowerCase()
+  );
 
-  // Handle Paymets 
+  const currentPlan = currentPlanKey ? planFeatures[currentPlanKey] : null;
+
+  // Handle Paymets
   const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {
       if (window.Razorpay) {
@@ -118,7 +174,7 @@ const Billing = () => {
     });
   };
 
-  const handleSubscriptionPlan = async (plan: any) => {
+  const handleSubscriptionPlan = async (plan_name: any, amount: any) => {
     try {
       const loaded = await loadRazorpayScript();
       if (!loaded) {
@@ -126,8 +182,8 @@ const Billing = () => {
         return;
       }
       const payload = {
-        amount: 1,
-        plan_name: plan.name,
+        amount: Math.round(Number(amount)) * 100,
+        plan_name: plan_name,
       };
 
       const res = (await postData(
@@ -136,7 +192,7 @@ const Billing = () => {
       )) as RazorpayOrderResponse;
 
       if (res?.order?.id) {
-        openRazorpay(res.order.id, plan);
+        openRazorpay(res.order.id, plan_name);
       }
     } catch (error) {
       console.error("Error initiating subscription:", error);
@@ -154,7 +210,7 @@ const Billing = () => {
       amount: Math.round(Number(plan.price) * 100),
       currency: "INR",
       name: "FilmCollab",
-      description: `Subscription for ${plan.name}`,
+      description: `Subscription for ₹{plan.name}`,
       order_id: orderId,
       handler: async function (response: any) {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
@@ -190,7 +246,6 @@ const Billing = () => {
     rzp.open();
   };
 
-
   // Handle Active Plans
   const handleActivePlans = async () => {
     const res: any = await fetchData("/api/payment/active-plan");
@@ -221,11 +276,163 @@ const Billing = () => {
       <h1 className="text-3xl font-bold mb-6">Billing & Subscription</h1>
 
       <Tabs defaultValue="subscription" className="w-full mb-8">
-        <TabsList className="grid w-full md:w-auto grid-cols-2 mb-8">
+        <TabsList className="grid w-full md:w-auto grid-cols-3 mb-8">
+          <TabsTrigger value="payment-methods">Subscription Plans</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
-          {/* <TabsTrigger value="payment-methods">Payment Methods</TabsTrigger> */}
           <TabsTrigger value="billing-history">Billing History</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="payment-methods">
+          <Card>
+            <CardHeader>
+              <CardTitle>Subscription Plans</CardTitle>
+              <CardDescription>
+                Manage your Subscription methods
+              </CardDescription>
+            </CardHeader>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-4">
+              {/* Free Plan */}
+              <div className="bg-card-gradient border border-gold/10 rounded-xl overflow-hidden">
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2">
+                    {planFeatures.free.type}
+                  </h3>
+                  <p className="text-foreground/70 mb-4">
+                    Perfect for newcomers
+                  </p>
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold">
+                      ₹{planFeatures.free.price}
+                    </span>
+                    <span className="text-foreground/70">/month</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full border-gold/30 hover:border-gold"
+                    // onClick={() =>
+                    //   handleSubscriptionPlan(
+                    //     planFeatures.free.type,
+                    //     planFeatures.free.price
+                    //   )
+                    // }
+                  >
+                    Get Started
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="bg-cinematic-dark/30 p-6">
+                  <p className="font-medium mb-4">What's included:</p>
+                  <ul className="space-y-3">
+                    {planFeatures.free.features.map((feature, index) => (
+                      <li key={index} className="flex items-start">
+                        <Check className="h-5 w-5 text-gold mr-2 shrink-0" />
+                        <span className="text-sm text-foreground/90">
+                          {feature}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Professional Plan */}
+              <div className="bg-card-gradient border border-gold/20 rounded-xl overflow-hidden relative">
+                <div className="absolute top-0 right-0 bg-gold text-cinematic text-xs font-bold py-1 px-3">
+                  MOST POPULAR
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2">
+                    {planFeatures.professional.type}
+                  </h3>
+                  <p className="text-foreground/70 mb-4">
+                    For serious film professionals
+                  </p>
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold">
+                      ₹{planFeatures.professional.price}
+                    </span>
+                    <span className="text-foreground/70">/month</span>
+                  </div>
+
+                  <Button
+                    className="w-full bg-gold hover:bg-gold-dark text-cinematic"
+                    onClick={() =>
+                      handleSubscriptionPlan(
+                        planFeatures.professional.type,
+                        planFeatures.professional.price
+                      )
+                    }
+                  >
+                    Get Professional
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="bg-cinematic-dark/30 p-6">
+                  <p className="font-medium mb-4">Everything in Free, plus:</p>
+                  <ul className="space-y-3">
+                    {planFeatures.professional.features.map(
+                      (feature, index) => (
+                        <li key={index} className="flex items-start">
+                          <Check className="h-5 w-5 text-gold mr-2 shrink-0" />
+                          <span className="text-sm text-foreground/90">
+                            {feature}
+                          </span>
+                        </li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Premium Plan */}
+              <div className="bg-card-gradient border border-gold/10 rounded-xl overflow-hidden">
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2">
+                    {planFeatures.premium.type}
+                  </h3>
+                  <p className="text-foreground/70 mb-4">
+                    For industry leaders
+                  </p>
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold">
+                      ₹{planFeatures.premium.price}
+                    </span>
+                    <span className="text-foreground/70">/month</span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="w-full border-gold/30 hover:border-gold"
+                    onClick={() =>
+                      handleSubscriptionPlan(
+                        planFeatures.premium.type,
+                        planFeatures.premium.price
+                      )
+                    }
+                  >
+                    Get Premium
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="bg-cinematic-dark/30 p-6">
+                  <p className="font-medium mb-4">
+                    Everything in Professional, plus:
+                  </p>
+                  <ul className="space-y-3">
+                    {planFeatures.premium.features.map((feature, index) => (
+                      <li key={index} className="flex items-start">
+                        <Check className="h-5 w-5 text-gold mr-2 shrink-0" />
+                        <span className="text-sm text-foreground/90">
+                          {feature}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="subscription">
           <Card>
@@ -247,85 +454,52 @@ const Billing = () => {
                 <div>
                   <h3 className="font-semibold">Billing Cycle</h3>
                   <p className="text-sm text-muted-foreground">
-                    {currentPlan.billingCycle.charAt(0).toUpperCase() +
-                      currentPlan.billingCycle.slice(1)}
+                    {currentPlans.billingCycle.charAt(0).toUpperCase() +
+                      currentPlans.billingCycle.slice(1)}
                   </p>
                 </div>
                 <div className="text-right">
                   <h3 className="font-semibold">Next Billing Date</h3>
                   <p className="text-sm text-muted-foreground">
-                    {currentPlan.nextBillingDate}
+                    {getNextBillingDate(activePlan.createdAt)}
                   </p>
                 </div>
               </div>
 
-              <div>
-                <h3 className="font-semibold mb-2">Plan Features</h3>
-                <ul className="space-y-1">
-                  {currentPlan.features.map((feature, index) => (
-                    <li key={index} className="text-sm flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-2 text-primary"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {currentPlan && (
+                <div>
+                  <h3 className="font-semibold mb-2">Plan Features</h3>
+                  <ul className="space-y-1">
+                    {currentPlan.features.map(
+                      (feature: string, index: number) => (
+                        <li key={index} className="text-sm flex items-center">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 mr-2 text-primary"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          {feature}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              )}
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  variant="outline"
-                  onClick={() => handleSubscriptionPlan(currentPlan)}
-                >
-                  Get Plan
-                </Button>
+                <Button variant="outline">Update Plan</Button>
                 <Button variant="destructive">Cancel Subscription</Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* <TabsContent value="payment-methods">
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Methods</CardTitle>
-              <CardDescription>
-                Manage your payment methods
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {paymentMethods.map((method) => (
-                <div key={method.id} className="flex justify-between items-center p-4 border rounded-lg">
-                  <div className="flex items-center">
-                    <div className="mr-4">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium">{method.details}</p>
-                      <p className="text-sm text-muted-foreground">Expires: {method.expiry}</p>
-                    </div>
-                  </div>
-                  <div>
-                    {method.isDefault && <Badge className="bg-green-500/20 text-green-500 hover:bg-green-500/30 border-green-500/10">Default</Badge>}
-                  </div>
-                </div>
-              ))}
-              <Button className="w-full">Add Payment Method</Button>
-            </CardContent>
-          </Card>
-        </TabsContent> */}
 
         <TabsContent value="billing-history">
           <Card>
@@ -379,11 +553,11 @@ const Billing = () => {
                 </table>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end">
+            {/* <CardFooter className="flex justify-end">
               <Button variant="link" size="sm">
                 View all transactions
               </Button>
-            </CardFooter>
+            </CardFooter> */}
           </Card>
         </TabsContent>
       </Tabs>
