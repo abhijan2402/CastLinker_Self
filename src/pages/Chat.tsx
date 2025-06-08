@@ -32,12 +32,21 @@ interface Chat {
 
 const Chat = () => {
   const { user } = useAuth();
+  console.log(user);
   const [inputMessage, setInputMessage] = useState("");
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const [chatAccepted, setChatAccepted] = useState<boolean | null>(null);
 
   const { messages, setMessages, sendMessage, isLoading } = useChat("");
 
+  const firstMessage = messages.length > 0 ? messages[0] : null;
+  const isFirstChat =
+    firstMessage &&
+    firstMessage.sender_id !== user?.id &&
+    messages.length === 1;
+
   const [mockChats, setMockChats] = useState<Chat[]>([]);
+  console.log(mockChats);
   const handleAllChats = async () => {
     const res = await fetchData<any>(`/api/chat/list/${user.id}`);
 
@@ -63,7 +72,7 @@ const Chat = () => {
     handleAllChats();
   }, []);
 
-  // console.log(messages)
+  console.log(messages);
 
   const [activeChat, setActiveChat] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -110,27 +119,27 @@ const Chat = () => {
   };
   useEffect(() => {
     loadMessages();
-  }, [user, activeChat,inputMessage]);
+  }, [user, activeChat, inputMessage]);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   console.log(activeChat);
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputMessage.trim()) {
       // sendMessage(inputMessage, null, activeChat?.receiver_id);
       const payload = {
-        sender_id: activeChat?.sender_id,
-        receiver_id: activeChat?.receiver_id,
+        sender_id: activeChat?.receiver_id,
+        receiver_id: activeChat?.sender_id,
         content: inputMessage,
       };
       console.log(payload);
-      const res = postData("/api/chat/send", payload);
-      if (res) {
+      const res: any = await postData("/api/chat/send", payload);
+      if (res.success) {
+        loadMessages();
+        setInputMessage("");
       }
-      loadMessages();
-      setInputMessage("");
     }
   };
 
@@ -336,6 +345,28 @@ const Chat = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
+                  {isFirstChat && chatAccepted === null && (
+                    <div className="text-center mb-4">
+                      <p className="mb-2 text-sm text-gray-300">
+                        Do you want to accept this chat?
+                      </p>
+                      <div className="flex justify-center gap-4">
+                        <button
+                          className="bg-green-500 text-sm text-white px-4 py-1 rounded hover:bg-green-600"
+                          onClick={() => setChatAccepted(true)}
+                        >
+                          Accept
+                        </button>
+                        <button
+                          className="bg-red-500 text-sm text-white px-4 py-1 rounded hover:bg-red-600"
+                          onClick={() => setChatAccepted(false)}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {messages.map((message) => {
                     const typedReactions = message.reactions?.map(
                       (reaction) => ({
@@ -355,11 +386,10 @@ const Chat = () => {
                         message.sender_id === user?.id
                           ? user?.user_role
                           : "Role",
-                      isMe: message.sender_id === user?.id,
+                      isMe: message.sender_id === user?.id, // Ensure user?.id is 47 if you're testing as receiver
                       status: "seen",
                       reactions: typedReactions,
                     };
-
                     return (
                       <ChatMessage
                         key={message.id}
@@ -375,28 +405,30 @@ const Chat = () => {
               )}
             </ScrollArea>
 
-            <div className="p-4 border-t border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="flex-1 relative">
-                  <Input
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    placeholder="Type a message..."
-                    className="bg-[#222222] border-0 text-white placeholder:text-gray-400 focus-visible:ring-gold/30 pr-10"
-                  />
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                    <EmojiPicker onSelect={handleEmojiSelect} />
+            {(chatAccepted || messages.length > 1) && (
+              <div className="p-4 border-t border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 relative">
+                    <Input
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      placeholder="Type a message..."
+                      className="bg-[#222222] border-0 text-white placeholder:text-gray-400 focus-visible:ring-gold/30 pr-10"
+                    />
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                      <EmojiPicker onSelect={handleEmojiSelect} />
+                    </div>
                   </div>
+                  <Button
+                    onClick={handleSendMessage}
+                    className="rounded-full bg-gold hover:bg-gold/90 text-black"
+                  >
+                    <Send size={18} />
+                  </Button>
                 </div>
-                <Button
-                  onClick={handleSendMessage}
-                  className="rounded-full bg-gold hover:bg-gold/90 text-black"
-                >
-                  <Send size={18} />
-                </Button>
               </div>
-            </div>
+            )}
           </>
         )}
       </div>

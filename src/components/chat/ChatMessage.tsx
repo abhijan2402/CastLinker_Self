@@ -68,10 +68,10 @@ export function ChatMessage({
   showAvatar = true,
   isLastInGroup = true,
 }: MessageProps) {
-  // console.log(message);
+  console.log(message);
   return (
     <div
-      className={`flex ${message.isMe ? "justify-end" : "justify-start"} mb-2`}
+      className={`flex ${message.isMe ? "justify-start" : "justify-end"} mb-2`}
     >
       {/* RECEIVER (other user) Avatar */}
       {!message.isMe && showAvatar && (

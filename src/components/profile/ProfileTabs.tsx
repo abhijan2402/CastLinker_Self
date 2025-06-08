@@ -35,7 +35,7 @@ const ProfileTabs = () => {
   }, [user, activeTab]);
 
   const savedJobList = jobs.filter(
-    (job) => savedJobs.includes(String(job.id)) // Convert job.id to string for comparison
+    (job) => savedJobs.includes(String(job.id)) 
   );
 
   return (

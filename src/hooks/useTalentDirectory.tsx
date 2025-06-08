@@ -95,115 +95,51 @@ export const useTalentDirectory = () => {
   };
 
   // Apply filters
-  useEffect(() => {
-    let results = [...talents];
+useEffect(() => {
+  let results = [...talents];
 
-    // Apply search term filter
-    if (debouncedSearchTerm) {
-      results = results.filter(
-        (talent) =>
-          talent?.username
-            ?.toLowerCase()
-            ?.includes(debouncedSearchTerm.toLowerCase()) ||
-          talent?.bio
-            ?.toLowerCase()
-            ?.includes(debouncedSearchTerm.toLowerCase()) ||
-          talent?.user_role
-            ?.toLowerCase()
-            ?.includes(debouncedSearchTerm.toLowerCase()) ||
-          (Array.isArray(talent?.acting_skills) &&
-            talent.acting_skills.some((skill) =>
-              skill?.toLowerCase()?.includes(debouncedSearchTerm.toLowerCase())
-            ))
-      );
-    }
+  const search = debouncedSearchTerm?.toLowerCase();
 
-    // Apply role filter - ensure we have a valid array
-    if (
-      Array.isArray(filters.selectedRoles) &&
-      filters.selectedRoles.length > 0
-    ) {
-      results = results.filter(
-        (talent) =>
-          filters.selectedRoles.includes(talent.profession_type) ||
-          (talent?.user_role &&
-            filters.selectedRoles.includes(talent?.user_role))
-      );
-    }
-
-    // Apply location filter - ensure we have a valid array
-    if (
-      Array.isArray(filters.selectedLocations) &&
-      filters.selectedLocations.length > 0
-    ) {
-      results = results.filter((talent) =>
-        filters.selectedLocations.includes(talent.location)
-      );
-    }
-
-    // Apply experience range filter
+  // Apply search term filter: user_type and username only
+  if (search) {
     results = results.filter((talent) => {
-      const exp = talent.experience_years || talent.experience || 0;
       return (
-        exp >= filters.experienceRange[0] && exp <= filters.experienceRange[1]
+        (talent.username && talent.username.toLowerCase().includes(search)) ||
+        (talent.user_type && talent.user_type.toLowerCase().includes(search))
       );
     });
+  }
 
-    // Apply verified only filter
-    if (filters.verifiedOnly) {
-      results = results.filter((talent) => talent.isVerified);
-    }
+  // Apply location filter
+  if (
+    Array.isArray(filters.selectedLocations) &&
+    filters.selectedLocations.length > 0
+  ) {
+    results = results.filter((talent) =>
+      filters.selectedLocations.includes(talent.location)
+    );
+  }
 
-    // Apply available only filter
-    if (filters.availableOnly) {
-      results = results.filter(
-        (talent) => talent.isAvailable || talent.available_for_hire
+  // Apply sorting if needed (keeping name-based sorting only)
+  switch (filters.sortBy) {
+    case "nameAsc":
+      results.sort((a, b) =>
+        (a.username || "").localeCompare(b.username || "")
       );
-    }
-
-    // Apply likes minimum filter
-    if (filters.likesMinimum > 0) {
-      results = results.filter(
-        (talent) => (talent.likesCount || 0) >= filters.likesMinimum
+      break;
+    case "nameDesc":
+      results.sort((a, b) =>
+        (b.username || "").localeCompare(a.username || "")
       );
-    }
+      break;
+    default:
+      break;
+  }
 
-    // Apply sorting
-    switch (filters.sortBy) {
-      case "rating":
-        results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-      case "experience":
-        results.sort((a, b) => {
-          const aExp = a.experience_years || a.experience || 0;
-          const bExp = b.experience_years || b.experience || 0;
-          return bExp - aExp;
-        });
-        break;
-      case "reviews":
-        results.sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
-        break;
-      case "likes":
-        results.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
-        break;
-      case "nameAsc":
-        results.sort((a, b) =>
-          (a.username || "").localeCompare(b.username || "")
-        );
-        break;
-      case "nameDesc":
-        results.sort((a, b) =>
-          (b.username || "").localeCompare(a.username || "")
-        );
-        break;
-      default:
-        break;
-    }
+  setFilteredTalents(results);
+  setCurrentPage(1);
+}, [talents, filters, debouncedSearchTerm]);
 
-    setFilteredTalents(results);
-    // Reset to first page when filters change
-    setCurrentPage(1);
-  }, [talents, filters, debouncedSearchTerm]);
 
   // Calculate pagination values
   const totalCount = filteredTalents.length;
@@ -264,7 +200,9 @@ export const useTalentDirectory = () => {
     // Mock implementation
     console.log(`Sharing profile: ${profile.username || "Talent"}`);
     alert(
-      `Profile of ${profile.username || "Talent"} would be shared in a real app.`
+      `Profile of ${
+        profile.username || "Talent"
+      } would be shared in a real app.`
     );
   };
 

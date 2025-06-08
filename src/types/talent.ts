@@ -1,16 +1,15 @@
-
 // If this file doesn't exist, we need to create it with the necessary types
-export type Profession = 
-  | "Actor" 
-  | "Director" 
-  | "Producer" 
-  | "Writer" 
-  | "Cinematographer" 
-  | "Editor" 
-  | "Sound Designer" 
-  | "Music Director" 
-  | "Costume Designer" 
-  | "Art Director" 
+export type Profession =
+  | "Actor"
+  | "Director"
+  | "Producer"
+  | "Writer"
+  | "Cinematographer"
+  | "Editor"
+  | "Sound Designer"
+  | "Music Director"
+  | "Costume Designer"
+  | "Art Director"
   | "Makeup Artist"
   | "VFX Artist"
   | "Animator"
@@ -42,14 +41,18 @@ export const PROFESSION_OPTIONS: Profession[] = [
   "Photographer",
   "Dancer",
   "Singer",
-  "Other"
+  "Other",
 ];
-
+type Skill = {
+  name: string;
+  level: number;
+};
 export type TalentProfile = {
   id: string;
   user_id: string;
+  user_type: string;
   profession_type: Profession;
-  acting_skills: string[];
+  acting_skills: Skill[];
   experience_years: number;
   bio: string;
   location: string;
@@ -84,5 +87,11 @@ export type TalentFilters = {
   verifiedOnly: boolean;
   availableOnly: boolean;
   likesMinimum: number;
-  sortBy: 'rating' | 'experience' | 'reviews' | 'likes' | 'nameAsc' | 'nameDesc';
+  sortBy:
+    | "rating"
+    | "experience"
+    | "reviews"
+    | "likes"
+    | "nameAsc"
+    | "nameDesc";
 };

@@ -185,12 +185,12 @@ const ProfileHeader = () => {
               </p>
               <p className="text-sm text-foreground/60">Likes</p>
             </div>
-            <div className="text-center">
+            {/* <div className="text-center">
               <p className="text-2xl font-bold">
                 {profile?.total_ratings || "0"}
               </p>
               <p className="text-sm text-foreground/60">Total Rating</p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

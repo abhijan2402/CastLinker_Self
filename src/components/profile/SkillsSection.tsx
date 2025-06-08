@@ -43,6 +43,86 @@ const getDefaultSkillsForRole = (role: string): string[] => {
   }
 };
 
+const getTechnicalSkillsForRole = (role: string): string[] => {
+  switch (role) {
+    case "Actor":
+      return [
+        "Green Screen Acting",
+        "Motion Capture",
+        "Teleprompter Proficiency",
+      ];
+    case "Director":
+      return [
+        "Camera Equipment Knowledge",
+        "Storyboarding Software (e.g., FrameForge)",
+        "Editing Software Basics (e.g., Adobe Premiere Pro)",
+      ];
+    case "Producer":
+      return [
+        "Production Management Software (e.g., Movie Magic)",
+        "Contract & Rights Handling",
+        "Call Sheet & Scheduling Tools",
+      ];
+    case "Screenwriter":
+      return [
+        "Scriptwriting Software (e.g., Final Draft, Celtx)",
+        "Screenplay Formatting",
+        "Writing Collaboration Tools",
+      ];
+    case "Cinematographer":
+      return [
+        "Camera Systems (e.g., RED, ARRI)",
+        "Gimbal & Steadicam Operation",
+        "Digital Imaging (DIT)",
+        "Lens Selection & Operation",
+      ];
+    case "Editor":
+      return [
+        "Non-linear Editing Software (e.g., Adobe Premiere, Final Cut Pro)",
+        "DAW for Syncing Audio (e.g., Pro Tools)",
+        "VFX Integration",
+      ];
+    case "Sound Designer":
+      return [
+        "DAW Tools (e.g., Pro Tools, Logic Pro)",
+        "Sound Libraries",
+        "Audio Plugins (e.g., EQ, Compression)",
+        "Field Recording Equipment",
+      ];
+    case "Production Designer":
+      return [
+        "3D Design Software (e.g., SketchUp, AutoCAD)",
+        "Set Budgeting Tools",
+        "Prop Fabrication Techniques",
+      ];
+    default:
+      return [];
+  }
+};
+type Skill = {
+  name: string;
+  level: number;
+};
+type ActingFormData = {
+  acting: Skill[];
+};
+
+type TechnicalFormData = {
+  technical: Skill[];
+};
+const isSkillArray = (skills: any): skills is Skill[] => {
+  return (
+    Array.isArray(skills) &&
+    skills.every(
+      (s) =>
+        s &&
+        typeof s === "object" &&
+        typeof s.name === "string" &&
+        typeof s.level === "number"
+    )
+  );
+};
+
 const SkillsSection = () => {
   const [isEditingActing, setIsEditingActing] = useState(false);
   const [isEditingTechnical, setIsEditingTechnical] = useState(false);
@@ -51,103 +131,66 @@ const SkillsSection = () => {
   const { user } = useAuth();
   const { profile, fetchProfile } = useTalentProfile(user);
 
-  const actingForm = useForm({
+  const [skills, setSkills] = useState<{ specialSkills: string[] }>({
+    specialSkills: [],
+  });
+
+  const actingForm = useForm<ActingFormData>({
     defaultValues: {
       acting: [],
     },
   });
 
+  const technicalForm = useForm<TechnicalFormData>({
+    defaultValues: {
+      technical: [],
+    },
+  });
+
+  const specialSkillsForm = useForm<{ specialSkills: string }>({
+    defaultValues: {
+      specialSkills: "",
+    },
+  });
+
   useEffect(() => {
+    // Default Skills Sets
     const defaultSkillNames = getDefaultSkillsForRole(
       profile?.user_type || "Actor"
     );
     const defaultSkills = defaultSkillNames.map((name) => ({ name, level: 0 }));
 
+    const profileSkills = isSkillArray(profile?.acting_skills)
+      ? profile.acting_skills
+      : defaultSkills;
+
     actingForm.reset({
-      acting: defaultSkills,
+      acting: profileSkills,
     });
-  }, [profile?.user_type]);
 
-  const [skills, setSkills] = useState({
-    // acting: [],
-    technical: [],
-    specialSkills: [],
-  });
+    // Default Technial Skills Sets
+    const defaultTechnicalSkills = getTechnicalSkillsForRole(
+      profile?.user_type || "Actor"
+    );
+    const defaultTechSkills = defaultTechnicalSkills.map((name) => ({
+      name,
+      level: 0,
+    }));
+    const profileTechnicalSkills = isSkillArray(profile?.technical_skills)
+      ? profile.technical_skills
+      : defaultTechSkills;
 
-  useEffect(() => {
-    const updatedSkills = {
-      // acting: [],
-      technical: [],
-      specialSkills: [],
-    };
+    technicalForm.reset({
+      technical: profileTechnicalSkills,
+    });
 
-    // try {
-    //   const parsedActing = JSON.parse(profile?.acting_skills || "[]");
-    //   if (Array.isArray(parsedActing)) {
-    //     updatedSkills.acting = parsedActing;
-    //   }
-    // } catch (err) {
-    //   console.error("Error parsing acting skills:", err);
-    // }
-
-    try {
-      const parsedTechnical = JSON.parse(profile?.technical_skills || "[]");
-      if (Array.isArray(parsedTechnical)) {
-        updatedSkills.technical = parsedTechnical;
-      }
-    } catch (err) {
-      console.error("Error parsing technical skills:", err);
+    // Special Skills
+    if (profile?.special_skills && Array.isArray(profile.special_skills)) {
+      setSkills({
+        specialSkills: profile.special_skills,
+      });
     }
-
-    try {
-      let raw = profile?.special_skills;
-
-      if (typeof raw === "string") {
-        raw = raw.trim().replace(/^"+|"+$/g, "");
-        raw = raw.replace(/\\"/g, '"');
-
-        if (raw.startsWith("[") && raw.endsWith("]")) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            updatedSkills.specialSkills = parsed.map((s) => s.trim());
-          }
-        } else {
-          updatedSkills.specialSkills = raw
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        }
-      }
-    } catch (err) {
-      console.error("Error parsing special skills:", err);
-    }
-
-    setSkills(updatedSkills);
-  }, [profile]);
-
-  // const actingForm = useForm({
-  //   defaultValues: {
-  //     acting: skills.acting.map((skill) => ({
-  //       name: skill.name,
-  //       level: skill.level,
-  //     })),
-  //   },
-  // });
-
-  const technicalForm = useForm({
-    defaultValues: {
-      technical: skills.technical.map((skill) => ({
-        name: skill.name,
-        level: skill.level,
-      })),
-    },
-  });
-
-  const specialSkillsForm = useForm({
-    defaultValues: {
-      specialSkills: skills.specialSkills.join(", "),
-    },
-  });
+  }, [profile?.user_type, profile?.acting_skills, profile?.technical_skills]);
 
   const physicalAttributesForm = useForm({
     defaultValues: {
@@ -158,26 +201,6 @@ const SkillsSection = () => {
       eyeColor: "Blue",
     },
   });
-
-  useEffect(() => {
-    // actingForm.reset({
-    //   acting: skills.acting.map((skill) => ({
-    //     name: skill.name || "",
-    //     level: skill.level || 0,
-    //   })),
-    // });
-
-    technicalForm.reset({
-      technical: skills.technical.map((skill) => ({
-        name: skill.name || "",
-        level: skill.level || 0,
-      })),
-    });
-
-    specialSkillsForm.reset({
-      specialSkills: skills.specialSkills.join(", "),
-    });
-  }, [skills]);
 
   const handleSaveActing = async () => {
     const formData = actingForm.getValues();
@@ -206,11 +229,20 @@ const SkillsSection = () => {
   };
 
   const handleSaveSpecialSkills = async (data: any) => {
-    const formData = specialSkillsForm.getValues();
-    const payload = {
-      special_skills: formData.specialSkills,
-    };
+    const { specialSkills } = specialSkillsForm.getValues();
 
+    console.log("Raw specialSkills:", specialSkills);
+
+    const skillsArray = specialSkills
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    console.log("Processed skillsArray:", skillsArray);
+
+    const payload = { special_skills: skillsArray };
+
+    console.log("Payload to send:", payload);
     const res = await updateData("auth/update-profile", payload);
     if (res) {
       toast.success("Technical Skills Updated Successfully");
@@ -270,7 +302,7 @@ const SkillsSection = () => {
             </Button>
           </div>
           <div className="space-y-4">
-            {skills.technical.map((skill) => (
+            {technicalForm.watch("technical").map((skill) => (
               <div key={skill.name}>
                 <div className="flex justify-between mb-1">
                   <span className="text-foreground/80">{skill.name}</span>
@@ -385,7 +417,7 @@ const SkillsSection = () => {
         <div className="flex flex-col max-h-[60vh]">
           <Form {...technicalForm}>
             <div className="overflow-y-auto pr-2 pl-2 flex-1">
-              {skills.technical.map((skill, index) => (
+              {technicalForm.watch("technical")?.map((skill, index) => (
                 <div key={index} className="space-y-4">
                   <FormField
                     control={technicalForm.control}
@@ -423,7 +455,7 @@ const SkillsSection = () => {
                       </FormItem>
                     )}
                   />
-                  {index < skills.technical.length - 1 && (
+                  {index < technicalForm.watch("technical").length - 1 && (
                     <hr className="border-gold/10 my-4" />
                   )}
                 </div>
