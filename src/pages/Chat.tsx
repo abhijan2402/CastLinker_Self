@@ -379,14 +379,14 @@ const Chat = () => {
                     const chatMessage: ChatMessage = {
                       ...message,
                       senderName:
-                        message.sender_id === user?.id
+                        message.receiver_id === user?.id
                           ? user?.username
                           : "User",
                       senderRole:
-                        message.sender_id === user?.id
+                        message.  receiver_id === user?.id
                           ? user?.user_role
                           : "Role",
-                      isMe: message.sender_id === user?.id, // Ensure user?.id is 47 if you're testing as receiver
+                      isMe: message.receiver_id === user?.id, // Ensure user?.id is 47 if you're testing as receiver
                       status: "seen",
                       reactions: typedReactions,
                     };

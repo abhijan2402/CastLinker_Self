@@ -71,7 +71,7 @@ export function ChatMessage({
   console.log(message);
   return (
     <div
-      className={`flex ${message.isMe ? "justify-start" : "justify-end"} mb-2`}
+      className={`flex ${message.isMe ? "justify-end" : "justify-start"} mb-2`}
     >
       {/* RECEIVER (other user) Avatar */}
       {!message.isMe && showAvatar && (
@@ -119,7 +119,7 @@ export function ChatMessage({
         {/* Timestamp and Status */}
         <div
           className={`text-xs mt-1 flex items-center gap-1 ${
-            message.isMe ? "justify-end" : "justify-start"
+            message.isMe ? "justify-start" : "justify-end"
           } text-gray-400`}
         >
           <span>
