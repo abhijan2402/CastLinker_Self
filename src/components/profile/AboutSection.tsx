@@ -23,42 +23,6 @@ const AboutSection = () => {
   const { user } = useAuth();
   const { profile, fetchProfile } = useTalentProfile(user);
 
-  // In a real app, this data would come from API/context
-  const parsedTechnicalSkills = (() => {
-    try {
-      const parsed = JSON.parse(profile?.technical_skills || "[]");
-      if (Array.isArray(parsed)) {
-        return parsed.map((skill) => skill.name).join(", ");
-      }
-      return "--";
-    } catch {
-      return "--";
-    }
-  })();
-
-  const parsedActingSkills = (() => {
-    try {
-      const parsed = JSON.parse(profile?.acting_skills || "[]");
-      if (Array.isArray(parsed)) {
-        return parsed.map((skill) => skill.name).join(", ");
-      }
-      return "--";
-    } catch {
-      return "--";
-    }
-  })();
-
-  const specialSkillsCleaned = (() => {
-    try {
-      const val = profile?.special_skills;
-      if (!val) return "--";
-      const parsed = JSON.parse(val); // handles the double quotes
-      return typeof parsed === "string" ? parsed : "--";
-    } catch {
-      return profile?.special_skills || "--";
-    }
-  })();
-
   const about = {
     bio:
       profile?.bio ||
@@ -96,20 +60,22 @@ const AboutSection = () => {
 
   // Reset form with profile data when dialog opens or profile updates
   useEffect(() => {
-    if (isEditing && profile) {
+    if (isEditing && profile && Object.keys(profile).length > 0) {
       form.reset({
-        bio: profile.bio || "",
-        ageRange: profile.age_range || "",
-        height: profile.height || "",
-        weight: profile.weight || "",
-        hairColor: profile.hair_color || "",
-        eyeColor: profile.eye_color || "",
-        languages: profile.languages || "",
-        unionStatus: profile.union_status || "",
-        representation: profile.representation || "",
+        bio:
+          profile.bio ||
+          `Passionate actor with over 5 years of experience in film and theater.`,
+        ageRange: profile.age_range || "25-35",
+        height: profile.height || "5'10\"",
+        weight: profile.weight || "160 lbs",
+        hairColor: profile.hair_color || "Brown",
+        eyeColor: profile.eye_color || "Hazel",
+        languages: profile.languages || "English, Spanish",
+        unionStatus: profile.union_status || "SAG-AFTRA",
+        representation: profile.representation || "Elite Talent Agency",
       });
     }
-  }, [isEditing, profile]);
+  }, [isEditing, profile, form]);
 
   const handleSave = async (data: any) => {
     // Map form data to match API schema

@@ -160,12 +160,15 @@ const UserJobManagement = () => {
 
   const filteredApplicants = (applicants: (typeof myJobs)[0]["applicants"]) => {
     if (applicantFilter === "All") {
+      console.log(applicants);
       return applicants;
     }
     return applicants.filter(
       (applicant) => applicant.status === applicantFilter?.toLowerCase()
     );
   };
+
+
 
   const generateJobId = (id: string) => {
     const hash = id.split("").reduce((acc, char) => {
@@ -203,7 +206,7 @@ const UserJobManagement = () => {
             {myJobs.reduce(
               (acc, job) =>
                 acc +
-                job.applicants.filter((app: any) => app.status === "hired")
+                job.applicants.filter((app: any) => app?.status === "hired")
                   .length,
               0
             )}
@@ -312,7 +315,7 @@ const UserJobManagement = () => {
                           ) : (
                             <div className="space-y-3">
                               {filteredApplicants(job?.applicants).map(
-                                (applicant) => (
+                                (applicant: any) => (
                                   <div
                                     key={applicant?.id}
                                     className="flex items-center justify-between p-3 border rounded-md bg-background"
@@ -328,10 +331,11 @@ const UserJobManagement = () => {
                                     <div className="flex items-center gap-3">
                                       <Badge
                                         variant={getApplicantStatusBadgeVariant(
-                                          applicant?.status
+                                          applicant?.status || "New"
                                         )}
                                       >
-                                        {applicant?.status?.toUpperCase()}
+                                        {applicant?.status?.toUpperCase() ||
+                                          "New"}
                                       </Badge>
                                       {/* <Button
                                         variant="ghost"
