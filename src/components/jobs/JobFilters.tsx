@@ -197,6 +197,90 @@ const JobFiltersComponent = ({ onFilterChange, onResetFilters }: JobFiltersProps
               Technical
             </label>
           </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="cinematography"
+              checked={roleCategories.includes("Cinematography")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Cinematography")
+              }
+            />
+            <label htmlFor="cinematography" className="text-sm">
+              Cinematography
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="editing"
+              checked={roleCategories.includes("Editing")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Editing")
+              }
+            />
+            <label htmlFor="editing" className="text-sm">
+              Editing
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="sound"
+              checked={roleCategories.includes("Sound")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Sound")
+              }
+            />
+            <label htmlFor="sound" className="text-sm">
+              Sound
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="vfx"
+              checked={roleCategories.includes("VFX")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "VFX")
+              }
+            />
+            <label htmlFor="vfx" className="text-sm">
+              VFX
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="costume"
+              checked={roleCategories.includes("Costume")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Costume")
+              }
+            />
+            <label htmlFor="costume" className="text-sm">
+              Costume
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="makeup"
+              checked={roleCategories.includes("Makeup")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Makeup")
+              }
+            />
+            <label htmlFor="makeup" className="text-sm">
+              Makeup
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="other"
+              checked={roleCategories.includes("Other")}
+              onCheckedChange={(checked) =>
+                handleRoleCategoryChange(checked, "Other")
+              }
+            />
+            <label htmlFor="other" className="text-sm">
+              Other
+            </label>
+          </div>
         </div>
       </div>
 

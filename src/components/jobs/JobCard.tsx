@@ -28,22 +28,26 @@ const JobCard = ({
   const isRemote = job.location_type === 'Remote';
   
   return (
-    <Card 
+    <Card
       className={`border-border/40 overflow-hidden transition-all hover:shadow-md hover:border-gold/20 cursor-pointer ${
-        isFeatured ? 'border-l-4 border-l-gold' : ''
+        isFeatured ? "border-l-4 border-l-gold" : ""
       }`}
       onClick={() => onViewDetailsClick(job)}
     >
       <CardContent className="p-0">
         {isFeatured && (
           <div className="bg-gold/10 py-1 px-3 sm:px-4">
-            <span className="text-gold text-xs font-medium">Featured Opportunity</span>
+            <span className="text-gold text-xs font-medium">
+              Featured Opportunity
+            </span>
           </div>
         )}
         <div className="p-3 sm:p-4 space-y-2 sm:space-y-4">
           <div className="flex justify-between items-start">
             <div className="pr-2">
-              <h3 className="font-bold text-lg sm:text-xl leading-tight">{job.job_title}</h3>
+              <h3 className="font-bold text-lg sm:text-xl leading-tight">
+                {job.job_title}
+              </h3>
               <p className="text-sm text-muted-foreground">{job.company}</p>
             </div>
             <Button
@@ -62,50 +66,64 @@ const JobCard = ({
               )}
             </Button>
           </div>
-          
+
           <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm">
             {job.location && (
               <div className="flex items-center gap-1 text-muted-foreground">
                 <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="truncate max-w-[120px] sm:max-w-none">{job.location}</span>
-                {isRemote && <Badge variant="outline" className="ml-1 text-xs">Remote</Badge>}
+                <span className="truncate max-w-[120px] sm:max-w-none">
+                  {job.location}
+                </span>
+                {isRemote && (
+                  <Badge variant="outline" className="ml-1 text-xs">
+                    Remote
+                  </Badge>
+                )}
               </div>
             )}
-            
+
             {job.createdAt && (
               <div className="flex items-center gap-1 text-muted-foreground">
                 <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Posted {formatDate(job.createdAt)}</span>
               </div>
             )}
-            
+
             <div className="flex items-center gap-1 text-muted-foreground">
-              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span>{formatSalary(job)}</span>
+              ₹<span>{formatSalary(job)}</span>
             </div>
           </div>
-          
-          <p className="text-xs sm:text-sm line-clamp-2">{job.job_description}</p>
-          
+
+          <p className="text-xs sm:text-sm line-clamp-2">
+            {job.job_description}
+          </p>
+
           {job.requirements && job.requirements.length > 0 && (
             <div className="flex flex-wrap gap-1 sm:gap-2">
               {job.requirements.slice(0, 3).map((skill, index) => (
-                <Badge key={index} variant="secondary" className="bg-muted text-foreground text-xs">
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="bg-muted text-foreground text-xs"
+                >
                   {skill}
                 </Badge>
               ))}
               {job.requirements.length > 3 && (
-                <Badge variant="secondary" className="bg-muted text-foreground text-xs">
+                <Badge
+                  variant="secondary"
+                  className="bg-muted text-foreground text-xs"
+                >
                   +{job.requirements.length - 3} more
                 </Badge>
               )}
             </div>
           )}
-          
+
           <div className="flex items-center justify-end gap-2 pt-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="border-gold/30 text-gold hover:bg-gold/5 text-xs h-8 px-2 sm:px-3"
               onClick={(e) => {
                 e.stopPropagation();
@@ -115,10 +133,10 @@ const JobCard = ({
               View Details
               <ChevronDown className="ml-1 h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
-            
+
             {user && (
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 className="bg-gold hover:bg-gold/90 text-white dark:text-black text-xs h-8 px-2 sm:px-3"
                 onClick={(e) => {
                   e.stopPropagation();

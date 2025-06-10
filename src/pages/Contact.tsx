@@ -110,7 +110,7 @@ const Contact = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="font-semibold mb-2">
-                    How do I create a profile on Cast Linker?
+                    How do I create a profile on FilmCollab?
                   </h3>
                   <p className="text-foreground/70 text-sm">
                     Sign up using your email or social media account and

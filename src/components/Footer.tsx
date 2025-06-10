@@ -85,6 +85,22 @@ const Footer = () => {
                   Pricing
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/careers"
+                  className="text-foreground/70 hover:text-gold transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toast({
+                      title: "Careers Coming Soon",
+                      description:
+                        "We're growing! Check back soon for open positions.",
+                    });
+                  }}
+                >
+                  Careers
+                </Link>
+              </li>
               {/* <li>
                 <Link
                   to="/testimonials"
@@ -185,22 +201,7 @@ const Footer = () => {
                   About Us
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/careers"
-                  className="text-foreground/70 hover:text-gold transition-colors"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toast({
-                      title: "Careers Coming Soon",
-                      description:
-                        "We're growing! Check back soon for open positions.",
-                    });
-                  }}
-                >
-                  Careers
-                </Link>
-              </li>
+
               <li>
                 <Link
                   to="/contact"
@@ -215,6 +216,24 @@ const Footer = () => {
                   className="text-foreground/70 hover:text-gold transition-colors"
                 >
                   Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/terms&conditions"
+                  className="text-foreground/70 hover:text-gold transition-colors"
+                 
+                >
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/cancleationrefundpolicy"
+                  className="text-foreground/70 hover:text-gold transition-colors"
+                 
+                >
+                  Cancellation & Refund policy
                 </Link>
               </li>
             </ul>

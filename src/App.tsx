@@ -56,6 +56,8 @@ import AdminRouteGuard from '@/components/admin/AdminRouteGuard';
 import UserPostDetail from './pages/UserPostDetail';
 import UserJobDetail from './pages/UserJobDetail';
 import ManagePage from './pages/ManagePage';
+import CancellationRefundPolicy from './pages/CancellationRefundPolicy';
+import TermsAndConditions from './pages/TermsAndConditions';
 
 const App = () => {
   return (
@@ -93,6 +95,22 @@ const App = () => {
               element={
                 <AppLayout>
                   <About />
+                </AppLayout>
+              }
+            />
+            <Route
+              path="/cancleationrefundpolicy"
+              element={
+                <AppLayout>
+                  <CancellationRefundPolicy />
+                </AppLayout>
+              }
+            />
+            <Route
+              path="/terms&conditions"
+              element={
+                <AppLayout>
+                  <TermsAndConditions />
                 </AppLayout>
               }
             />

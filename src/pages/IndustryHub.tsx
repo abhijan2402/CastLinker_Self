@@ -41,12 +41,13 @@ import { useToast } from "@/hooks/use-toast";
 const IndustryHub = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [comingSoon, setComingSoon] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("news");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState({
     news: false,
-    events: false, 
+    events: false,
     courses: false,
     resources: false,
     subscribe: false,
@@ -211,31 +212,33 @@ const IndustryHub = () => {
               educational resources from the film industry.
             </p>
           </div>
-          <div className="hidden sm:flex items-center gap-2">
-            <Button
-              size="sm"
-              className="bg-gold hover:bg-gold/90 text-black gap-1"
-              onClick={() =>
-                setDialogOpen((prev) => ({ ...prev, [activeTab]: true }))
-              }
-            >
-              <Plus className="h-4 w-4" />
-              <span>Submit Content</span>
-              <ArrowRight className="h-3.5 w-3.5 ml-1" />
-            </Button>
-          </div>
         </div>
       </div>
 
       {/* Search Bar */}
-      <div className="relative flex-1 mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search for news, events, courses, or resources..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9 bg-background/50 border-gold/10 focus-visible:ring-gold/30"
-        />
+      <div className="flex gap-2 justify-center">
+        <div className="relative flex-1 mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search for news, events, courses, or resources..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 bg-background/50 border-gold/10 focus-visible:ring-gold/30"
+          />
+        </div>
+        <div className="hidden sm:flex  gap-2">
+          <Button
+            size="sm"
+            className="bg-gold hover:bg-gold/90 text-black gap-1"
+            onClick={() =>
+              setDialogOpen((prev) => ({ ...prev, [activeTab]: true }))
+            }
+          >
+            <Plus className="h-4 w-4" />
+            <span>Submit Content</span>
+            <ArrowRight className="h-3.5 w-3.5 ml-1" />
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="news" className="mb-6" onValueChange={setActiveTab}>
@@ -606,212 +609,226 @@ const IndustryHub = () => {
 
         {/* Courses Tab */}
         <TabsContent value="courses">
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Featured Course */}
-              {isLoading ? (
-                <div className="lg:col-span-2 bg-card border border-gold/10 rounded-xl overflow-hidden shadow-lg">
-                  <div className="grid grid-cols-1 lg:grid-cols-5">
-                    <Skeleton className="h-64 lg:h-auto lg:col-span-2" />
-                    <div className="p-8 lg:col-span-3 space-y-4">
-                      <Skeleton className="h-6 w-32" />
-                      <Skeleton className="h-8 w-full" />
-                      <Skeleton className="h-5 w-48" />
-                      <Skeleton className="h-24 w-full" />
-                      <div className="grid grid-cols-3 gap-4">
-                        <Skeleton className="h-16 w-full" />
-                        <Skeleton className="h-16 w-full" />
-                        <Skeleton className="h-16 w-full" />
+          {comingSoon ? (
+            <div className="flex justify-center items-center h-80 border border-gold/10 rounded-xl">
+              <h1 className="border border-red-400 shadow-lg px-6 py-2 rounded-md text-sm">
+                Coming Soon
+              </h1>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Featured Course */}
+                {isLoading ? (
+                  <div className="lg:col-span-2 bg-card border border-gold/10 rounded-xl overflow-hidden shadow-lg">
+                    <div className="grid grid-cols-1 lg:grid-cols-5">
+                      <Skeleton className="h-64 lg:h-auto lg:col-span-2" />
+                      <div className="p-8 lg:col-span-3 space-y-4">
+                        <Skeleton className="h-6 w-32" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-5 w-48" />
+                        <Skeleton className="h-24 w-full" />
+                        <div className="grid grid-cols-3 gap-4">
+                          <Skeleton className="h-16 w-full" />
+                          <Skeleton className="h-16 w-full" />
+                          <Skeleton className="h-16 w-full" />
+                        </div>
+                        <Skeleton className="h-10 w-40" />
                       </div>
-                      <Skeleton className="h-10 w-40" />
                     </div>
                   </div>
-                </div>
-              ) : featuredCourse ? (
-                <div className="lg:col-span-2 bg-card border border-gold/10 rounded-xl overflow-hidden shadow-lg">
-                  <div className="grid grid-cols-1 lg:grid-cols-5">
-                    <div
-                      className="h-64 lg:h-auto lg:col-span-2 bg-cover bg-center"
-                      style={{
-                        backgroundImage: `url(${
-                          featuredCourse.image ||
-                          "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?q=80&w=1000"
-                        })`,
-                      }}
-                    ></div>
-                    <div className="p-8 lg:col-span-3">
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="bg-gold/20 text-gold px-2 py-0.5 rounded-full text-xs font-medium">
-                          Featured Course
-                        </span>
-                        <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full text-xs font-medium">
-                          PRO
-                        </span>
+                ) : featuredCourse ? (
+                  <div className="lg:col-span-2 bg-card border border-gold/10 rounded-xl overflow-hidden shadow-lg">
+                    <div className="grid grid-cols-1 lg:grid-cols-5">
+                      <div
+                        className="h-64 lg:h-auto lg:col-span-2 bg-cover bg-center"
+                        style={{
+                          backgroundImage: `url(${
+                            featuredCourse.image ||
+                            "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?q=80&w=1000"
+                          })`,
+                        }}
+                      ></div>
+                      <div className="p-8 lg:col-span-3">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="bg-gold/20 text-gold px-2 py-0.5 rounded-full text-xs font-medium">
+                            Featured Course
+                          </span>
+                          <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full text-xs font-medium">
+                            PRO
+                          </span>
+                        </div>
+                        <h2 className="text-2xl font-bold mb-2">
+                          {featuredCourse.title}
+                        </h2>
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="flex items-center">
+                            {Array(5)
+                              .fill(0)
+                              .map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < Math.round(featuredCourse.rating || 5)
+                                      ? "text-gold fill-gold"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            <span className="ml-2 text-sm">
+                              {featuredCourse.rating || "5.0"} (
+                              {featuredCourse.reviews || 324} reviews)
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-foreground/70 mb-6">
+                          Learn from industry expert {featuredCourse.instructor}{" "}
+                          in this comprehensive course.
+                        </p>
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                          <div className="text-center">
+                            <p className="text-lg font-bold">
+                              {featuredCourse.lessons || 36}
+                            </p>
+                            <p className="text-xs text-foreground/60">
+                              Lessons
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-lg font-bold">
+                              {featuredCourse.hours || 14.5}
+                            </p>
+                            <p className="text-xs text-foreground/60">Hours</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-lg font-bold">
+                              {featuredCourse.level || "Advanced"}
+                            </p>
+                            <p className="text-xs text-foreground/60">Level</p>
+                          </div>
+                        </div>
+                        <Button className="bg-gold hover:bg-gold-dark text-cinematic">
+                          <Play className="mr-2 h-4 w-4" />
+                          Start Learning
+                        </Button>
                       </div>
-                      <h2 className="text-2xl font-bold mb-2">
-                        {featuredCourse.title}
-                      </h2>
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="flex items-center">
-                          {Array(5)
-                            .fill(0)
-                            .map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`h-4 w-4 ${
-                                  i < Math.round(featuredCourse.rating || 5)
-                                    ? "text-gold fill-gold"
-                                    : "text-gray-300"
-                                }`}
-                              />
-                            ))}
-                          <span className="ml-2 text-sm">
-                            {featuredCourse.rating || "5.0"} (
-                            {featuredCourse.reviews || 324} reviews)
+                    </div>
+                  </div>
+                ) : (
+                  <div className="lg:col-span-2 bg-card border border-gold/10 rounded-xl p-6 text-center">
+                    <p>No featured courses available</p>
+                  </div>
+                )}
+              </div>
+
+              <h3 className="text-xl font-bold mb-4">Popular Courses</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {isLoading ? (
+                  Array(3)
+                    .fill(0)
+                    .map((_, i) => (
+                      <Card
+                        key={i}
+                        className="bg-card border-gold/10 overflow-hidden shadow-lg"
+                      >
+                        <Skeleton className="h-40" />
+                        <CardHeader>
+                          <Skeleton className="h-6 w-full" />
+                          <Skeleton className="h-5 w-3/4" />
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <Skeleton className="h-5 w-full" />
+                          <Skeleton className="h-5 w-24" />
+                        </CardContent>
+                        <CardFooter>
+                          <Skeleton className="h-10 w-full" />
+                        </CardFooter>
+                      </Card>
+                    ))
+                ) : filteredCourses.length > 0 ? (
+                  filteredCourses.map((course) => (
+                    <Card
+                      key={course.id}
+                      className="bg-card border-gold/10 overflow-hidden shadow-lg"
+                    >
+                      <div
+                        className="h-40 bg-cover bg-center relative"
+                        style={{
+                          backgroundImage: `url(${
+                            course.image ||
+                            "https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?q=80&w=1000"
+                          })`,
+                        }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-t from-cinematic to-transparent"></div>
+                        <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-cinematic-dark/70 px-2 py-1 rounded-full">
+                          <Play className="h-3 w-3 text-gold" />
+                          <span className="text-xs">
+                            {course.lessons || 24} lessons
                           </span>
                         </div>
                       </div>
-                      <p className="text-foreground/70 mb-6">
-                        Learn from industry expert {featuredCourse.instructor}{" "}
-                        in this comprehensive course.
-                      </p>
-                      <div className="grid grid-cols-3 gap-4 mb-6">
-                        <div className="text-center">
-                          <p className="text-lg font-bold">
-                            {featuredCourse.lessons || 36}
-                          </p>
-                          <p className="text-xs text-foreground/60">Lessons</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-lg font-bold">
-                            {featuredCourse.hours || 14.5}
-                          </p>
-                          <p className="text-xs text-foreground/60">Hours</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-lg font-bold">
-                            {featuredCourse.level || "Advanced"}
-                          </p>
-                          <p className="text-xs text-foreground/60">Level</p>
-                        </div>
-                      </div>
-                      <Button className="bg-gold hover:bg-gold-dark text-cinematic">
-                        <Play className="mr-2 h-4 w-4" />
-                        Start Learning
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="lg:col-span-2 bg-card border border-gold/10 rounded-xl p-6 text-center">
-                  <p>No featured courses available</p>
-                </div>
-              )}
-            </div>
-
-            <h3 className="text-xl font-bold mb-4">Popular Courses</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {isLoading ? (
-                Array(3)
-                  .fill(0)
-                  .map((_, i) => (
-                    <Card
-                      key={i}
-                      className="bg-card border-gold/10 overflow-hidden shadow-lg"
-                    >
-                      <Skeleton className="h-40" />
                       <CardHeader>
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-5 w-3/4" />
+                        <CardTitle className="text-lg">
+                          {course.title}
+                        </CardTitle>
+                        <CardDescription>
+                          By {course.instructor}
+                        </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        <Skeleton className="h-5 w-full" />
-                        <Skeleton className="h-5 w-24" />
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-3 w-3 text-gold" />
+                            <span className="text-sm">
+                              {course.rating || 4.8} ({course.reviews || 156})
+                            </span>
+                          </div>
+                          <span className="text-sm">
+                            {course.hours || 8.5} hours
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full text-xs font-medium">
+                            {course.level || "Intermediate"}
+                          </span>
+                        </div>
                       </CardContent>
                       <CardFooter>
-                        <Skeleton className="h-10 w-full" />
+                        <Button className="w-full bg-gold hover:bg-gold-dark text-cinematic">
+                          Enroll Now
+                        </Button>
                       </CardFooter>
                     </Card>
                   ))
-              ) : filteredCourses.length > 0 ? (
-                filteredCourses.map((course) => (
-                  <Card
-                    key={course.id}
-                    className="bg-card border-gold/10 overflow-hidden shadow-lg"
-                  >
-                    <div
-                      className="h-40 bg-cover bg-center relative"
-                      style={{
-                        backgroundImage: `url(${
-                          course.image ||
-                          "https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?q=80&w=1000"
-                        })`,
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-t from-cinematic to-transparent"></div>
-                      <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-cinematic-dark/70 px-2 py-1 rounded-full">
-                        <Play className="h-3 w-3 text-gold" />
-                        <span className="text-xs">
-                          {course.lessons || 24} lessons
-                        </span>
-                      </div>
-                    </div>
-                    <CardHeader>
-                      <CardTitle className="text-lg">{course.title}</CardTitle>
-                      <CardDescription>By {course.instructor}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 text-gold" />
-                          <span className="text-sm">
-                            {course.rating || 4.8} ({course.reviews || 156})
-                          </span>
-                        </div>
-                        <span className="text-sm">
-                          {course.hours || 8.5} hours
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full text-xs font-medium">
-                          {course.level || "Intermediate"}
-                        </span>
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button className="w-full bg-gold hover:bg-gold-dark text-cinematic">
-                        Enroll Now
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-3 bg-card border border-gold/10 rounded-xl p-6 text-center">
-                  <p>No courses found matching your search criteria</p>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div className="col-span-3 bg-card border border-gold/10 rounded-xl p-6 text-center">
+                    <p>No courses found matching your search criteria</p>
+                  </div>
+                )}
+              </div>
 
-            <div className="text-center mt-8">
-              <Button
-                variant="outline"
-                className="border-gold/30 hover:border-gold mr-4"
-                onClick={() =>
-                  setDialogOpen((prev) => ({ ...prev, courses: true }))
-                }
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Submit Course
-              </Button>
-              <Button
-                variant="outline"
-                className="border-gold/30 hover:border-gold"
-              >
-                Browse All Courses
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="text-center mt-8">
+                <Button
+                  variant="outline"
+                  className="border-gold/30 hover:border-gold mr-4"
+                  onClick={() =>
+                    setDialogOpen((prev) => ({ ...prev, courses: true }))
+                  }
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Submit Course
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-gold/30 hover:border-gold"
+                >
+                  Browse All Courses
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </TabsContent>
 
         {/* Resources Tab */}

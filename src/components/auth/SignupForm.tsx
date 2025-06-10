@@ -229,7 +229,10 @@ const SignupForm = () => {
                 <div className="space-y-1 leading-none">
                   <FormLabel className="text-sm font-normal cursor-pointer">
                     I agree to the{" "}
-                    <Link to="/terms" className="text-gold hover:text-gold/80">
+                    <Link
+                      to="/terms&conditions"
+                      className="text-gold hover:text-gold/80"
+                    >
                       Terms of Service
                     </Link>{" "}
                     and{" "}

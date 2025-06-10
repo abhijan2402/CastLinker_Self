@@ -23,10 +23,10 @@ const About = () => {
 
             <h2 className="text-2xl font-semibold mb-4">Our Story</h2>
             <p className="text-foreground/80 text-lg mb-6">
-              Founded in 2025, CastLinker aims to break barriers in the film
+              Founded in 2025, FilmCollab aims to break barriers in the film
               industry by connecting talented individuals directly with
               directors and producers. As a tech-driven newcomer, I saw how
-              closed networks limit opportunities. CastLinker empowers artists
+              closed networks limit opportunities. FilmCollab empowers artists
               to be discovered based on talent—not connections.
             </p>
 

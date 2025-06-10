@@ -1,14 +1,16 @@
-# CastLinker - Application Architecture
+# FilmCollab - Application Architecture
 
 ## Overview
-CastLinker is a professional networking platform designed specifically for the film industry. It connects various film industry professionals, from actors and directors to production companies and agents.
+
+FilmCollab is a professional networking platform designed specifically for the film industry. It connects various film industry professionals, from actors and directors to production companies and agents.
 
 ## System Architecture Map
 
 ### 🔵 Frontend (Next.js Web App)
 
 #### Public Landing Page (/)
-- About Castlinker
+
+- About FilmCollab
 - How it Works
 - CTA buttons (Signup / Login)
 - Talent Features Preview
@@ -18,7 +20,9 @@ CastLinker is a professional networking platform designed specifically for the f
 #### Role-Based Dashboards (Protected Routes)
 
 ##### Normal User Dashboard
+
 1. **Sidebar Navigation**
+
    - Dashboard Overview
    - Jobs Management
    - Projects
@@ -29,6 +33,7 @@ CastLinker is a professional networking platform designed specifically for the f
    - Profile Settings
 
 2. **Dashboard Overview**
+
    - Profile completion percentage
    - Job posting statistics
    - Project participation metrics
@@ -36,24 +41,28 @@ CastLinker is a professional networking platform designed specifically for the f
    - Recent activities
 
 3. **Jobs Management**
+
    - Create casting calls
    - Manage job postings
    - Track applications
    - Job status updates
 
 4. **Projects Section**
+
    - Project creation interface
    - Team collaboration tools
    - Project timeline tracking
    - Resource management
 
 5. **Talent Directory**
+
    - Comprehensive talent listing
    - Advanced filtering system
    - Interactive talent cards
    - Connection management
 
 6. **Industry Hub**
+
    - News feed
    - Upcoming auditions
    - Industry events
@@ -61,6 +70,7 @@ CastLinker is a professional networking platform designed specifically for the f
    - Online courses
 
 7. **Messaging Center**
+
    - Real-time chat interface
    - Group conversations
    - Media sharing
@@ -75,19 +85,23 @@ CastLinker is a professional networking platform designed specifically for the f
    - Contact information
 
 ##### Admin Dashboard
+
 1. **User Management**
+
    - User approval system
    - Account suspension tools
    - Profile verification
    - User analytics
 
 2. **Content Management**
+
    - Job post moderation
    - Project oversight
    - Content filtering
    - Report handling
 
 3. **Industry Hub Management**
+
    - News publication
    - Event management
    - Resource curation
@@ -102,6 +116,7 @@ CastLinker is a professional networking platform designed specifically for the f
 ### 🔵 Backend Services (Supabase)
 
 #### Authentication System
+
 ```sql
 -- Enhanced auth configuration
 AUTH_ROLES = ['ADMIN', 'NORMAL_USER', 'VERIFIED_TALENT']
@@ -111,6 +126,7 @@ AUTH_PROVIDERS = ['email', 'google', 'facebook']
 #### Database Schema (PostgreSQL)
 
 ##### Enhanced Users Table (auth.users)
+
 ```sql
 id: uuid (primary key)
 email: string
@@ -120,7 +136,8 @@ last_login: timestamp
 account_status: enum (ACTIVE, SUSPENDED, PENDING)
 ```
 
-##### Extended User Profiles Table (public.castlinker_escyvd_user_profiles)
+##### Extended User Profiles Table (public.FilmCollab_escyvd_user_profiles)
+
 ```sql
 id: uuid (primary key)
 user_email: string (foreign key to auth.users)
@@ -141,6 +158,7 @@ updated_at: timestamp
 ```
 
 ##### Jobs Table (public.jobs)
+
 ```sql
 id: uuid (primary key)
 creator_id: uuid (foreign key)
@@ -156,6 +174,7 @@ deadline: timestamp
 ```
 
 ##### Projects Table (public.projects)
+
 ```sql
 id: uuid (primary key)
 creator_id: uuid (foreign key)
@@ -169,6 +188,7 @@ resources: jsonb
 ```
 
 ##### Industry Hub Table (public.industry_hub)
+
 ```sql
 id: uuid (primary key)
 type: enum (NEWS, EVENT, RESOURCE, COURSE)
@@ -181,6 +201,7 @@ expires_at: timestamp
 ```
 
 #### Storage Configuration
+
 ```
 storage/
 ├── showreels/
@@ -194,12 +215,14 @@ storage/
 ## Security Enhancements
 
 1. **Authentication**
+
    - Multi-factor authentication
    - Session management
    - Password policies
    - OAuth integration
 
 2. **Authorization**
+
    - Role-based access control (RBAC)
    - Resource-level permissions
    - API rate limiting
@@ -214,6 +237,7 @@ storage/
 ## Performance Optimizations
 
 1. **Frontend**
+
    - Next.js static generation
    - Image optimization
    - Code splitting
@@ -230,6 +254,7 @@ storage/
 ## Monitoring System
 
 1. **Performance Metrics**
+
    - Response times
    - Error rates
    - Resource usage
@@ -244,6 +269,7 @@ storage/
 ## Deployment Architecture
 
 1. **Production Environment**
+
    - Load balancer
    - Multiple app instances
    - CDN integration
@@ -256,6 +282,7 @@ storage/
    - Backup systems
 
 ## Directory Structure
+
 ```
 src/
 ├── components/
@@ -299,6 +326,7 @@ src/
 ## Key Workflows
 
 ### 1. User Registration Flow
+
 1. User visits signup page
 2. Fills professional information
 3. Email verification
@@ -306,6 +334,7 @@ src/
 5. Optional verification request
 
 ### 2. Talent Search Flow
+
 1. User accesses talent directory
 2. Applies filters (role, location, etc.)
 3. Views filtered results
@@ -313,6 +342,7 @@ src/
 5. Sends connection requests
 
 ### 3. Messaging Flow
+
 1. User selects a connection
 2. Opens chat interface
 3. Real-time message exchange
@@ -320,6 +350,7 @@ src/
 5. Message notifications
 
 ### 4. Admin Verification Flow
+
 1. User requests verification
 2. Admin reviews request
 3. Checks provided credentials
@@ -329,12 +360,14 @@ src/
 ## Security Measures
 
 1. **Authentication**
+
    - JWT-based authentication
    - Secure password hashing
    - Rate limiting
    - Session management
 
 2. **Authorization**
+
    - Role-based access control
    - Row-level security in Supabase
    - Protected routes
@@ -349,6 +382,7 @@ src/
 ## Performance Optimizations
 
 1. **Frontend**
+
    - Code splitting
    - Lazy loading
    - Image optimization
@@ -363,6 +397,7 @@ src/
 ## Monitoring and Analytics
 
 1. **Performance Monitoring**
+
    - Page load times
    - API response times
    - Error tracking
@@ -377,29 +412,31 @@ src/
 ## Future Considerations
 
 1. **Scalability**
+
    - Horizontal scaling
    - Load balancing
    - CDN integration
    - Caching layers
 
 2. **Features**
+
    - Video chat
    - Project collaboration
    - Job board integration
    - Mobile applications
 
 3. **Integrations**
+
    - Payment processing
    - Calendar scheduling
    - Portfolio platforms
-   - Social media 
-
+   - Social media
 
    Landing Page (Public)
 
 Home (/)
 
-About Castlinker
+About FilmCollab
 
 How it Works
 
@@ -506,4 +543,3 @@ Everything else is behind authentication (Login required).
 Talent Directory, Jobs, Projects, Messages — all available only after login.
 
 Admin and Normal Users have separate dashboards with different access.
-

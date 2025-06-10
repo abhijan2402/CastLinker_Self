@@ -105,7 +105,7 @@ const PostManagement = () => {
     if (!postToDelete) return;
 
     try {
-      const rawResponse = await deleteData(`/api/posts/${postToDelete.id}`);
+      const rawResponse = await deleteData(`/api/posts/admin/${postToDelete.id}`);
       const result = rawResponse as DeleteEventResponse;
 
       console.log(result);
@@ -134,12 +134,18 @@ const PostManagement = () => {
     }
   };
 
-  const filteredPosts = posts.filter(
-    (post) =>
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPosts = posts.filter((post) => {
+    const title = post?.title?.toLowerCase() || "";
+    const description = post?.description?.toLowerCase() || "";
+    const category = post?.category?.toLowerCase() || "";
+    const term = searchTerm.toLowerCase();
+
+    return (
+      title.includes(term) ||
+      description.includes(term) ||
+      category.includes(term)
+    );
+  });
 
   return (
     <div className="p-6">

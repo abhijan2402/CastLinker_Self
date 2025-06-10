@@ -25,7 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Plus, X } from "lucide-react";
+import { CalendarIcon, Currency, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -57,6 +57,8 @@ const JobCreateForm = ({
     responsibilities: [],
     tags: [],
     is_featured: false,
+    currency: "INR",
+    experience_level: "",
   });
   const [currentRequirement, setCurrentRequirement] = useState("");
   const [currentResponsibility, setCurrentResponsibility] = useState("");
@@ -165,8 +167,10 @@ const JobCreateForm = ({
         application_email: formData.application_email,
         is_featured: formData.is_featured || false,
         user_id: user.id,
+        currency: formData.currency,
+        experience_level: formData.experience_level,
       };
-
+      console.log(payload);
       const response = await postData("/api/jobs", payload);
       console.log("✅ Job created:", response);
       toast({
@@ -449,6 +453,37 @@ const JobCreateForm = ({
                   />
                 </PopoverContent>
               </Popover>
+            </div>
+
+            <div>
+              <Label htmlFor="experience_level" className="block mb-2">
+                Experience Level
+              </Label>
+              <Select
+                value={formData.experience_level || ""}
+                onValueChange={(value) =>
+                  handleSelectChange("experience_level", value)
+                }
+              >
+                <SelectTrigger className="bg-cinematic-dark/50 border-gold/10 focus:border-gold">
+                  <SelectValue placeholder="Select experience level" />{" "}
+                  {/* Updated placeholder */}
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    "Entry-level",
+                    "Junior",
+                    "Mid-level",
+                    "Senior",
+                    "Lead",
+                    "Expert",
+                  ].map((level) => (
+                    <SelectItem key={level} value={level.toLowerCase()}>
+                      {level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

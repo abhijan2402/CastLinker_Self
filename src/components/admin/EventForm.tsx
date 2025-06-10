@@ -274,7 +274,7 @@ const EventForm = ({
             ? "Saving..."
             : initialData
             ? "Update Event"
-            : "Create Event"}
+            : "Submit Event"}
         </Button>
       </form>
     </Form>
