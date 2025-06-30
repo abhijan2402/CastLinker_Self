@@ -180,8 +180,6 @@ const ProjectDetail = () => {
   const [selectedUser, setSelectedUser] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
 
-  console.log(selectedUser);
-  console.log(selectedRole);
   useEffect(() => {
     // Replace with your actual API endpoint to fetch connections
     const fetchConnections = async () => {
@@ -198,8 +196,6 @@ const ProjectDetail = () => {
     }
   }, [projectId]);
 
-  console.log(projectId);
-
   const fetchProjectDetails = async () => {
     try {
       setLoading(true);
@@ -207,13 +203,11 @@ const ProjectDetail = () => {
 
       // Fetch project details
       const response = (await fetchData("/api/projects")) as ProjectsResponse;
-      console.log(response);
 
       const projectData = response?.projects?.find(
         (p: any) => p.id === Number(projectId)
       );
 
-      console.log(projectData);
       setProject(projectData);
       if (projectData?.user_id === user.id) {
         setIsTeamHead(true);
@@ -231,8 +225,9 @@ const ProjectDetail = () => {
       }
 
       // Fetch members
-      const respTeam: any = await fetchData("api/connection");
-      console.log(respTeam);
+      const respTeam: any = await fetchData(
+        `api/projects/project-members/${projectId}`
+      );
       if (respTeam?.data) {
         setMembers(respTeam?.data);
       }
@@ -335,7 +330,7 @@ const ProjectDetail = () => {
       };
 
       const response: any = await updateData<{ error?: any }>(
-        `/api/projects/edit/${projectId}`,
+        `/api/projects/${projectId}`,
         payload
       );
 
@@ -412,7 +407,6 @@ const ProjectDetail = () => {
       };
 
       const res: any = await postData("api/projects/create-milestone", payload);
-      console.log(res);
 
       if (res) {
         toast({
@@ -729,29 +723,24 @@ const ProjectDetail = () => {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 border border-gold/20">
                       <AvatarImage
-                        src={
-                          member?.connected_user?.profile_pic_url || undefined
-                        }
+                        src={member?.user?.profile_pic_url || undefined}
                       />
                       <AvatarFallback className="bg-gold/10 text-gold">
-                        {getInitials(
-                          member?.connected_user?.username || "User"
-                        )}
+                        {getInitials(member?.user?.username || "User")}
                       </AvatarFallback>
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">
-                        {member?.connected_user?.username}
-                        {project.user_id ===
-                          member?.connected_user?.user_id && (
+                        {member?.user?.username || "NA"}
+                        {project.user_id === member?.user?.user_id && (
                           <span className="ml-2 text-xs bg-gold/10 text-gold px-2 py-0.5 rounded">
                             Team Head
                           </span>
                         )}
                       </p>
                       <p className="text-sm text-muted-foreground truncate">
-                        {member?.connected_user?.email || "example@gmail.com"}
+                        {member?.user?.email || "example@gmail.com"}
                       </p>
                     </div>
 
