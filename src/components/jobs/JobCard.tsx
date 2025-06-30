@@ -90,7 +90,7 @@ const JobCard = ({
             )}
 
             <div className="flex items-center gap-1 text-muted-foreground">
-              ₹<span>{formatSalary(job)}</span>
+              <span>{formatSalary(job)}</span>
             </div>
           </div>
 

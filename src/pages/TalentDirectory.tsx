@@ -66,6 +66,7 @@ import {
 } from "@/components/filters/LocationFilter";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { postData } from "@/api/ClientFuntion";
 
 const TalentDirectory = () => {
   const navigate = useNavigate();
@@ -110,9 +111,10 @@ const TalentDirectory = () => {
     navigate(`/profile/${profile.userId}`);
   };
 
-  const handleConnectClick = (profile: TalentProfile) => {
-    setSelectedProfile(profile);
+  const handleConnectClick = async (profile: TalentProfile) => {
+    // setSelectedProfile(profile);
     setConnectDialogOpen(true);
+    
   };
 
   const handleLikeProfile = async (profile: TalentProfile) => {
@@ -623,17 +625,20 @@ const TalentDirectory = () => {
                   {profile?.bio}
                 </p>
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {profile?.acting_skills?.slice(0, 3).map((skill, index) => (
-                    <span
-                      key={`${profile.id}-${skill.name}-${index}`}
-                      className="text-xs px-2 py-0.5 bg-gold/10 text-gold/90 rounded-full"
-                    >
-                      {skill.name}
-                    </span>
-                  ))}
-                  {profile?.acting_skills?.length > 3 && (
+                  {Object.entries(profile?.acting_skills || {})
+                    .slice(0, 3)
+                    .map(([skillName, level], index) => (
+                      <span
+                        key={`${profile.id}-${skillName}-${index}`}
+                        className="text-xs px-2 py-0.5 bg-gold/10 text-gold/90 rounded-full"
+                      >
+                        {`${skillName.replace(/_/g, " ")} `}
+                      </span>
+                    ))}
+
+                  {Object.keys(profile?.acting_skills || {}).length > 3 && (
                     <span className="text-xs px-2 py-0.5 bg-gold/5 text-gold/70 rounded-full">
-                      +{profile?.acting_skills?.length - 3} more
+                      +{Object.keys(profile.acting_skills).length - 3} more
                     </span>
                   )}
                 </div>
@@ -658,7 +663,7 @@ const TalentDirectory = () => {
                 <div className="flex justify-between mt-4">
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="lg"
                     className={`px-3 border-gold/20 ${
                       likedProfiles?.includes(profile.id)
                         ? "bg-rose-950/30 text-rose-400"
@@ -676,7 +681,7 @@ const TalentDirectory = () => {
                     {likedProfiles?.includes(profile.id) ? "Liked" : "Like"}
                   </Button>
 
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     className={`px-3 border-gold/20 ${
@@ -696,11 +701,11 @@ const TalentDirectory = () => {
                     {wishlistedProfiles?.includes(profile.id)
                       ? "Saved"
                       : "Save"}
-                  </Button>
+                  </Button> */}
 
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="lg"
                     className="px-3 border-gold/20 hover:bg-blue-950/20 hover:text-blue-400"
                     onClick={() => shareProfile(profile)}
                   >

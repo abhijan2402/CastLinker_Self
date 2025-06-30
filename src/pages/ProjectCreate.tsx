@@ -86,9 +86,7 @@ const ProjectCreate = () => {
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-3xl font-bold gold-gradient-text">
-          Create New Project
-        </h1>
+
       </div>
 
       <Card className="bg-card/60 backdrop-blur-sm border-gold/10 shadow-md">

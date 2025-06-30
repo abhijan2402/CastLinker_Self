@@ -36,7 +36,7 @@ interface Project {
 }
 
 type ProjectResponse = {
-  projects: Project[];
+  projects: Project[]; 
 };
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);

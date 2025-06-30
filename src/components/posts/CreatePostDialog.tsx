@@ -227,7 +227,7 @@ const CreatePostDialog = ({
 
     if (values.event_date) {
       formData.append("event_date", new Date(values.event_date).toISOString());
-    }
+    } 
 
     if (values.external_url) {
       formData.append("external_url", values.external_url);

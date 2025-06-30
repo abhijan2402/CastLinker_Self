@@ -32,7 +32,6 @@ export const useJobsData = () => {
     salaryMin: 0,
     salaryMax: 200000,
   });
-
   const [sort, setSort] = useState<JobSort>({
     field: "relevance",
     direction: "desc",

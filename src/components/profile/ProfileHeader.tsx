@@ -8,6 +8,7 @@ import {
   Instagram,
   Linkedin,
   Youtube,
+  Edit,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,12 +20,14 @@ import { Input } from "../ui/input";
 import { EditProfileDialog } from "./EditProfileDialog";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+import CreateProfileDialog from "./CreateProfileDialog";
 
 const ProfileHeader = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, fetchProfile, UpdateSocialLinks } = useTalentProfile(user);
   const [isEditing, setIsEditing] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const form = useForm({
     defaultValues: {
       website: "",
@@ -97,6 +100,14 @@ const ProfileHeader = () => {
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Social Links
+          </Button>
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            size="sm"
+            className="bg-gold hover:bg-gold-dark text-cinematic"
+          >
+            <Edit className="h-4 w-4 mr-1" />
+            Edit Profile
           </Button>
         </div>
 
@@ -195,6 +206,7 @@ const ProfileHeader = () => {
         </div>
       </div>
 
+      {/* Ṣocial Media Form */}
       <EditProfileDialog
         title="Add Social Media Links"
         description="Include links to your online presence and social platforms"
@@ -285,6 +297,13 @@ const ProfileHeader = () => {
           </div>
         </Form>
       </EditProfileDialog>
+
+      {/* Profile and Cover Upload */}
+      <CreateProfileDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        fetchProfile={fetchProfile}
+      />
     </div>
   );
 };

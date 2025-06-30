@@ -10,7 +10,7 @@ interface JobFiltersProps {
   onFilterChange: (filters: Partial<JobFilters>) => void;
   onResetFilters: () => void;
 } 
-
+ 
 const JobFiltersComponent = ({ onFilterChange, onResetFilters }: JobFiltersProps) => {
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
   const [roleCategories, setRoleCategories] = useState<RoleCategory[]>([]);

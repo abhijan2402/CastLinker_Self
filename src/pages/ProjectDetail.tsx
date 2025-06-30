@@ -43,7 +43,20 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchData } from "@/api/ClientFuntion";
+import {
+  deleteData,
+  fetchData,
+  postData,
+  updateData,
+} from "@/api/ClientFuntion";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ToastContainer } from "react-toastify";
 
 type Project = {
   id: number;
@@ -85,6 +98,21 @@ interface ProjectMilestone {
   status: string;
 }
 
+type Message = {
+  id: number;
+  message: string;
+  sender: {
+    id: number;
+    username: string;
+    profile_pic_url: string | null;
+  };
+};
+
+type ChatResponse = {
+  success: boolean;
+  data: Message[];
+};
+
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
     case "planning":
@@ -122,8 +150,8 @@ const ProjectDetail = () => {
   const { user } = useAuth();
 
   const [project, setProject] = useState<Project | null>(null);
-  const [members, setMembers] = useState<ProjectMember[]>([]);
-  const [messages, setMessages] = useState<ProjectMessage[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState("");
@@ -134,7 +162,8 @@ const ProjectDetail = () => {
   const [updatedProject, setUpdatedProject] = useState({
     name: "",
     description: "",
-    current_status: "",
+    location: "",
+    current_status: "Planning",
   });
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -146,6 +175,22 @@ const ProjectDetail = () => {
     due_date: "",
     status: "pending",
   });
+
+  const [connections, setConnections] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
+
+  console.log(selectedUser);
+  console.log(selectedRole);
+  useEffect(() => {
+    // Replace with your actual API endpoint to fetch connections
+    const fetchConnections = async () => {
+      const response: any = await fetchData("api/connection");
+      setConnections(response?.data);
+    };
+
+    fetchConnections();
+  }, []);
 
   useEffect(() => {
     if (projectId) {
@@ -170,6 +215,11 @@ const ProjectDetail = () => {
 
       console.log(projectData);
       setProject(projectData);
+      if (projectData?.user_id === user.id) {
+        setIsTeamHead(true);
+      } else {
+        setIsTeamHead(false);
+      }
       if (!projectData) {
         toast({
           title: "Project not found",
@@ -181,70 +231,26 @@ const ProjectDetail = () => {
       }
 
       // Fetch members
-      const { data: membersData, error: membersError } = await supabase
-        .from("project_members")
-        .select("id, user_id, status")
-        .eq("project_id", projectId);
-
-      if (!membersError && membersData) {
-        // Fetch user details for each member
-        const enhancedMembers = await Promise.all(
-          membersData.map(async (member) => {
-            const { data: userData } = await supabase
-              .from("profiles")
-              .select("full_name, avatar_url, email")
-              .eq("id", member.user_id)
-              .single();
-
-            return {
-              ...member,
-              user_name: userData?.full_name || "Unknown User",
-              user_avatar: userData?.avatar_url || null,
-              user_email: userData?.email || "unknown@email.com",
-            };
-          })
-        );
-
-        setMembers(enhancedMembers);
+      const respTeam: any = await fetchData("api/connection");
+      console.log(respTeam);
+      if (respTeam?.data) {
+        setMembers(respTeam?.data);
       }
 
-      // Fetch messages
-      const { data: messagesData, error: messagesError } = await supabase
-        .from("project_messages")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: true });
-
-      if (!messagesError && messagesData) {
-        // Fetch user details for each message sender
-        const enhancedMessages = await Promise.all(
-          messagesData.map(async (message) => {
-            const { data: userData } = await supabase
-              .from("profiles")
-              .select("full_name, avatar_url")
-              .eq("id", message.user_id)
-              .single();
-
-            return {
-              ...message,
-              user_name: userData?.full_name || "Unknown User",
-              user_avatar: userData?.avatar_url || null,
-            };
-          })
-        );
-
-        setMessages(enhancedMessages);
+      // Fetch updated messages
+      const responseMsg = await fetchData<ChatResponse>(
+        `/api/projects/${projectId}/chat`
+      );
+      if (responseMsg?.data) {
+        setMessages(responseMsg.data);
       }
 
       // Fetch milestones
-      const { data: milestonesData, error: milestonesError } = await supabase
-        .from("project_milestones")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("due_date", { ascending: true });
-
-      if (!milestonesError && milestonesData) {
-        setMilestones(milestonesData);
+      const respMilestone: any = await fetchData(
+        `api/projects/milestones/${projectId}`
+      );
+      if (respMilestone?.data) {
+        setMilestones(respMilestone?.data);
       }
     } catch (error: any) {
       console.error("Error fetching project details:", error);
@@ -265,43 +271,22 @@ const ProjectDetail = () => {
     try {
       setSendingMessage(true);
 
-      const { error } = await supabase.from("project_messages").insert({
-        project_id: projectId,
-        user_id: user.id,
-        content: newMessage.trim(),
+      // Send the message
+      await postData<unknown>(`/api/projects/${projectId}/chat`, {
+        message: newMessage.trim(),
       });
 
-      if (error) throw error;
-
-      // Refresh messages
-      const { data: newMessageData } = await supabase
-        .from("project_messages")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: true });
-
-      if (newMessageData) {
-        // Fetch user details for each message sender
-        const enhancedMessages = await Promise.all(
-          newMessageData.map(async (message) => {
-            const { data: userData } = await supabase
-              .from("profiles")
-              .select("full_name, avatar_url")
-              .eq("id", message.user_id)
-              .single();
-
-            return {
-              ...message,
-              user_name: userData?.full_name || "Unknown User",
-              user_avatar: userData?.avatar_url || null,
-            };
-          })
-        );
-
-        setMessages(enhancedMessages);
-      }
-
+      // Fetch updated messages
+      const response = await fetchData<ChatResponse>(
+        `/api/projects/${projectId}/chat`
+      );
+      setMessages(response.data);
       setNewMessage("");
+
+      toast({
+        title: "Message sent",
+        description: "Your message has been posted to the chat",
+      });
     } catch (error: any) {
       console.error("Error sending message:", error);
       toast({
@@ -318,12 +303,7 @@ const ProjectDetail = () => {
     if (!projectId || !isTeamHead) return;
 
     try {
-      const { error } = await supabase
-        .from("projects")
-        .delete()
-        .eq("id", projectId);
-
-      if (error) throw error;
+      await deleteData<unknown>(`/api/projects/${projectId}`);
 
       toast({
         title: "Project deleted",
@@ -347,33 +327,24 @@ const ProjectDetail = () => {
     if (!projectId || !isTeamHead) return;
 
     try {
-      const { error } = await supabase
-        .from("projects")
-        .update({
-          name: updatedProject.name,
-          description: updatedProject.description,
-          current_status: updatedProject.current_status,
-        })
-        .eq("id", projectId);
+      const payload = {
+        name: updatedProject.name,
+        description: updatedProject.description,
+        status: updatedProject.current_status,
+        location: updatedProject.location,
+      };
 
-      if (error) throw error;
-
-      setProject((prev) =>
-        prev
-          ? {
-              ...prev,
-              name: updatedProject.name,
-              description: updatedProject.description,
-              current_status: updatedProject.current_status,
-            }
-          : null
+      const response: any = await updateData<{ error?: any }>(
+        `/api/projects/edit/${projectId}`,
+        payload
       );
 
-      toast({
-        title: "Project updated",
-        description: "Project details have been updated successfully",
-      });
-
+      if (response?.success) {
+        toast({
+          title: "Project updated",
+          description: "Project details have been updated successfully",
+        });
+      }
       setEditDialogOpen(false);
     } catch (error: any) {
       console.error("Error updating project:", error);
@@ -386,64 +357,31 @@ const ProjectDetail = () => {
   };
 
   const handleInviteMember = async () => {
-    if (!projectId || !isTeamHead || !inviteEmail) return;
+    if (!projectId || !isTeamHead || !selectedUser) return;
 
     try {
       setSending(true);
 
-      // Check if user exists
-      const { data: userData, error: userError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", inviteEmail)
-        .single();
-
-      if (userError || !userData) {
-        toast({
-          title: "User not found",
-          description: "No user found with that email address",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Check if already invited
-      const { data: existingMember } = await supabase
-        .from("project_members")
-        .select("id, status")
-        .eq("project_id", projectId)
-        .eq("user_id", userData.id)
-        .single();
-
-      if (existingMember) {
-        toast({
-          title: "Already invited",
-          description: `User is already ${
-            existingMember.status === "pending" ? "invited" : "a member"
-          }`,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Send invitation
-      const { error } = await supabase.from("project_members").insert({
+      const payload = {
+        team_member_id: selectedUser,
+        role: selectedRole,
         project_id: projectId,
-        user_id: userData.id,
-        status: "pending",
-      });
+      };
+      const response: any = await postData(
+        "/api/projects/add-project-member",
+        payload
+      );
 
-      if (error) throw error;
-
-      toast({
-        title: "Invitation sent",
-        description: "User has been invited to the project",
-      });
-
-      // Refresh members
-      fetchProjectDetails();
-      setInviteEmail("");
-      setInviteDialogOpen(false);
+      if (response?.project) {
+        toast({
+          title: "Member Added Successfully",
+          variant: "default",
+        });
+        setInviteDialogOpen(false);
+        setSelectedUser("");
+        setSelectedRole("");
+        fetchProjectDetails();
+      }
     } catch (error: any) {
       console.error("Error inviting member:", error);
       toast({
@@ -466,39 +404,37 @@ const ProjectDetail = () => {
       return;
 
     try {
-      const { error } = await supabase.from("project_milestones").insert({
+      const payload = {
         project_id: projectId,
         title: newMilestone.title,
         description: newMilestone.description,
         due_date: newMilestone.due_date,
-        status: newMilestone.status,
-      });
+      };
 
-      if (error) throw error;
+      const res: any = await postData("api/projects/create-milestone", payload);
+      console.log(res);
 
-      toast({
-        title: "Milestone created",
-        description: "New milestone has been created successfully",
-      });
+      if (res) {
+        toast({
+          title: "Milestone created",
+          description: "New milestone has been created successfully",
+        });
+        // Refresh milestones
+        const respMilestone: any = await fetchData(
+          `api/projects/milestones/${projectId}`
+        );
+        if (respMilestone?.data) {
+          setMilestones(respMilestone?.data);
+        }
 
-      // Refresh milestones
-      const { data: milestonesData } = await supabase
-        .from("project_milestones")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("due_date", { ascending: true });
-
-      if (milestonesData) {
-        setMilestones(milestonesData);
+        setNewMilestone({
+          title: "",
+          description: "",
+          due_date: "",
+          status: "pending",
+        });
+        setNewMilestoneDialogOpen(false);
       }
-
-      setNewMilestone({
-        title: "",
-        description: "",
-        due_date: "",
-        status: "pending",
-      });
-      setNewMilestoneDialogOpen(false);
     } catch (error: any) {
       console.error("Error creating milestone:", error);
       toast({
@@ -616,7 +552,6 @@ const ProjectDetail = () => {
           {project.name}
         </h1>
       </div>
-
       <div className="flex items-center justify-between">
         <Badge
           variant="outline"
@@ -646,13 +581,11 @@ const ProjectDetail = () => {
           </div>
         )}
       </div>
-
       {project.description && (
         <div className="bg-card/60 backdrop-blur-sm border border-gold/10 p-4 rounded-lg">
           <p className="text-muted-foreground">{project.description}</p>
         </div>
       )}
-
       <Tabs defaultValue="chat" className="w-full">
         <TabsList className="grid grid-cols-3 w-full max-w-md mb-6">
           <TabsTrigger value="chat" className="gap-2">
@@ -690,45 +623,49 @@ const ProjectDetail = () => {
                       <div
                         key={message.id}
                         className={`flex gap-3 ${
-                          message.user_id === user?.id
+                          message.id === user?.id
                             ? "flex-row-reverse"
                             : "flex-row"
                         }`}
                       >
                         <Avatar className="h-8 w-8 border border-gold/20">
-                          <AvatarImage src={message.user_avatar || undefined} />
+                          <AvatarImage
+                            src={message?.sender?.profile_pic_url || undefined}
+                          />
                           <AvatarFallback className="bg-gold/10 text-gold">
-                            {getInitials(message.user_name || "User")}
+                            {getInitials(message?.sender?.username || "User")}
                           </AvatarFallback>
                         </Avatar>
 
                         <div
                           className={`flex flex-col max-w-[80%] ${
-                            message.user_id === user?.id
+                            message.id === user?.id
                               ? "items-end"
                               : "items-start"
                           }`}
                         >
                           <div
                             className={`px-4 py-2 rounded-lg ${
-                              message.user_id === user?.id
+                              message.id === user?.id
                                 ? "bg-gold text-black rounded-tr-none"
                                 : "bg-card border border-gold/20 rounded-tl-none"
                             }`}
                           >
                             <p className="whitespace-pre-wrap break-words">
-                              {message.content}
+                              {message?.message}
                             </p>
                           </div>
                           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                            <span>{message.user_name || "Unknown User"}</span>
-                            <span>•</span>
                             <span>
+                              {message?.sender?.username || "Unknown User"}
+                            </span>
+                            <span>•</span>
+                            {/* <span>
                               {new Date(message.created_at).toLocaleTimeString(
                                 [],
                                 { hour: "2-digit", minute: "2-digit" }
                               )}
-                            </span>
+                            </span> */}
                           </div>
                         </div>
                       </div>
@@ -791,34 +728,41 @@ const ProjectDetail = () => {
                 <CardContent className="pt-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 border border-gold/20">
-                      <AvatarImage src={member.user_avatar || undefined} />
+                      <AvatarImage
+                        src={
+                          member?.connected_user?.profile_pic_url || undefined
+                        }
+                      />
                       <AvatarFallback className="bg-gold/10 text-gold">
-                        {getInitials(member.user_name || "User")}
+                        {getInitials(
+                          member?.connected_user?.username || "User"
+                        )}
                       </AvatarFallback>
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">
-                        {member.user_name}
-                        {project.team_head_id === member.user_id && (
+                        {member?.connected_user?.username}
+                        {project.user_id ===
+                          member?.connected_user?.user_id && (
                           <span className="ml-2 text-xs bg-gold/10 text-gold px-2 py-0.5 rounded">
                             Team Head
                           </span>
                         )}
                       </p>
                       <p className="text-sm text-muted-foreground truncate">
-                        {member.user_email}
+                        {member?.connected_user?.email || "example@gmail.com"}
                       </p>
                     </div>
 
-                    {member.status === "pending" && (
+                    {/* {member.status === "pending" && (
                       <Badge
                         variant="outline"
                         className="bg-amber-500/10 border-amber-500/20 text-amber-500"
                       >
                         Pending
                       </Badge>
-                    )}
+                    )} */}
                   </div>
                 </CardContent>
               </Card>
@@ -873,14 +817,14 @@ const ProjectDetail = () => {
                       <h4 className="font-semibold text-lg">
                         {milestone.title}
                       </h4>
-                      <Badge
+                      {/* <Badge
                         variant="outline"
                         className={`${getMilestoneStatusColor(
                           milestone.status
                         )}`}
                       >
                         {milestone.status}
-                      </Badge>
+                      </Badge> */}
                     </div>
 
                     {milestone.description && (
@@ -919,7 +863,6 @@ const ProjectDetail = () => {
           </div>
         </TabsContent>
       </Tabs>
-
       {/* Delete Project Alert Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-card border-destructive/20">
@@ -941,7 +884,6 @@ const ProjectDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       {/* Edit Project Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -985,6 +927,22 @@ const ProjectDetail = () => {
                 }
                 className="focus-visible:ring-gold/30"
                 rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="edit-location" className="text-sm font-medium">
+                Location
+              </label>
+              <Input
+                id="edit-location"
+                value={updatedProject.location}
+                onChange={(e) =>
+                  setUpdatedProject((prev) => ({
+                    ...prev,
+                    location: e.target.value,
+                  }))
+                }
+                className="focus-visible:ring-gold/30"
               />
             </div>
 
@@ -1038,21 +996,50 @@ const ProjectDetail = () => {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
+            {/* Email (optional if using dropdown selection) */}
             <div className="space-y-2">
-              <label htmlFor="invite-email" className="text-sm font-medium">
-                Email Address
-              </label>
-              <Input
-                id="invite-email"
-                type="email"
-                placeholder="colleague@example.com"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                className="focus-visible:ring-gold/30"
-              />
-              <p className="text-xs text-muted-foreground">
-                The user must already have an account on the platform
-              </p>
+              <label className="text-sm font-medium">Select User</label>
+              <Select value={selectedUser} onValueChange={setSelectedUser}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select user from your connections" />
+                </SelectTrigger>
+                <SelectContent>
+                  {connections.map((user) => (
+                    <SelectItem
+                      key={user?.connected_user?.id}
+                      value={user?.connected_user?.id.toString()}
+                    >
+                      {user?.connected_user?.username || "user"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Role Selector */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select Role</label>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    "actor",
+                    "director",
+                    "screenwriter",
+                    "musician",
+                    "producer",
+                    "editor",
+                    "cinematographer",
+                    "other",
+                  ].map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {role.charAt(0).toUpperCase() + role.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -1066,7 +1053,7 @@ const ProjectDetail = () => {
             <Button
               onClick={handleInviteMember}
               className="bg-gold hover:bg-gold/90 text-black gap-2"
-              disabled={!inviteEmail || sending}
+              disabled={!selectedUser || sending}
             >
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Send Invitation
@@ -1074,7 +1061,6 @@ const ProjectDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* New Milestone Dialog */}
       <Dialog
         open={newMilestoneDialogOpen}
@@ -1144,7 +1130,7 @@ const ProjectDetail = () => {
               />
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <label htmlFor="milestone-status" className="text-sm font-medium">
                 Status
               </label>
@@ -1164,7 +1150,7 @@ const ProjectDetail = () => {
                 <option value="completed">Completed</option>
                 <option value="delayed">Delayed</option>
               </select>
-            </div>
+            </div> */}
           </div>
 
           <DialogFooter>
