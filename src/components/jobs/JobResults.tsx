@@ -39,7 +39,7 @@ const JobResults = memo(
     const [isApplyFormOpen, setIsApplyFormOpen] = useState(false);
     const [retryCount, setRetryCount] = useState(0); // Track retry attempts
     const [isRetrying, setIsRetrying] = useState(false);
-    // console.log(savedJobs)
+    console.log(jobs)
 
     const handleJobClick = useCallback((job: Job) => {
       console.log(selectedJob);
@@ -122,7 +122,7 @@ const JobResults = memo(
               </span>
             </h3>
 
-            <JobSortSelect onSort={onSort} />
+            {/* <JobSortSelect onSort={onSort} /> */}
           </div>
 
           {error ? (

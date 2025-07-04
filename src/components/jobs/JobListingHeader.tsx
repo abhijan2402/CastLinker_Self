@@ -12,7 +12,7 @@ interface JobListingHeaderProps {
 const JobListingHeader = ({ onSearch }: JobListingHeaderProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [location, setLocation] = useState("");
-
+ 
   const handleSearch = () => {
     onSearch({
       search: searchTerm,

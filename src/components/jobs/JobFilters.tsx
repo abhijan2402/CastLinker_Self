@@ -4,54 +4,100 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
-import { JobFilters, JobType, RoleCategory, ExperienceLevel } from "@/types/jobTypes";
+import {
+  JobFilters,
+  JobType,
+  RoleCategory,
+  ExperienceLevel,
+} from "@/types/jobTypes";
+import { fetchData } from "@/api/ClientFuntion";
+import { useJobsData } from "@/hooks/useJobsData";
 
 interface JobFiltersProps {
   onFilterChange: (filters: Partial<JobFilters>) => void;
   onResetFilters: () => void;
-} 
- 
-const JobFiltersComponent = ({ onFilterChange, onResetFilters }: JobFiltersProps) => {
+}
+
+const JobFiltersComponent = ({
+  onFilterChange,
+  onResetFilters,
+}: JobFiltersProps) => {
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
   const [roleCategories, setRoleCategories] = useState<RoleCategory[]>([]);
-  const [experienceLevels, setExperienceLevels] = useState<ExperienceLevel[]>([]);
+  const [experienceLevels, setExperienceLevels] = useState<ExperienceLevel[]>(
+    []
+  );
   const [payRange, setPayRange] = useState([0, 200000]);
 
-  
-  const handleJobTypeChange = (checked: boolean | "indeterminate", jobType: JobType) => {
-    setJobTypes(prev => 
-      checked 
-        ? [...prev, jobType]
-        : prev.filter(type => type !== jobType)
+  const { setJobs, setTotalCount } = useJobsData();
+
+  // console.log(jobTypes)
+
+  const handleJobTypeChange = (
+    checked: boolean | "indeterminate",
+    jobType: JobType
+  ) => {
+    setJobTypes((prev) =>
+      checked ? [...prev, jobType] : prev.filter((type) => type !== jobType)
     );
   };
-  
-  const handleRoleCategoryChange = (checked: boolean | "indeterminate", category: RoleCategory) => {
-    setRoleCategories(prev => 
-      checked 
-        ? [...prev, category]
-        : prev.filter(cat => cat !== category)
+
+  const handleRoleCategoryChange = (
+    checked: boolean | "indeterminate",
+    category: RoleCategory
+  ) => {
+    setRoleCategories((prev) =>
+      checked ? [...prev, category] : prev.filter((cat) => cat !== category)
     );
   };
-  
-  const handleExperienceChange = (checked: boolean | "indeterminate", level: ExperienceLevel) => {
-    setExperienceLevels(prev => 
-      checked 
-        ? [...prev, level]
-        : prev.filter(lvl => lvl !== level)
+
+  const handleExperienceChange = (
+    checked: boolean | "indeterminate",
+    level: ExperienceLevel
+  ) => {
+    setExperienceLevels((prev) =>
+      checked ? [...prev, level] : prev.filter((lvl) => lvl !== level)
     );
   };
-  
+
+  const getjobs = async () => {
+    const queryParams = new URLSearchParams();
+
+    if (jobTypes.length) queryParams.append("type", jobTypes.join(","));
+    if (roleCategories.length)
+      queryParams.append("roleCategory", roleCategories.join(","));
+    if (experienceLevels.length)
+      queryParams.append("experienceLevel", experienceLevels.join(","));
+    queryParams.append("min_salary", String(payRange[0]));
+    queryParams.append("max_salary", String(payRange[1]));
+
+    // const queryString = `type=${jobTypes.join(
+    //   ","
+    // )}&roleCategory=${roleCategories.join(",")}&min_salary=${
+    //   payRange[0]
+    // }&max_salary=${payRange[1]}`;
+    // const endpoint = `/api/jobs/admin?${queryString}`;
+
+    try {
+      // const result: any = await fetchData(endpoint);
+      // setJobs(result?.data || []);
+      // setTotalCount(result?.data?.length);
+    } catch (error) {
+      console.error("Failed to fetch jobs:", error);
+    }
+  };
+
   useEffect(() => {
+    // getjobs();
     onFilterChange({
       jobTypes,
       roleCategories,
       experienceLevels,
       salaryMin: payRange[0],
-      salaryMax: payRange[1]
+      salaryMax: payRange[1],
     });
-  }, [jobTypes, roleCategories, experienceLevels, payRange, onFilterChange]);
-  
+  }, [jobTypes, roleCategories, experienceLevels, payRange]);
+
   const handleReset = () => {
     setJobTypes([]);
     setRoleCategories([]);

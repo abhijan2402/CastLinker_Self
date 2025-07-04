@@ -26,6 +26,8 @@ const JobCard = ({
   const { user } = useAuth();
   const isFeatured = job.is_featured;
   const isRemote = job.location_type === 'Remote';
+
+  console.log("this is jobs data", job);
   
   return (
     <Card

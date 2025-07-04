@@ -22,10 +22,12 @@ export type {
 } from "@/types/jobTypes";
 
 export const useJobsData = () => {
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<JobFilters>({
+    search: "",
+    location: "",
     jobTypes: [],
     roleCategories: [],
     experienceLevels: [],
@@ -36,6 +38,7 @@ export const useJobsData = () => {
     field: "relevance",
     direction: "desc",
   });
+
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const { toast } = useToast();
@@ -45,54 +48,45 @@ export const useJobsData = () => {
   // Add a ref for ongoing fetch operations
   const fetchInProgress = useRef(false);
 
+  console.log("Fetched Jobs:", jobs);
+
   // Fetch jobs based on filters and sorting
   const getJobs = useCallback(async () => {
-    if (fetchInProgress.current) return;
-
-    fetchInProgress.current = true;
     setIsLoading(true);
     setError(null);
 
     try {
-      // console.log("Current filters:", filters);
-
       const queryParams = new URLSearchParams();
 
-      // Mapping frontend filter keys to backend query parameters
-      if (filters.jobTypes) {
+      if (filters.search) {
+        queryParams.append("search", filters.search);
+      }
+      if (filters.jobTypes?.length) {
         queryParams.append("type", filters.jobTypes.join(","));
       }
-      if (filters.roleCategories) {
+      if (filters.roleCategories?.length) {
         queryParams.append("roleCategory", filters.roleCategories.join(","));
       }
-      if (filters.experienceLevels) {
+      if (filters.experienceLevels?.length) {
         queryParams.append(
           "experienceLevel",
           filters.experienceLevels.join(",")
         );
       }
-      if (filters.salaryMin !== undefined && filters.salaryMin !== null) {
+      if (filters.salaryMin !== undefined) {
         queryParams.append("min_salary", String(filters.salaryMin));
       }
-      if (filters.salaryMax !== undefined && filters.salaryMax !== null) {
+      if (filters.salaryMax !== undefined) {
         queryParams.append("max_salary", String(filters.salaryMax));
       }
 
       const queryString = queryParams.toString();
       const endpoint = `/api/jobs/admin${queryString ? `?${queryString}` : ""}`;
 
-      const result = await fetchData(endpoint);
+      const result: any = await fetchData(endpoint);
 
-      if (
-        result &&
-        typeof result === "object" &&
-        result !== null &&
-        "data" in result
-      ) {
-        const res = result as { data: any[]; length: number };
-        // ✅ Filter only active jobs
-        const activeJobs = res.data.filter((job) => job.status === "active");
-
+      if (result?.data) {
+        const activeJobs = result.data.filter((job) => job.status === "active");
         setJobs(activeJobs);
         setTotalCount(activeJobs.length);
       }
@@ -108,9 +102,8 @@ export const useJobsData = () => {
       setTotalCount(0);
     } finally {
       setIsLoading(false);
-      fetchInProgress.current = false;
     }
-  }, [toast, filters, sort]);
+  }, [filters, toast]);
 
   const getSavedJobs = useCallback(async () => {
     try {
@@ -219,19 +212,20 @@ export const useJobsData = () => {
   // Effect to fetch jobs when filters or sort changes, but not on initial render
   useEffect(() => {
     // If this is the first render, mark it as completed and fetch jobs
-    if (!initialRenderCompleted.current) {
-      initialRenderCompleted.current = true;
-      getJobs();
-      return;
-    }
+    // if (!initialRenderCompleted.current) {
+    //   initialRenderCompleted.current = true;
+    //   getJobs();
+    //   return;
+    // }
 
     // For subsequent filter/sort changes, fetch jobs after a small delay
-    const timer = setTimeout(() => {
-      getJobs();
-    }, 100);
+    // const timer = setTimeout(() => {
+    //   getJobs();
+    // }, 100);
 
-    return () => clearTimeout(timer);
-  }, [getJobs, filters, sort]);
+    // return () => clearTimeout(timer);
+    getJobs();
+  }, [filters]);
 
   // Effect to fetch saved jobs on mount and when user changes
   useEffect(() => {
@@ -253,5 +247,7 @@ export const useJobsData = () => {
     applyForJob,
     getSavedJobs,
     refetchJobs: getJobs,
+    setJobs,
+    setTotalCount,
   };
 };

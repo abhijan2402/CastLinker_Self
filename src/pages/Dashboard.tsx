@@ -57,7 +57,7 @@ interface Stats {
   profileViews: number;
   callbacks: number;
   activityScore: number;
-}
+} 
 interface ApiResponse {
   success: boolean;
   data: DashboardData; // Updated to reflect the response structure

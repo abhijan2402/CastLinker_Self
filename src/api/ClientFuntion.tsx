@@ -3,7 +3,9 @@ import { toast } from "react-toastify";
 
 // You can later move this to an env file
 // export const baseURL: string = "https://filmcollab.in/";
-export const baseURL: string = "https://91.108.104.109:3000/";
+// export const baseURL: string = "https://91.108.104.109:3000/";
+export const baseURL = import.meta.env.VITE_BASE_URL;
+
 
 if (!baseURL) {
   console.warn(
