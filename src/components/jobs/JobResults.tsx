@@ -122,7 +122,7 @@ const JobResults = memo(
               </span>
             </h3>
 
-            {/* <JobSortSelect onSort={onSort} /> */}
+            <JobSortSelect onSort={onSort} />
           </div>
 
           {error ? (
