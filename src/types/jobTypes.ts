@@ -11,6 +11,7 @@ export type RoleCategory =
   | "VFX"
   | "Costume"
   | "Makeup"
+  | "Technical"
   | "Other";
 export type ExperienceLevel =
   | "Entry Level"
@@ -48,7 +49,7 @@ export interface Job {
 }
 
 export interface JobFilters {
-  search?: string;
+  title?: string;
   location?: string;
   jobTypes?: JobType[];
   roleCategories?: RoleCategory[];
@@ -60,6 +61,6 @@ export interface JobFilters {
 }
 
 export interface JobSort {
-  field: "relevance" | "created_at" | "salary_max";
+  field: "relevance" | "createdAt" | "max_salary";
   direction: "asc" | "desc";
 }

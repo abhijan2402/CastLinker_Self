@@ -40,8 +40,10 @@ export function ConnectDialog({
         target_user_id: talent.id,
       };
       const res: any = await postData("api/connection/connect", payload);
-      if (res) {
+      if (res?.success) {
         toast.success("User connected Successfully!");
+      } else {
+        toast.warn("Failed to send your request. Please try again shortly.");
       }
       onClose();
     } catch (error) {

@@ -9,6 +9,7 @@ import {
   industryResources,
 } from "@/utils/dummyData";
 import { fetchData, postData } from "@/api/ClientFuntion";
+import { toast } from "react-toastify";
 
 // Type definitions
 export type NewsItem = {
@@ -37,6 +38,8 @@ export type EventItem = {
   image: string;
   is_featured?: boolean;
   event_status?: string;
+
+  featured_image_url: string;
 };
 
 export type CourseItem = {
@@ -182,139 +185,155 @@ export const useIndustryHub = () => {
     : resources;
 
   // Submit new content
-  const submitContent = async (submission: IndustrySubmission) => {
-    // if (!user) {
-    //   toast({
-    //     title: "Authentication Required",
-    //     description: "You must be logged in to submit content",
-    //     variant: "destructive",
-    //   });
-    //   return { success: false };
-    // }
+const submitContent = async (submission: IndustrySubmission) => {
+  if (!user) {
+    toast({
+      title: "Authentication Required",
+      description: "You must be logged in to submit content.",
+      variant: "destructive",
+    });
+    return { success: false };
+  }
 
-    try {
-      const { type, data } = submission;
+  try {
+    const { type, data } = submission;
 
-      switch (type) {
-        case "news": {
-          // API call to backend
-          const formattedPayload = {
-            title: data.title,
-            excerpt: data.excerpt,
-            description: data.content,
-            category: data.category,
-            read_time: data.read_time,
-            featured_image_url: data.image,
-          };
-          const response = await postData(
-            "/api/articles/create",
-            formattedPayload
-          );
-          fetchIndustryData();
+    switch (type) {
+      case "news": {
+        const formattedPayload = {
+          title: data.title,
+          excerpt: data.excerpt,
+          description: data.content,
+          category: data.category,
+          read_time: data.read_time,
+          featured_image_url: data.image,
+        };
+
+        const response: any = await postData(
+          "/api/articles/create",
+          formattedPayload
+        );
+
+        if (response?.success) {
           toast({
             title: "Submission Successful",
-            description: "Your article has been created successfully",
+            description: "Your article has been created successfully.",
           });
-
-          return { success: true };
-          break;
-        }
-
-        // Keep the rest of the cases unchanged (you can update them similarly later)
-        case "event": {
-          const timeValue = parseFloat(data.time);
-          const hours = Math.floor(timeValue).toString().padStart(2, "0");
-          const minutes = Math.round((timeValue % 1) * 60)
-            .toString()
-            .padStart(2, "0");
-          const formattedTime = `${hours}:${minutes}:00`;
-
-          const payload = {
-            title: data.title,
-            description: data.description,
-            date: new Date(data.date).toISOString().split("T")[0],
-            time: formattedTime,
-            location: data.location,
-            event_type: data.type,
-            featured_image_url: data.image,
-          };
-
-          const response = await postData("/api/events/create", payload);
           fetchIndustryData();
-          // toast({
-          //   title: "Submission Successful",
-          //   description: "Your article has been created successfully",
-          // });
-
-          return { success: true };
-          break;
+        } else {
+          throw new Error("Article submission failed");
         }
 
-        case "course": {
-          console.log(data);
-          const payload = {
-            title: data.title,
-            instructor: data.instructor,
-            description: data.description,
-            no_of_lessons: data.lessons,
-            duration: data.hours,
-            level: data.level,
-            featured_image_url: data.image,
-          };
-          console.log(payload);
-          const response = await postData("/api/courses/create", payload);
-          console.log(response);
-          fetchIndustryData();
-          // toast({
-          //   title: "Submission Successful",
-          //   description: "Your article has been created successfully",
-          // });
-
-          return { success: true };
-          break;
-        }
-
-        case "resource": {
-          console.log(data);
-          const formattedPayload = {
-            title: data.title,
-            description: data.description,
-            category: data.category,
-            featured_image_url: data.image,
-            file_url: data.file_url,
-          };
-          const response = await postData(
-            "/api/resources/create",
-            formattedPayload
-          );
-          // console.log(response);
-          // toast({
-          //   title: "Submission Successful",
-          //   description: "Your article has been created successfully",
-          // });
-          fetchIndustryData();
-
-          return { success: true };
-          break;
-        }
+        break;
       }
 
-      toast({
-        title: "Submission Successful",
-        description: "Your content has been submitted successfully",
-      });
+      case "event": {
+        const timeValue = parseFloat(data.time);
+        const hours = Math.floor(timeValue).toString().padStart(2, "0");
+        const minutes = Math.round((timeValue % 1) * 60)
+          .toString()
+          .padStart(2, "0");
+        const formattedTime = `${hours}:${minutes}:00`;
 
-      return { success: true };
-    } catch (error) {
-      console.error("Error submitting content:", error);
-      toast({
-        title: "Submission Failed",
-        description: "There was an error submitting your content",
-        variant: "destructive",
-      });
-      return { success: false };
+        const payload = {
+          title: data.title,
+          description: data.description,
+          date: new Date(data.date).toISOString().split("T")[0],
+          time: formattedTime,
+          location: data.location,
+          event_type: data.type,
+          featured_image_url: data.image,
+        };
+
+        // ✅ FIXED: changed endpoint to /api/events/create
+        const response:any = await postData("/api/events/create", payload);
+
+        if (response?.success) {
+          toast({
+            title: "Event Created",
+            description: "Your event has been successfully submitted.",
+          });
+          fetchIndustryData();
+        } else {
+          throw new Error("Event submission failed");
+        }
+
+        break;
+      }
+
+      case "course": {
+        const payload = {
+          title: data.title,
+          instructor: data.instructor,
+          description: data.description,
+          no_of_lessons: data.lessons,
+          duration: data.hours,
+          level: data.level,
+          featured_image_url: data.image,
+        };
+
+        const response: any = await postData("/api/courses/create", payload);
+
+        if (response?.success) {
+          toast({
+            title: "Course Created",
+            description: "Your course has been successfully submitted.",
+          });
+          fetchIndustryData();
+        } else {
+          throw new Error("Course submission failed");
+        }
+
+        break;
+      }
+
+      case "resource": {
+        const formattedPayload = {
+          title: data.title,
+          description: data.description,
+          category: data.category,
+          featured_image_url: data.image,
+          file_url: data.file_url,
+        };
+
+        const response: any = await postData(
+          "/api/resources/create",
+          formattedPayload
+        );
+
+        if (response?.success) {
+          toast({
+            title: "Resource Added",
+            description: "Your resource has been successfully submitted.",
+          });
+          fetchIndustryData();
+        } else {
+          throw new Error("Resource submission failed");
+        }
+
+        break;
+      }
+
+      default:
+        toast({
+          title: "Unknown Submission Type",
+          description: `The type '${type}' is not recognized.`,
+          variant: "destructive",
+        });
+        return { success: false };
     }
-  };
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error submitting content:", error);
+    toast({
+      title: "Submission Failed",
+      description: error?.message || "There was an unexpected error.",
+      variant: "destructive",
+    });
+    return { success: false };
+  }
+};
 
   // Subscribe to newsletter
   const subscribeToNewsletter = async (email: string) => {

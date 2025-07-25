@@ -26,7 +26,7 @@ export const useJobsData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<JobFilters>({
-    search: "",
+    title: "",
     location: "",
     jobTypes: [],
     roleCategories: [],
@@ -39,7 +39,7 @@ export const useJobsData = () => {
     direction: "desc",
   });
 
-  console.log(sort)
+  console.log(sort);
 
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -53,68 +53,74 @@ export const useJobsData = () => {
   console.log("Fetched Jobs:", jobs);
 
   // Fetch jobs based on filters and sorting
-const getJobs = useCallback(async () => {
-  setIsLoading(true);
-  setError(null);
+  const getJobs = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
 
-  try {
-    const queryParams = new URLSearchParams();
+    try {
+      const queryParams = new URLSearchParams();
 
-    if (filters.search) {
-      queryParams.append("search", filters.search);
-    }
-    if (filters.jobTypes?.length) {
-      queryParams.append("type", filters.jobTypes.join(","));
-    }
-    if (filters.roleCategories?.length) {
-      queryParams.append("roleCategory", filters.roleCategories.join(","));
-    }
-    if (filters.experienceLevels?.length) {
-      queryParams.append("experienceLevel", filters.experienceLevels.join(","));
-    }
-    if (filters.salaryMin !== undefined) {
-      queryParams.append("min_salary", String(filters.salaryMin));
-    }
-    if (filters.salaryMax !== undefined) {
-      queryParams.append("max_salary", String(filters.salaryMax));
-    }
+      if (filters.title) {
+        queryParams.append("title", filters.title);
+      }
+      if (filters.location) {
+        queryParams.append("location", filters.location);
+      }
+      if (filters.jobTypes?.length) {
+        queryParams.append("type", filters.jobTypes.join(","));
+      }
+      if (filters.roleCategories?.length) {
+        queryParams.append("roleCategory", filters.roleCategories.join(","));
+      }
+      if (filters.experienceLevels?.length) {
+        queryParams.append(
+          "experienceLevel",
+          filters.experienceLevels.join(",")
+        );
+      }
+      if (filters.salaryMin !== undefined) {
+        queryParams.append("min_salary", String(filters.salaryMin));
+      }
+      if (filters.salaryMax !== undefined) {
+        queryParams.append("max_salary", String(filters.salaryMax));
+      }
 
-    const queryString = queryParams.toString();
-    const endpoint = `/api/jobs/admin${queryString ? `?${queryString}` : ""}`;
+      const queryString = queryParams.toString();
+      const endpoint = `/api/jobs/admin${queryString ? `?${queryString}` : ""}`;
 
-    const result: any = await fetchData(endpoint);
+      const result: any = await fetchData(endpoint);
 
-    if (result?.data) {
-      const activeJobs = result.data.filter((job) => job.status === "active");
+      if (result?.data) {
+        // const activeJobs = result.data.filter((job) => job.status === "active");
+        const activeJobs = result?.data;
 
-      // 🔽 Sort the jobs based on `sort.field` and `sort.direction`
-      const sortedJobs = [...activeJobs].sort((a, b) => {
-        const fieldA = a[sort.field];
-        const fieldB = b[sort.field];
+        // 🔽 Sort the jobs based on `sort.field` and `sort.direction`
+        const sortedJobs = [...activeJobs].sort((a, b) => {
+          const fieldA = a[sort.field];
+          const fieldB = b[sort.field];
 
-        if (fieldA < fieldB) return sort.direction === "asc" ? -1 : 1;
-        if (fieldA > fieldB) return sort.direction === "asc" ? 1 : -1;
-        return 0;
+          if (fieldA < fieldB) return sort.direction === "asc" ? -1 : 1;
+          if (fieldA > fieldB) return sort.direction === "asc" ? 1 : -1;
+          return 0;
+        });
+
+        setJobs(sortedJobs);
+        setTotalCount(sortedJobs.length);
+      }
+    } catch (error: any) {
+      console.error("Error in getJobs:", error);
+      setError(error.message || "An unexpected error occurred");
+      toast({
+        title: "Error fetching jobs",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
       });
-
-      setJobs(sortedJobs);
-      setTotalCount(sortedJobs.length);
+      setJobs([]);
+      setTotalCount(0);
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error: any) {
-    console.error("Error in getJobs:", error);
-    setError(error.message || "An unexpected error occurred");
-    toast({
-      title: "Error fetching jobs",
-      description: error.message || "An unexpected error occurred",
-      variant: "destructive",
-    });
-    setJobs([]);
-    setTotalCount(0);
-  } finally {
-    setIsLoading(false);
-  }
-}, [filters, sort, toast]);
-
+  }, [filters, sort, toast]);
 
   const getSavedJobs = useCallback(async () => {
     try {

@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 // Using the dummy job data structure for now
 const dummyJobs = [
   {
-    id: "job_001",
+    id: "63",
     title: "Frontend Developer",
     description: "Develop and maintain user interfaces.",
     companyName: "Innovate Solutions",

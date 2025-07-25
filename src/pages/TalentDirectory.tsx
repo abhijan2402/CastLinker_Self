@@ -66,7 +66,7 @@ import {
 } from "@/components/filters/LocationFilter";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { postData } from "@/api/ClientFuntion";
+import { baseURL, postData } from "@/api/ClientFuntion";
 
 const TalentDirectory = () => {
   const navigate = useNavigate();
@@ -112,7 +112,7 @@ const TalentDirectory = () => {
   };
 
   const handleConnectClick = async (profile: TalentProfile) => {
-    // setSelectedProfile(profile);
+    setSelectedProfile(profile);
     setConnectDialogOpen(true);
     
   };
@@ -573,7 +573,7 @@ const TalentDirectory = () => {
               </Card>
             ))
         ) : profiles.length > 0 ? (
-          profiles.map((profile) => (
+          profiles.map((profile:any) => (
             <Card
               key={profile.id}
               className="bg-card border-gold/10 overflow-hidden shadow-lg hover:border-gold/30 transition-all"
@@ -581,7 +581,7 @@ const TalentDirectory = () => {
               <CardHeader className="p-4 border-b border-gold/10 bg-gradient-to-r from-gold/5 to-transparent">
                 <div className="flex items-start gap-3">
                   <Avatar className="h-14 w-14 border-2 border-gold/30">
-                    <AvatarImage src={profile.avatar} />
+                    <AvatarImage src={`${baseURL}${profile?.cover_pic_url}`} />
                     <AvatarFallback>
                       {profile?.username?.charAt(0) || "NA"}
                     </AvatarFallback>

@@ -233,10 +233,10 @@ const JobFiltersComponent = ({
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="cinematography"
-              checked={roleCategories.includes("Cinematography")}
+              id="technical"
+              checked={roleCategories.includes("Technical")}
               onCheckedChange={(checked) =>
-                handleRoleCategoryChange(checked, "Cinematography")
+                handleRoleCategoryChange(checked, "Technical")
               }
             />
             <label htmlFor="technical" className="text-sm">

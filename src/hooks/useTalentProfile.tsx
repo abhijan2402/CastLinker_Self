@@ -24,6 +24,9 @@ type TalentProfile = {
   createdAt: string;
   updatedAt: string;
 
+  profile_pic_url?: string;
+  cover_pic_url?: string;
+
   total_connections: number;
   total_likes: number;
   total_ratings: number;
@@ -55,7 +58,8 @@ type ProfileFormValues = {
   special_skills?: string;
   technical_skills?: string;
   acting_skills?: string;
-  profile_image?: string;
+  profile_pic_url?: string;
+  cover_pic_url?: string;
 };
 
 type Job = {
@@ -114,7 +118,8 @@ export const useTalentProfile = (user: any) => {
       special_skills: data.special_skills || "",
       technical_skills: data.technical_skills || "",
       acting_skills: data.acting_skills || "",
-      profile_image: data.profile_image || "",
+      profile_image: data.profile_pic_url || "",
+      cover_pic_url: data.profile_pic_url || "",
     };
     console.log(payload);
 

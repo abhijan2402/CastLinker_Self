@@ -445,27 +445,19 @@ const ProjectDetail = () => {
   ) => {
     if (!projectId || !isTeamHead) return;
 
+    console.log(milestoneId, newStatus);
+
     try {
-      const { error } = await supabase
-        .from("project_milestones")
-        .update({ status: newStatus })
-        .eq("id", milestoneId);
-
-      if (error) throw error;
-
-      // Update local state
-      setMilestones((prev) =>
-        prev.map((milestone) =>
-          milestone.id === milestoneId
-            ? { ...milestone, status: newStatus }
-            : milestone
-        )
+      const response: any = await updateData<{ milestone: any }>(
+        `api/projects/milestone/${milestoneId}/complete`,
+        {}
       );
-
-      toast({
-        title: "Status updated",
-        description: `Milestone status updated to ${newStatus}`,
-      });
+      if (response) {
+        toast({
+          title: "Status updated",
+          description: `Milestone status updated to ${newStatus}`,
+        });
+      }
     } catch (error: any) {
       console.error("Error updating milestone status:", error);
       toast({
@@ -559,7 +551,15 @@ const ProjectDetail = () => {
             <Button
               variant="outline"
               className="gap-2 border-gold/20 hover:border-gold/40"
-              onClick={() => setEditDialogOpen(true)}
+              onClick={() => {
+                setEditDialogOpen(true),
+                  setUpdatedProject({
+                    name: project.name || "",
+                    description: project.description || "",
+                    location: project.location || "",
+                    current_status: project.status || "Planning",
+                  });
+              }}
             >
               <Edit className="h-4 w-4" />
               Edit
@@ -613,7 +613,7 @@ const ProjectDetail = () => {
                   </div>
                 ) : (
                   messages
-                    .map((message) => (
+                    .map((message: any) => (
                       <div
                         key={message.id}
                         className={`flex gap-3 ${
@@ -654,6 +654,11 @@ const ProjectDetail = () => {
                               {message?.sender?.username || "Unknown User"}
                             </span>
                             <span>•</span>
+
+                            <span>{message?.date || "Unknown User"}</span>
+                            <span>•</span>
+
+                            <span>{message?.time || "Unknown User"}</span>
                             {/* <span>
                               {new Date(message.created_at).toLocaleTimeString(
                                 [],
@@ -828,22 +833,28 @@ const ProjectDetail = () => {
                         {formatDate(milestone.due_date)}
                       </p>
 
-                      {isTeamHead && milestone.status !== "completed" && (
-                        <Button
-                          onClick={() =>
-                            handleUpdateMilestoneStatus(
-                              milestone.id,
-                              "completed"
-                            )
-                          }
-                          variant="outline"
-                          size="sm"
-                          className="gap-1 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
-                        >
-                          <CheckCircle className="h-3.5 w-3.5" />
-                          Mark Complete
-                        </Button>
-                      )}
+                      {isTeamHead &&
+                        (milestone.status === "complete" ? (
+                          <span className="text-sm text-green-600 font-medium flex items-center gap-1">
+                            <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                            Completed
+                          </span>
+                        ) : (
+                          <Button
+                            onClick={() =>
+                              handleUpdateMilestoneStatus(
+                                milestone.id,
+                                "complete"
+                              )
+                            }
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
+                          >
+                            <CheckCircle className="h-3.5 w-3.5" />
+                            Mark Complete
+                          </Button>
+                        ))}
                     </div>
                   </CardContent>
                 </Card>

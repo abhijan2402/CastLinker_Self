@@ -37,7 +37,7 @@ const NotificationsPage = () => {
 
   const [activeTab, setActiveTab] = useState("all");
 
-  // console.log(notifications);
+  console.log(notifications);
 
   // Filter notifications based on active tab
   const filteredNotifications = notifications.filter((notification) => {

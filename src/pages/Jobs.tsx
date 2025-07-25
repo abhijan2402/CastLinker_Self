@@ -10,12 +10,21 @@ import JobFiltersComponent from "@/components/jobs/JobFilters";
 import JobResults from "@/components/jobs/JobResults";
 import JobCreateForm from "@/components/jobs/JobCreateForm";
 import { fetchData } from "@/api/ClientFuntion";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const Jobs = () => {
   const { user } = useAuth();
   const {
     jobs,
-    isLoading,
+    isLoading, 
     error,
     totalCount,
     filters,
@@ -41,6 +50,16 @@ const Jobs = () => {
   };
 
   console.log(jobs);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+  const totalPages = Math.ceil(jobs.length / ITEMS_PER_PAGE);
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedPosts = jobs.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="space-y-6 px-2 sm:px-0">
@@ -80,7 +99,7 @@ const Jobs = () => {
         {/* Job Results */}
         <div className="flex-1 space-y-4 sm:space-y-6 w-full">
           <JobResults
-            jobs={jobs}
+            jobs={paginatedPosts}
             isLoading={isLoading}
             error={error}
             totalCount={totalCount}
@@ -92,6 +111,64 @@ const Jobs = () => {
           />
         </div>
       </div>
+      {totalPages > 1 && (
+        <Pagination className="mt-8">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                className={
+                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                }
+              />
+            </PaginationItem>
+
+            {[...Array(totalPages)].map((_, index) => {
+              const page = index + 1;
+
+              if (
+                page === 1 ||
+                page === totalPages ||
+                (page >= currentPage - 1 && page <= currentPage + 1)
+              ) {
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      isActive={page === currentPage}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              }
+
+              if (page === 2 || page === totalPages - 1) {
+                return (
+                  <PaginationItem key={`ellipsis-${page}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                );
+              }
+
+              return null;
+            })}
+
+            <PaginationItem>
+              <PaginationNext
+                onClick={() =>
+                  handlePageChange(Math.min(totalPages, currentPage + 1))
+                }
+                className={
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
 
       {/* Job Create Form */}
       <JobCreateForm

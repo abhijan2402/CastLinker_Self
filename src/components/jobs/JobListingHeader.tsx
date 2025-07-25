@@ -15,7 +15,7 @@ const JobListingHeader = ({ onSearch }: JobListingHeaderProps) => {
  
   const handleSearch = () => {
     onSearch({
-      search: searchTerm,
+      title: searchTerm,
       location: location
     });
   };

@@ -69,7 +69,7 @@ export function SubmitNewsForm({ isOpen, onClose, onSubmit }: SubmitNewsFormProp
       content: "",
       category: "",
       image: "",
-      readTime: "5 min read"
+      readTime: ""
     }
   });
 
@@ -193,7 +193,7 @@ export function SubmitNewsForm({ isOpen, onClose, onSubmit }: SubmitNewsFormProp
                   <FormItem>
                     <FormLabel>Read Time</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 5 min read" {...field} />
+                      <Input placeholder="e.g., 5" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

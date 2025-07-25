@@ -1,27 +1,45 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
   CardTitle,
-  CardFooter 
+  CardFooter,
 } from "@/components/ui/card";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Search, Plus, Clock, Users, MapPin, Loader2 } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Calendar,
+  Search,
+  Plus,
+  Clock,
+  Users,
+  MapPin,
+  Loader2,
+} from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useEventsData } from "@/hooks/useEventsData";
@@ -40,7 +58,7 @@ const EventManagement = () => {
     setSelectedDate,
     addEvent,
     updateEvent,
-    deleteEvent, 
+    deleteEvent,
     fetchEvents,
     featuredEvent,
     totalAttendees,
@@ -58,7 +76,7 @@ const EventManagement = () => {
     setIsSubmitting(true);
     const success = await addEvent(data);
     setIsSubmitting(false);
-    
+
     if (success) {
       setIsCreateModalOpen(false);
     }
@@ -66,11 +84,11 @@ const EventManagement = () => {
 
   const handleUpdateEvent = async (data: any) => {
     if (!currentEvent) return;
-    
+
     setIsSubmitting(true);
     const success = await updateEvent(currentEvent.id, data);
     setIsSubmitting(false);
-    
+
     if (success) {
       setIsEditModalOpen(false);
     }
@@ -78,9 +96,9 @@ const EventManagement = () => {
 
   const handleDeleteEvent = async () => {
     if (!currentEvent) return;
-    
+
     const success = await deleteEvent(currentEvent.id);
-    
+
     if (success) {
       setIsDeleteDialogOpen(false);
       setCurrentEvent(null);
@@ -107,13 +125,21 @@ const EventManagement = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    switch(status) {
+    switch (status) {
       case "upcoming":
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Upcoming</Badge>;
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-600">Upcoming</Badge>
+        );
       case "registration":
-        return <Badge className="bg-green-500 hover:bg-green-600">Registration Open</Badge>;
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">
+            Registration Open
+          </Badge>
+        );
       case "completed":
-        return <Badge className="bg-gray-500 hover:bg-gray-600">Completed</Badge>;
+        return (
+          <Badge className="bg-gray-500 hover:bg-gray-600">Completed</Badge>
+        );
       case "cancelled":
         return <Badge className="bg-red-500 hover:bg-red-600">Cancelled</Badge>;
       default:
@@ -191,8 +217,6 @@ const EventManagement = () => {
             </CardContent>
           </Card>
         </div>
-
-
 
         {/* Search and filters */}
         <Card>
@@ -344,39 +368,46 @@ const EventManagement = () => {
 
       {/* Create Event Modal */}
       <Sheet open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
+        <SheetContent className="sm:max-w-md max-h-[90vh] flex flex-col">
+          <SheetHeader className="shrink-0">
             <SheetTitle>Create New Event</SheetTitle>
             <SheetDescription>
               Add details for the new industry event.
             </SheetDescription>
           </SheetHeader>
-          <div className="py-4">
-            <EventForm
-              onSubmit={handleCreateEvent}
-              isSubmitting={isSubmitting}
-            />
+
+          {/* Scrollable Form */}
+          <div className="overflow-y-auto flex-1 px-1">
+            <div className="py-4">
+              <EventForm
+                onSubmit={handleCreateEvent}
+                isSubmitting={isSubmitting}
+              />
+            </div>
           </div>
         </SheetContent>
       </Sheet>
 
       {/* Edit Event Modal */}
       <Sheet open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
+        <SheetContent className="sm:max-w-md max-h-[90vh] flex flex-col">
+          <SheetHeader className="shrink-0">
             <SheetTitle>Edit Event</SheetTitle>
             <SheetDescription>
               Update details for the selected event.
             </SheetDescription>
           </SheetHeader>
-          <div className="py-4">
-            {currentEvent && (
-              <EventForm
-                onSubmit={handleUpdateEvent}
-                initialData={currentEvent}
-                isSubmitting={isSubmitting}
-              />
-            )}
+
+          <div className="overflow-y-auto flex-1 px-1">
+            <div className="py-4">
+              {currentEvent && (
+                <EventForm
+                  onSubmit={handleUpdateEvent}
+                  initialData={currentEvent}
+                  isSubmitting={isSubmitting}
+                />
+              )}
+            </div>
           </div>
         </SheetContent>
       </Sheet>

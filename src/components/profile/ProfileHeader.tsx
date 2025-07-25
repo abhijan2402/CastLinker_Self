@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTalentProfile } from "@/hooks/useTalentProfile";
 import { useNavigate } from "react-router-dom";
-import { updateData } from "../../api/ClientFuntion";
+import { baseURL, updateData } from "../../api/ClientFuntion";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
 import { Input } from "../ui/input";
 import { EditProfileDialog } from "./EditProfileDialog";
@@ -59,7 +59,9 @@ const ProfileHeader = () => {
       {/* Cover Image */}
       <div
         className="h-48 bg-cover bg-center relative"
-        style={{ backgroundImage: `url(${profile?.cover_image})` }}
+        style={{
+          backgroundImage: `url(${baseURL}${profile?.cover_pic_url})`,
+        }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-cinematic to-transparent"></div>
       </div>
@@ -68,7 +70,10 @@ const ProfileHeader = () => {
       <div className="p-6 relative">
         {/* Avatar - positioned to overlap with cover */}
         <Avatar className="h-28 w-28 border-4 border-card absolute -top-16 left-6">
-          <AvatarImage src={profile?.avatar_url} alt={profile?.username} />
+          <AvatarImage
+            src={`${baseURL}${profile?.cover_pic_url}`}
+            alt={profile?.username}
+          />
           <AvatarFallback className="bg-cinematic-light text-2xl capitalize">
             {user?.username?.charAt(0) || "U"}
           </AvatarFallback>

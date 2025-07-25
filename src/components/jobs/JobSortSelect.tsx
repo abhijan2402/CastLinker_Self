@@ -14,10 +14,10 @@ const JobSortSelect = memo(({ onSort, defaultValue = "relevance" }: JobSortSelec
     
     switch(value) {
       case "date":
-        sort = { field: "created_at", direction: "desc" };
+        sort = { field: "createdAt", direction: "desc" };
         break;
       case "salary":
-        sort = { field: "salary_max", direction: "desc" };
+        sort = { field: "max_salary", direction: "desc" };
         break;
       default:
         sort = { field: "relevance", direction: "desc" };

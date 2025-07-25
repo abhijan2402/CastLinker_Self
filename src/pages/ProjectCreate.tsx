@@ -48,7 +48,7 @@ const ProjectCreate = () => {
       return;
     }
 
-    const payload = {
+    const payload = { 
       name: name,
       description: description,
       status: status,

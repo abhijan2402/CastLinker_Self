@@ -162,15 +162,15 @@ const PostCard = ({
       </div>
 
       {/* Media Preview at the top if exists */}
-      {post.media_url ? (
+      {post.external_url ? (
         <div className="w-full relative rounded-t-lg overflow-hidden">
-          {post.media_type === "image" ? (
+          {post.external_url === "image" ? (
             <img
               src={post.media_url}
               alt={post.title}
               className="w-full h-48 object-cover"
             />
-          ) : post.media_type === "video" ? (
+          ) : post.external_url === "video" ? (
             <div className="relative w-full h-48 bg-black">
               <video
                 src={post.media_url}
@@ -179,17 +179,23 @@ const PostCard = ({
                 poster={post.media_url + "?poster=true"}
               />
             </div>
-          ) : null}
+          ) : (
+            <img
+              src={post.external_url}
+              alt={post.title}
+              className="w-full h-48 object-cover"
+            />
+          )}
         </div>
       ) : (
         <div className="w-full h-48 bg-muted flex items-center justify-center rounded-t-lg">
           <div className="text-center text-muted-foreground">
-            {post.media_type === "image" ? (
+            {post.external_url === "image" ? (
               <>
                 <Image className="h-10 w-10 mx-auto mb-2 opacity-40" />
                 <p>No image provided</p>
               </>
-            ) : post.media_type === "video" ? (
+            ) : post.external_url === "video" ? (
               <>
                 <Film className="h-10 w-10 mx-auto mb-2 opacity-40" />
                 <p>No video provided</p>

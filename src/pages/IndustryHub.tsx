@@ -455,7 +455,7 @@ const IndustryHub = () => {
                       className="h-64 lg:h-auto lg:col-span-2 bg-cover bg-center"
                       style={{
                         backgroundImage: `url(${
-                          featuredEvent.image ||
+                          featuredEvent?.featured_image_url ||
                           "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=1000"
                         })`,
                       }}
@@ -543,7 +543,7 @@ const IndustryHub = () => {
                       className="h-40 bg-cover bg-center"
                       style={{
                         backgroundImage: `url(${
-                          event.image ||
+                          event?.featured_image_url ||
                           "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=1000"
                         })`,
                       }}
@@ -909,7 +909,7 @@ const IndustryHub = () => {
                     <CardHeader>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="bg-gold/20 text-gold px-2 py-0.5 rounded-full text-xs font-medium">
-                          {resource.type}
+                          {resource.type || "NA"}
                         </span>
                       </div>
                       <CardTitle className="text-lg">

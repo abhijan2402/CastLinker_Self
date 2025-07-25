@@ -74,33 +74,31 @@ const ExperienceSection = () => {
   const updateFilters = (newFilters: Partial<typeof filters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
-    const fetchExperiences = async () => {
-      setLoading(true);
-      setError(null);
+  const fetchExperiences = async () => {
+    setLoading(true);
+    setError(null);
 
-      try {
-        const res = await fetchData(
-          `/api/experience?type=${filters?.category?.toLowerCase()}`
-        );
-        const data = res as ExperienceAPIResponse;
-        console.log(data);
+    try {
+      const res = await fetchData(
+        `/api/experience?type=${filters?.category?.toLowerCase()}`
+      );
+      const data = res as ExperienceAPIResponse;
+      console.log(data);
 
-        if (!data.success) {
-          throw new Error(data.message || "Failed to fetch experiences.");
-        }
-
-        setExperiences(data.data || []);
-      } catch (err: any) {
-        console.error("Fetch error:", err);
-        setError(err.message);
-        toast.error(err.message || "Something went wrong!");
-      } finally {
-        setLoading(false);
+      if (!data.success) {
+        throw new Error(data.message || "Failed to fetch experiences.");
       }
-    };
+
+      setExperiences(data.data || []);
+    } catch (err: any) {
+      console.error("Fetch error:", err);
+      setError(err.message);
+      toast.error(err.message || "Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-
-
     fetchExperiences();
   }, [user, filters]);
 
@@ -136,7 +134,7 @@ const ExperienceSection = () => {
       description: experience.description,
     });
 
-    setEditingExperience({ type, index, id:experience.id });
+    setEditingExperience({ type, index, id: experience.id });
   };
 
   // Set empty form values when adding a new experience
@@ -154,16 +152,18 @@ const ExperienceSection = () => {
 
   const handleSaveExperience = async (data: any) => {
     const formattedData = {
-      type: editingExperience?.type || isAddingExperience || "film",
+      type:
+        editingExperience?.type.toLowerCase() ||
+        isAddingExperience.toLowerCase() ||
+        "film",
       project_title: data.title,
       role: data.role,
       director: data.director,
       production_company: data.company,
       year: data.year,
       description: data.description,
-      files: data.files || [],
+      files: data.files || null,
     };
-    console.log(formattedData);
     try {
       let res: any;
 
@@ -217,7 +217,7 @@ const ExperienceSection = () => {
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="film">Film</SelectItem>
+              <SelectItem value="film">Select Items</SelectItem>
               {CATEGORIES.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}

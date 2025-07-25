@@ -63,14 +63,22 @@ const UserJobManagement = () => {
     const applicantPromises = myFilteredJobs.map((job) =>
       fetchData<{ success: boolean; data: Applicant[] | Applicant }>(
         `api/jobs/job-applicants/${job.id}`
-      ).then((res) => ({
-        jobId: job.id,
-        applicants: res.success
-          ? Array.isArray(res.data)
-            ? res.data
-            : [res.data]
-          : [],
-      }))
+      ).then((res) => {
+        let applicants: Applicant[] = [];
+
+        if (res.success && res.data) {
+          if (Array.isArray(res.data)) {
+            applicants = res.data.filter(Boolean); // removes null/undefined
+          } else {
+            applicants = [res.data].filter(Boolean); // handles single object or null
+          }
+        }
+
+        return {
+          jobId: job.id,
+          applicants,
+        };
+      })
     );
 
     const applicantsResults = await Promise.all(applicantPromises);
@@ -87,8 +95,6 @@ const UserJobManagement = () => {
     // 6. Update state
     setMyJobs(enrichedJobs);
   };
-
-  console.log(myJobs);
 
   useEffect(() => {
     fetchMyJobs();
@@ -160,15 +166,12 @@ const UserJobManagement = () => {
 
   const filteredApplicants = (applicants: (typeof myJobs)[0]["applicants"]) => {
     if (applicantFilter === "All") {
-      console.log(applicants);
       return applicants;
     }
     return applicants.filter(
-      (applicant) => applicant.status === applicantFilter?.toLowerCase()
+      (applicant: any) => applicant.status === applicantFilter?.toLowerCase()
     );
   };
-
-
 
   const generateJobId = (id: string) => {
     const hash = id.split("").reduce((acc, char) => {
@@ -324,10 +327,12 @@ const UserJobManagement = () => {
                                       <p className="font-medium">
                                         {applicant?.username}
                                       </p>
+
                                       <p className="text-muted-foreground text-sm">
                                         {job?.role_category} - {job?.location}
                                       </p>
                                     </div>
+
                                     <div className="flex items-center gap-3">
                                       <Badge
                                         variant={getApplicantStatusBadgeVariant(

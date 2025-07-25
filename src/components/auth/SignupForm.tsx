@@ -173,7 +173,7 @@ const SignupForm = () => {
                     <SelectItem value="Actor">Actor</SelectItem>
                     <SelectItem value="Director">Director</SelectItem>
                     <SelectItem value="Producer">Producer</SelectItem>
-                    <SelectItem value="Screenwriter">Screenwriter</SelectItem>
+                    <SelectItem value="Screenwriter">Screenwriter</SelectItem> 
                     <SelectItem value="Cinematographer">
                       Cinematographer
                     </SelectItem>
