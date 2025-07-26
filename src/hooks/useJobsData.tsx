@@ -21,8 +21,21 @@ export type {
   PostedWithin,
 } from "@/types/jobTypes";
 
+interface Applicant {
+  user_id: number;
+  username: string;
+  email: string;
+  status: string;
+}
+
+interface RawJob {
+  job_id: number;
+  title: string;
+}
+
 export const useJobsData = () => {
   const [jobs, setJobs] = useState<any[]>([]);
+  const [myJobs, setMyJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<JobFilters>({
@@ -39,8 +52,6 @@ export const useJobsData = () => {
     direction: "desc",
   });
 
-  console.log(sort);
-
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const { toast } = useToast();
@@ -49,8 +60,6 @@ export const useJobsData = () => {
   const initialRenderCompleted = useRef(false);
   // Add a ref for ongoing fetch operations
   const fetchInProgress = useRef(false);
-
-  console.log("Fetched Jobs:", jobs);
 
   // Fetch jobs based on filters and sorting
   const getJobs = useCallback(async () => {
@@ -73,10 +82,11 @@ export const useJobsData = () => {
         queryParams.append("roleCategory", filters.roleCategories.join(","));
       }
       if (filters.experienceLevels?.length) {
-        queryParams.append(
-          "experienceLevel",
-          filters.experienceLevels.join(",")
+        const experienceLevels = filters.experienceLevels.map((level) =>
+          level.toLowerCase()
         );
+
+        queryParams.append("experienceLevel", experienceLevels.join(","));
       }
       if (filters.salaryMin !== undefined) {
         queryParams.append("min_salary", String(filters.salaryMin));
@@ -121,6 +131,58 @@ export const useJobsData = () => {
       setIsLoading(false);
     }
   }, [filters, sort, toast]);
+
+  // MY Jobs
+  const fetchMyJobs = async () => {
+    // 1. Fetch jobs
+    const jobsRes = await fetchData<{ success: boolean; data: RawJob[] }>(
+      "api/jobs/my-jobs-with-applicants"
+    );
+
+    if (!jobsRes.success) return;
+
+    // 2. Extract job IDs
+    const rawJobIds = jobsRes.data.map((job) => job.job_id);
+
+    // 3. Filter full job data (assuming you have a `jobs` array from global state or elsewhere)
+    const myFilteredJobs = jobs.filter((job) => rawJobIds.includes(job.id));
+
+    // 4. Fetch applicants for each job using Promise.all
+    const applicantPromises = myFilteredJobs.map((job) =>
+      fetchData<{ success: boolean; data: Applicant[] | Applicant }>(
+        `api/jobs/job-applicants/${job.id}`
+      ).then((res) => {
+        let applicants: Applicant[] = [];
+
+        if (res.success && res.data) {
+          if (Array.isArray(res.data)) {
+            applicants = res.data.filter(Boolean); // removes null/undefined
+          } else {
+            applicants = [res.data].filter(Boolean); // handles single object or null
+          }
+        }
+
+        return {
+          jobId: job.id,
+          applicants,
+        };
+      })
+    );
+
+    const applicantsResults = await Promise.all(applicantPromises);
+
+    // 5. Merge applicants into jobs
+    const enrichedJobs = myFilteredJobs.map((job) => {
+      const match = applicantsResults.find((a) => a.jobId === job.id);
+      return {
+        ...job,
+        applicants: match?.applicants ?? [],
+      };
+    });
+
+    // 6. Update state
+    setMyJobs(enrichedJobs);
+  };
 
   const getSavedJobs = useCallback(async () => {
     try {
@@ -228,19 +290,6 @@ export const useJobsData = () => {
 
   // Effect to fetch jobs when filters or sort changes, but not on initial render
   useEffect(() => {
-    // If this is the first render, mark it as completed and fetch jobs
-    // if (!initialRenderCompleted.current) {
-    //   initialRenderCompleted.current = true;
-    //   getJobs();
-    //   return;
-    // }
-
-    // For subsequent filter/sort changes, fetch jobs after a small delay
-    // const timer = setTimeout(() => {
-    //   getJobs();
-    // }, 100);
-
-    // return () => clearTimeout(timer);
     getJobs();
   }, [filters, sort]);
 
@@ -249,8 +298,13 @@ export const useJobsData = () => {
     getSavedJobs();
   }, [getSavedJobs]);
 
+  useEffect(() => {
+    fetchMyJobs();
+  }, [setMyJobs, jobs]);
+
   return {
     jobs,
+    myJobs,
     isLoading,
     error,
     totalCount,
@@ -266,5 +320,6 @@ export const useJobsData = () => {
     refetchJobs: getJobs,
     setJobs,
     setTotalCount,
+    fetchMyJobs,
   };
 };

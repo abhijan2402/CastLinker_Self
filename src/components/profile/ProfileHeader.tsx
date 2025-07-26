@@ -155,7 +155,7 @@ const ProfileHeader = () => {
               <Globe className="h-5 w-5" />
             </a> */}
             <a
-              href={`https://twitter.com/${profile?.twitter}`}
+              href={`${profile?.twitter}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-foreground/60 hover:text-gold transition-colors"
@@ -163,7 +163,7 @@ const ProfileHeader = () => {
               <Twitter className="h-5 w-5" />
             </a>
             <a
-              href={`https://instagram.com/${profile?.instagram}`}
+              href={`${profile?.instagram}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-foreground/60 hover:text-gold transition-colors"
@@ -171,7 +171,7 @@ const ProfileHeader = () => {
               <Instagram className="h-5 w-5" />
             </a>
             <a
-              href={`https://linkedin.com/in/${profile?.linkedin}`}
+              href={`${profile?.linkedin}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-foreground/60 hover:text-gold transition-colors"
@@ -179,7 +179,7 @@ const ProfileHeader = () => {
               <Linkedin className="h-5 w-5" />
             </a>
             <a
-              href={`https://youtube.com/${profile?.youtube}`}
+              href={`${profile?.youtube}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-foreground/60 hover:text-gold transition-colors"

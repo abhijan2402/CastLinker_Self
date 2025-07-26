@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   createPost,
@@ -57,7 +57,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { postData } from "@/api/ClientFuntion";
+import { postData, updateData } from "@/api/ClientFuntion";
 
 const CATEGORIES = [
   "Audition",
@@ -94,6 +94,7 @@ interface CreatePostDialogProps {
   onOpenChange: (open: boolean) => void;
   loadPosts: () => void;
   editPost?: any;
+  // editPostId?: any;
 }
 
 const CreatePostDialog = ({
@@ -113,36 +114,40 @@ const CreatePostDialog = ({
 
   const isEditMode = !!editPost;
 
+  console.log(isEditMode, editPost);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: isEditMode
-      ? {
-          title: editPost.title,
-          description: editPost.description,
-          category: editPost.category,
-          tags: editPost.tags || [],
-          event_date: editPost.event_date
-            ? new Date(editPost.event_date)
-            : null,
-          external_url: editPost.external_url || null,
-          place: editPost.place || "",
-          location: editPost.location || "",
-          pincode: editPost.pincode || "",
-          landmark: editPost.landmark || "",
-        }
-      : {
-          title: "",
-          description: "",
-          category: "",
-          tags: [],
-          event_date: null,
-          external_url: null,
-          place: "",
-          location: "",
-          pincode: "",
-          landmark: "",
-        },
+    defaultValues: {
+      title: "",
+      description: "",
+      category: "",
+      tags: [],
+      event_date: null,
+      external_url: null,
+      place: "",
+      location: "",
+      pincode: "",
+      landmark: "",
+    },
   });
+
+  useEffect(() => {
+    if (isEditMode && editPost) {
+      form.reset({
+        title: editPost.title,
+        description: editPost.description,
+        category: editPost.category,
+        tags: editPost.tags || [],
+        event_date: editPost.event_date ? new Date(editPost.event_date) : null,
+        external_url: editPost.external_url || null,
+        place: editPost.place_name || "",
+        location: editPost.location || "",
+        pincode: editPost.pincode || "",
+        landmark: editPost.landmark || "",
+      });
+    }
+  }, [isEditMode, editPost, form]);
 
   const addTag = () => {
     if (!tagInput.trim()) return;
@@ -227,7 +232,7 @@ const CreatePostDialog = ({
 
     if (values.event_date) {
       formData.append("event_date", new Date(values.event_date).toISOString());
-    } 
+    }
 
     if (values.external_url) {
       formData.append("external_url", values.external_url);
@@ -244,20 +249,34 @@ const CreatePostDialog = ({
     }
     console.log(formData);
     try {
-      const response = await postData<CreateProjectResponse>(
-        "/api/posts",
-        formData
-      );
+      if (isEditMode) {
+        const response: any = await updateData<CreateProjectResponse>(
+          `/api/posts/${editPost.id}`,
+          formData
+        );
+        if (response) {
+          toast({
+            title: "posts updated successfully",
+          });
+          loadPosts();
+          onOpenChange(false);
+        }
+      } else {
+        const response = await postData<CreateProjectResponse>(
+          "/api/posts",
+          formData
+        );
 
-      console.log("✅ Posts created:", response);
-      if (response) {
-        toast({
-          title: "posts created successfully",
-        });
-        form.reset();
-        setMediaFile(null);
-        onOpenChange(false);
-        loadPosts();
+        console.log("✅ Posts created:", response);
+        if (response) {
+          toast({
+            title: "posts created successfully",
+          });
+          form.reset();
+          setMediaFile(null);
+          onOpenChange(false);
+          loadPosts();
+        }
       }
     } catch (error) {
       console.error("❌ Unexpected error:", error);

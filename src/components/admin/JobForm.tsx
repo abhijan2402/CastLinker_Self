@@ -29,13 +29,14 @@ interface JobFormProps {
   onClose: () => void;
   onSubmit: (job: Partial<Job>) => void;
   job: Job | null;
+  role: string;
 }
 
 interface PostDataResponse {
   message: string;
 }
 
-const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
+const JobForm = ({ isOpen, onClose, onSubmit, job, role }: JobFormProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [formData, setFormData] = useState<Partial<Job>>({
@@ -49,7 +50,7 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
     status: "active",
     is_featured: false,
   });
-
+  console.log(job);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset form when job changes
@@ -131,19 +132,21 @@ const JobForm = ({ isOpen, onClose, onSubmit, job }: JobFormProps) => {
       if (user.user_role === "admin") {
         onSubmit(formData);
         return;
-      }
-
-      // await onSubmit(formData);
-      const response = (await postData(
-        "/api/jobs",
-        formData
-      )) as PostDataResponse;
-      if (response.message) {
-        console.log("✅ Job created:", response);
-        toast({
-          title: "Job created successfully",
-        });
-        onClose();
+      } else if (role === "admin") {
+        onSubmit(formData);
+      } else {
+        // await onSubmit(formData);
+        const response = (await postData(
+          "/api/jobs",
+          formData
+        )) as PostDataResponse;
+        if (response.message) {
+          console.log("✅ Job created:", response);
+          toast({
+            title: "Job created successfully",
+          });
+          onClose();
+        }
       }
     } catch (error) {
       console.error("Error in form submission:", error);

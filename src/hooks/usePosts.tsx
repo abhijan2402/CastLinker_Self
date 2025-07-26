@@ -12,9 +12,21 @@ import {
 } from "@/services/postsService";
 import { toast } from "@/hooks/use-toast";
 import { fetchData } from "@/api/ClientFuntion";
+interface Applicant {
+  user_id: number;
+  username: string;
+  email: string;
+  status: string;
+}
 
+interface RawJob {
+  job_id: number;
+  title: string;
+}
 export const usePosts = () => {
   const [posts, setPosts] = useState<Post[]>([]);
+  console.log(posts)
+  const [myPost, setMyPost] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [appliedPosts, setAppliedPosts] = useState<Record<string, boolean>>({});
@@ -45,6 +57,57 @@ export const usePosts = () => {
   useEffect(() => {
     loadPosts();
   }, []);
+
+    const fetchMyJobs = async () => {
+      // 1. Fetch jobs
+      const postRes = await fetchData<{ success: boolean; data: RawJob[] }>(
+        "api/jobs/my-jobs-with-applicants"
+      );
+  
+      if (!postRes.success) return;
+  
+      // 2. Extract job IDs
+      const rawJobIds = postRes.data.map((job) => job.job_id);
+  
+      // 3. Filter full job data (assuming you have a `jobs` array from global state or elsewhere)
+      const myFilteredJobs = posts.filter((job) => rawJobIds.includes(job.id));
+  
+      // 4. Fetch applicants for each job using Promise.all
+      const applicantPromises = myFilteredJobs.map((job) =>
+        fetchData<{ success: boolean; data: Applicant[] | Applicant }>(
+          `api/jobs/job-applicants/${job.id}`
+        ).then((res) => {
+          let applicants: Applicant[] = [];
+  
+          if (res.success && res.data) {
+            if (Array.isArray(res.data)) {
+              applicants = res.data.filter(Boolean); // removes null/undefined
+            } else {
+              applicants = [res.data].filter(Boolean); // handles single object or null
+            }
+          }
+  
+          return {
+            jobId: job.id,
+            applicants,
+          };
+        })
+      );
+  
+      const applicantsResults = await Promise.all(applicantPromises);
+  
+      // 5. Merge applicants into jobs
+      const enrichedJobs = myFilteredJobs.map((job) => {
+        const match = applicantsResults.find((a) => a.jobId === job.id);
+        return {
+          ...job,
+          applicants: match?.applicants ?? [],
+        };
+      });
+  
+      // 6. Update state
+      setMyJobs(enrichedJobs);
+    };
 
   // Check which posts the current user has applied to
   useEffect(() => {

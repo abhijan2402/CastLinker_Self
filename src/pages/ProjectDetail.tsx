@@ -175,7 +175,7 @@ const ProjectDetail = () => {
     due_date: "",
     status: "pending",
   });
-
+ 
   const [connections, setConnections] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState("");
   const [selectedRole, setSelectedRole] = useState("");

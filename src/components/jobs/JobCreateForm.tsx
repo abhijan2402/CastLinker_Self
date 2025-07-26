@@ -471,9 +471,9 @@ const JobCreateForm = ({
                 </SelectTrigger>
                 <SelectContent>
                   {[
-                    "Entry-level",
+                    "Entry level",
                     "Junior",
-                    "Mid-level",
+                    "Mid level",
                     "Senior",
                     "Lead",
                     "Expert",
