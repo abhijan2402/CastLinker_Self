@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { deleteData, fetchData, postData } from "@/api/ClientFuntion";
+import { baseURL, deleteData, fetchData, postData } from "@/api/ClientFuntion";
 import { toast } from "react-toastify";
 import { useTalentProfile } from "@/hooks/useTalentProfile";
 
@@ -258,7 +258,7 @@ export function PortfolioSection() {
                   {content.type === "image" && content.file_path && (
                     <div className="relative h-40 w-full">
                       <img
-                        src={content.file_path}
+                        src={`${baseURL}${content.file_path}`}
                         alt={content.title}
                         className="absolute inset-0 w-full h-full object-cover"
                       />
@@ -305,9 +305,9 @@ export function PortfolioSection() {
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="font-medium truncate">{content.title}</h4>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        {/* <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Pencil className="h-4 w-4" />
-                        </Button>
+                        </Button> */}
                         <Button
                           variant="ghost"
                           size="icon"
