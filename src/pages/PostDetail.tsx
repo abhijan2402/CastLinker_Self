@@ -57,7 +57,7 @@ const PostDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [post, setPost] = useState<Post | null>(null);
+  const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [applicants, setApplicants] = useState<PostApplication[] | null>(null);
   const [isLiked, setIsLiked] = useState(false);
@@ -487,7 +487,7 @@ const PostDetail = () => {
                 <Button
                   className="w-full max-w-xs bg-gold hover:bg-gold/90 text-black dark:text-black"
                   size="lg"
-                  disabled={applicants?.some((app) => app.user_id === user.id)}
+                  disabled={applicants?.some((app:any) => app.user_id === user.id)}
                   onClick={async () => {
                     try {
                       const { applyToPost } = await import(
@@ -520,7 +520,7 @@ const PostDetail = () => {
                     }
                   }}
                 >
-                  {applicants?.some((app) => app.user_id === user.id)
+                  {applicants?.some((app:any) => app.user_id === user.id)
                     ? "Already Applied"
                     : "Apply Now"}
                 </Button>

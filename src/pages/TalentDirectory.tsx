@@ -107,14 +107,12 @@ const TalentDirectory = () => {
   };
 
   const handleViewProfile = (profile: TalentProfile) => {
-    // Instead of opening the dialog, redirect to the user's profile page
-    navigate(`/profile/${profile.userId}`);
+    navigate(`/userprofile/${profile.id}`);
   };
 
   const handleConnectClick = async (profile: TalentProfile) => {
     setSelectedProfile(profile);
     setConnectDialogOpen(true);
-    
   };
 
   const handleLikeProfile = async (profile: TalentProfile) => {
@@ -573,7 +571,7 @@ const TalentDirectory = () => {
               </Card>
             ))
         ) : profiles.length > 0 ? (
-          profiles.map((profile:any) => (
+          profiles.map((profile: any) => (
             <Card
               key={profile.id}
               className="bg-card border-gold/10 overflow-hidden shadow-lg hover:border-gold/30 transition-all"

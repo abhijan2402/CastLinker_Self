@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import socket from "@/socket";
 import { fetchData, postData } from "@/api/ClientFuntion";
 import { Action } from "@radix-ui/react-toast";
+import { useNavigate } from "react-router-dom";
 
 interface Chat {
   id: number;
@@ -31,6 +32,7 @@ interface Chat {
 }
 
 const Chat = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   console.log(user);
   const [inputMessage, setInputMessage] = useState("");
@@ -164,16 +166,17 @@ const Chat = () => {
               variant="ghost"
               size="icon"
               className="text-gold hover:bg-gold/10 rounded-full"
+              onClick={() => navigate("/talent-directory")}
             >
               <Plus size={20} />
             </Button>
-            <Button
+            {/* <Button
               variant="ghost"
               size="icon"
               className="text-gold hover:bg-gold/10 rounded-full"
             >
               <Filter size={20} />
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -383,7 +386,7 @@ const Chat = () => {
                           ? user?.username
                           : "User",
                       senderRole:
-                        message.  receiver_id === user?.id
+                        message.receiver_id === user?.id
                           ? user?.user_role
                           : "Role",
                       isMe: message.receiver_id === user?.id, // Ensure user?.id is 47 if you're testing as receiver

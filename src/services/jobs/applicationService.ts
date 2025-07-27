@@ -25,7 +25,6 @@ export const applyForJob = async (
       job_id: jobId,
       ...application,
     }) as any;
-    console.log(resp);
 
     return {
       success: true,

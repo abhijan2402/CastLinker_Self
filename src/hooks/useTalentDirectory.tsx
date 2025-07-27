@@ -100,7 +100,7 @@ useEffect(() => {
 
   const search = debouncedSearchTerm?.toLowerCase();
 
-  // Apply search term filter: user_type and username only
+  // ✅ Search filter (username or user_type)
   if (search) {
     results = results.filter((talent) => {
       return (
@@ -110,7 +110,17 @@ useEffect(() => {
     });
   }
 
-  // Apply location filter
+  // ✅ Filter by selected roles (user_type)
+  if (
+    Array.isArray(filters.selectedRoles) &&
+    filters.selectedRoles.length > 0
+  ) {
+    results = results.filter((talent) =>
+      filters.selectedRoles.includes(talent.user_type)
+    );
+  }
+
+  // ✅ Filter by selected locations
   if (
     Array.isArray(filters.selectedLocations) &&
     filters.selectedLocations.length > 0
@@ -120,7 +130,37 @@ useEffect(() => {
     );
   }
 
-  // Apply sorting if needed (keeping name-based sorting only)
+  // ✅ Filter by verified users only
+  if (filters.verifiedOnly) {
+    results = results.filter((talent) => talent.verified === true);
+  }
+
+  // ✅ Filter by available users only
+  if (filters.availableOnly) {
+    results = results.filter((talent) => talent.status === "active");
+  }
+
+  // ✅ Filter by experience range (assuming `experience` is a number field)
+  if (
+    Array.isArray(filters.experienceRange) &&
+    filters.experienceRange.length === 2
+  ) {
+    const [minExp, maxExp] = filters.experienceRange;
+    results = results.filter((talent) => {
+      const exp = Number(talent.experience ?? 0); // Adjust this key based on your data
+      return exp >= minExp && exp <= maxExp;
+    });
+  }
+
+  // ✅ Filter by likes minimum (assuming `likes` is a number field)
+  if (filters.likesMinimum > 0) {
+    results = results.filter((talent) => {
+      const likes = Number(talent.likes ?? 0); // Adjust this key based on your data
+      return likes >= filters.likesMinimum;
+    });
+  }
+
+  // ✅ Sorting
   switch (filters.sortBy) {
     case "nameAsc":
       results.sort((a, b) =>

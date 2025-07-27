@@ -1,13 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { MoreHorizontal, LinkIcon, MessageSquare, Check, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Link } from 'react-router-dom';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  MoreHorizontal,
+  LinkIcon,
+  MessageSquare,
+  Check,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Link } from "react-router-dom";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "react-toastify";
+import { deleteData, fetchData } from "@/api/ClientFuntion";
+import usePosts from "@/hooks/usePosts";
+import CreatePostDialog from "@/components/posts/CreatePostDialog";
 
 interface Post {
   id: string;
@@ -37,23 +59,23 @@ interface Applicant {
   role: string;
   location: string;
   appliedDate: string;
-  status: 'New' | 'Selected' | 'Rejected';
+  status: "New" | "Selected" | "Rejected";
 }
 
 interface Comment {
-    id: string;
-    user: string;
-    comment: string;
+  id: string;
+  user: string;
+  comment: string;
 }
 
 interface Analytics {
-    views: number;
-    clicks: number;
+  views: number;
+  clicks: number;
 }
 
 interface PostedBy {
-    name: string;
-    profileLink: string;
+  name: string;
+  profileLink: string;
 }
 
 // Using dummy post data structure
@@ -61,7 +83,8 @@ const dummyPosts: Post[] = [
   {
     id: "post-1",
     title: "Looking for Collaborators on a Project",
-    description: "We are seeking creative collaborators for an exciting new project. Skills in design, development, or marketing are a plus.",
+    description:
+      "We are seeking creative collaborators for an exciting new project. Skills in design, development, or marketing are a plus.",
     category: "Collaboration",
     status: "Active",
     datePosted: "2023-10-26",
@@ -75,10 +98,38 @@ const dummyPosts: Post[] = [
     landmark: null,
     tags: ["design", "development", "marketing", "team"],
     applicants: [
-      { id: "app-1", name: "Alice Smith", role: "Designer", location: "New York", appliedDate: "2023-10-27", status: "New" },
-      { id: "app-2", name: "Bob Johnson", role: "Developer", location: "San Francisco", appliedDate: "2023-10-27", status: "Selected" },
-      { id: "app-3", name: "Charlie Brown", role: "Marketing Intern", location: "London", appliedDate: "2023-10-28", status: "Rejected" },
-      { id: "app-4", name: "David Green", role: "Project Manager", location: "Remote", appliedDate: "2023-10-28", status: "New" },
+      {
+        id: "app-1",
+        name: "Alice Smith",
+        role: "Designer",
+        location: "New York",
+        appliedDate: "2023-10-27",
+        status: "New",
+      },
+      {
+        id: "app-2",
+        name: "Bob Johnson",
+        role: "Developer",
+        location: "San Francisco",
+        appliedDate: "2023-10-27",
+        status: "Selected",
+      },
+      {
+        id: "app-3",
+        name: "Charlie Brown",
+        role: "Marketing Intern",
+        location: "London",
+        appliedDate: "2023-10-28",
+        status: "Rejected",
+      },
+      {
+        id: "app-4",
+        name: "David Green",
+        role: "Project Manager",
+        location: "Remote",
+        appliedDate: "2023-10-28",
+        status: "New",
+      },
     ],
     comments: [],
     analytics: { views: 120, clicks: 25 },
@@ -87,15 +138,16 @@ const dummyPosts: Post[] = [
   {
     id: "post-2",
     title: "Seeking Feedback on My Design Portfolio",
-    description: "Looking for constructive feedback on my recent design projects. Any insights are welcome!",
+    description:
+      "Looking for constructive feedback on my recent design projects. Any insights are welcome!",
     category: "Feedback",
     status: "Active",
     datePosted: "2023-10-25",
     applicantsLikes: 8,
-    mediaUrl: 'https://via.placeholder.com/400x200',
+    mediaUrl: "https://via.placeholder.com/400x200",
     eventType: null,
     eventDate: null,
-    externalUrl: 'https://www.example.com/portfolio',
+    externalUrl: "https://www.example.com/portfolio",
     placeName: null,
     pincode: null,
     landmark: null,
@@ -108,166 +160,230 @@ const dummyPosts: Post[] = [
 ];
 
 const UserPostDetail: React.FC = () => {
+  const navigate = useNavigate();
+  const { posts, loadPosts } = usePosts();
   const { postId } = useParams<{ postId: string }>();
-  const [post, setPost] = useState<Post | null>(null);
-  const [filter, setFilter] = useState<'All' | 'New' | 'Selected' | 'Rejected'>('All');
-
+  const [post, setPost] = useState<any>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editPost, setEditPost] = useState(null);
+  const [filter, setFilter] = useState<"All" | "New" | "Selected" | "Rejected">(
+    "All"
+  );
+  console.log(posts);
   useEffect(() => {
-    const foundPost = dummyPosts.find(p => p.id === postId);
-    setPost(foundPost || null);
-  }, [postId]);
+    if (posts && postId) {
+      const foundPost = posts.find((p: any) => String(p.id) === String(postId));
+      setPost(foundPost || null);
+    }
+  }, [posts, postId]);
 
-  if (!post) {
-    return <div className="container mx-auto py-6 text-center">Post not found.</div>;
+  if (post === null) {
+    return <div className="container mx-auto py-6 text-center">Loading...</div>;
   }
 
-   const handleEditPost = () => {
-    console.log('Editing post:', post?.id);
-    // Implement edit functionality
+  if (!post) {
+    return (
+      <div className="container mx-auto py-6 text-center">Post not found.</div>
+    );
+  }
+  const handleEditPost = () => {
+    console.log("Editing post:", postId);
+    setEditPost(post);
+    setShowCreateDialog(true);
   };
 
-  const handleDeletePost = () => {
-    console.log('Deleting post:', post?.id);
-    // Implement delete functionality
+  const handleDeletePost = async () => {
+    try {
+      const rawResponse: any = await deleteData(`/api/posts/${postId}`);
+      if (rawResponse.message) {
+        toast.success("The post has been successfully deleted.");
+        navigate("/manage");
+        loadPosts();
+      } else {
+        toast.error("Failed to delete post. Please try again.");
+      }
+    } catch (error) {
+      toast.error("Failed to delete post. Please try again.");
+    }
   };
 
   const handleChat = (applicantId: string) => {
-    console.log('Chat with applicant:', applicantId);
+    console.log("Chat with applicant:", applicantId);
     // Implement chat functionality
   };
 
   const handleSelect = (applicantId: string) => {
-    console.log('Select applicant:', applicantId);
+    console.log("Select applicant:", applicantId);
     // Implement select functionality
   };
 
   const handleReject = (applicantId: string) => {
-    console.log('Reject applicant:', applicantId);
+    console.log("Reject applicant:", applicantId);
     // Implement reject functionality
   };
 
-  const getApplicantStatusBadgeVariant = (status: Applicant['status']) => {
+  const getApplicantStatusBadgeVariant = (status: Applicant["status"]) => {
     switch (status) {
-      case 'Selected':
-        return 'default';
-      case 'Rejected':
-        return 'destructive';
-      case 'New':
-        return 'secondary';
+      case "Selected":
+        return "default";
+      case "Rejected":
+        return "destructive";
+      case "New":
+        return "secondary";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
-  const filteredApplicants = post.applicants.filter(applicant => {
-    if (filter === 'All') return true;
-    return applicant.status === filter;
-  });
+  // const filteredApplicants = post.applicants.filter((applicant:any) => {
+  //   if (filter === "All") return true;
+  //   return applicant.status === filter;
+  // });
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Post Details</h1>
+    <>
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Post Details</h1>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-6 w-6 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleEditPost}>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDeletePost}>
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-6 w-6 text-muted-foreground" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleEditPost}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleDeletePost}>Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
 
-      {/* Post Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Post Details</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex justify-between items-center">
-            <p className="text-sm font-medium leading-none">Title</p>
-            <p className="text-muted-foreground text-sm text-right">{post.title}</p>
-          </div>
-          <div className="flex justify-between items-center">
-            <p className="text-sm font-medium leading-none">Category</p>
-            <Badge variant="secondary">{post.category}</Badge>
-          </div>
-          <div className="flex justify-between items-center">
-            <p className="text-sm font-medium leading-none">Location</p>
-            <p className="text-muted-foreground text-sm text-right">{post.placeName || 'N/A'}</p>
-          </div>
-           <div className="flex justify-between items-center">
-            <p className="text-sm font-medium leading-none">Posted Date</p>
-            <p className="text-muted-foreground text-sm text-right">{post.datePosted}</p>
-          </div>
-           <div className="flex justify-between items-center">
-            <p className="text-sm font-medium leading-none">Event/Deadline Date</p>
-            <p className="text-muted-foreground text-sm text-right">{post.eventDate || 'N/A'}</p>
-          </div>
-           <div className="flex justify-between items-center">
-            <p className="text-sm font-medium leading-none">External URL</p>
-             {post.externalUrl ? (
-              <a href={post.externalUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm text-right">{post.externalUrl} <LinkIcon className="h-3 w-3 inline-block"/></a>
-            ) : (
-              <p className="text-muted-foreground text-sm text-right">N/A</p>
-            )}
-          </div>
-           <div className="flex justify-between items-center">
-            <p className="text-sm font-medium leading-none">Place Name</p>
-            <p className="text-muted-foreground text-sm text-right">{post.placeName || 'N/A'}</p>
-          </div>
-           <div className="flex justify-between items-center">
-            <p className="text-sm font-medium leading-none">Pincode</p>
-            <p className="text-muted-foreground text-sm text-right">{post.pincode || 'N/A'}</p>
-          </div>
-           <div className="flex justify-between items-center">
-            <p className="text-sm font-medium leading-none">Landmark</p>
-            <p className="text-muted-foreground text-sm text-right">{post.landmark || 'N/A'}</p>
-          </div>
-             <div className="flex justify-between items-center">
-              <p className="text-sm font-medium leading-none">Tags</p>
-               {post.tags && post.tags.length > 0 ? (
-                <div className="flex flex-wrap gap-1 justify-end">
-                  {post.tags.map(tag => <Badge key={tag} variant="outline">{tag}</Badge>)}
-                </div>
-              ) : (
-                 <p className="text-muted-foreground text-sm text-right">N/A</p>
-              )}
-            </div>
-        </CardContent>
-      </Card>
-
-      {/* Description */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Description</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">{post.description}</p>
-        </CardContent>
-      </Card>
-
-      {/* Posted By */}
-      {post.postedBy && (
+        {/* Post Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Posted By</CardTitle>
+            <CardTitle>Post Details</CardTitle>
           </CardHeader>
-          <CardContent>
-             {/* Placeholder for user profile link */}
-            <p className="text-muted-foreground text-sm">{post.postedBy.name} (<a href={post.postedBy.profileLink} className="text-primary hover:underline">View Profile</a>)</p>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium leading-none">Title</p>
+              <p className="text-muted-foreground text-sm text-right">
+                {post.title}
+              </p>
+            </div>
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium leading-none">Category</p>
+              <Badge variant="secondary">{post.category}</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium leading-none">Location</p>
+              <p className="text-muted-foreground text-sm text-right">
+                {post.location || "N/A"}
+              </p>
+            </div>
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium leading-none">Posted Date</p>
+              <p className="text-muted-foreground text-sm text-right">
+                {post.createdAt}
+              </p>
+            </div>
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium leading-none">
+                Event/Deadline Date
+              </p>
+              <p className="text-muted-foreground text-sm text-right">
+                {post.event_date || "N/A"}
+              </p>
+            </div>
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium leading-none">External URL</p>
+              {post.external_url ? (
+                <a
+                  href={post.external_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline text-sm text-right"
+                >
+                  {post.external_url}{" "}
+                  <LinkIcon className="h-3 w-3 inline-block" />
+                </a>
+              ) : (
+                <p className="text-muted-foreground text-sm text-right">N/A</p>
+              )}
+            </div>
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium leading-none">Place Name</p>
+              <p className="text-muted-foreground text-sm text-right">
+                {post.place_name || "N/A"}
+              </p>
+            </div>
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium leading-none">Pincode</p>
+              <p className="text-muted-foreground text-sm text-right">
+                {post.pincode || "N/A"}
+              </p>
+            </div>
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium leading-none">Landmark</p>
+              <p className="text-muted-foreground text-sm text-right">
+                {post.landmark || "N/A"}
+              </p>
+            </div>
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium leading-none">Tags</p>
+              {post.tags && post.tags.length > 0 ? (
+                <div className="flex flex-wrap gap-1 justify-end">
+                  {post.tags.map((tag: any) => (
+                    <Badge key={tag} variant="outline">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm text-right">N/A</p>
+              )}
+            </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Applications (modified to match image) */}
-      <Card>
+        {/* Description */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Description</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-sm">{post.description}</p>
+          </CardContent>
+        </Card>
+
+        {/* Posted By */}
+        {post.postedBy && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Posted By</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Placeholder for user profile link */}
+              <p className="text-muted-foreground text-sm">
+                {post.postedBy.name} (
+                <a
+                  href={post.postedBy.profileLink}
+                  className="text-primary hover:underline"
+                >
+                  View Profile
+                </a>
+                )
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Applications (modified to match image) */}
+        {/* <Card>
         <CardHeader>
           <CardTitle>Applications ({post.applicants.length})</CardTitle>
         </CardHeader>
@@ -323,14 +439,23 @@ const UserPostDetail: React.FC = () => {
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
-       {/* Optional: Back to Posts link */}
-       <div className="mt-6">
-         <Link to="/manage" className="text-primary hover:underline">Back to Manage Content</Link>
-       </div>
-    </div>
+        {/* Optional: Back to Posts link */}
+        <div className="mt-6">
+          <Link to="/manage" className="text-primary hover:underline">
+            Back to Manage Content
+          </Link>
+        </div>
+      </div>
+      <CreatePostDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        loadPosts={loadPosts}
+        editPost={editPost}
+      />
+    </>
   );
 };
 
-export default UserPostDetail; 
+export default UserPostDetail;

@@ -13,7 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTalentProfile } from "@/hooks/useTalentProfile";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { baseURL, updateData } from "../../api/ClientFuntion";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
 import { Input } from "../ui/input";
@@ -139,7 +139,7 @@ const ProfileHeader = () => {
           </div>
           <div className="flex items-center gap-4 mt-2">
             <p className="text-foreground/70 capitalize">
-              {profile?.user_type}
+              {profile?.user_type || "NA"}
             </p>
             <p className="text-foreground/70">{profile?.location || "NA"}</p>
           </div>

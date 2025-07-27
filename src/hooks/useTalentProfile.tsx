@@ -69,6 +69,7 @@ type Job = {
 export const useTalentProfile = (user: any) => {
   const form = useForm<ProfileFormValues>();
   const [profile, setProfile] = useState<TalentProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<TalentProfile | null>(null);
   const [savedJobs, setSavedJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const fetchProfile = async () => {
@@ -99,6 +100,22 @@ export const useTalentProfile = (user: any) => {
         acting_skills: profileData.acting_skills || "",
         profile_image: profileData.profile_image || "",
       });
+    } catch (err) {
+      console.error("Failed to fetch profile:", err);
+    }
+  };
+
+  const fetchUserProfile = async (uId: any) => {
+    if (!uId) return;
+    try {
+      const { data: profileData } = (await fetchData(
+        `auth/profile?user_id=${uId}`
+      )) as {
+        data: TalentProfile;
+        error: any;
+      };
+
+      setUserProfile(profileData);
     } catch (err) {
       console.error("Failed to fetch profile:", err);
     }
@@ -177,11 +194,13 @@ export const useTalentProfile = (user: any) => {
   return {
     form,
     profile,
+    userProfile,
     handleSave,
     fetchProfile,
     fetchSavedJobs,
     savedJobs,
     isLoading,
     UpdateSocialLinks,
+    fetchUserProfile,
   };
 };

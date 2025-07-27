@@ -58,6 +58,7 @@ import UserJobDetail from './pages/UserJobDetail';
 import ManagePage from './pages/ManagePage';
 import CancellationRefundPolicy from './pages/CancellationRefundPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';
+import UserProfile from './pages/UserProfile';
 
 const App = () => {
   return (
@@ -210,6 +211,16 @@ const App = () => {
                 <PrivateRoute>
                   <AppLayout>
                     <Profile />
+                  </AppLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/userprofile/:id"
+              element={
+                <PrivateRoute>
+                  <AppLayout>
+                    <UserProfile />
                   </AppLayout>
                 </PrivateRoute>
               }

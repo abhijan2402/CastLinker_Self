@@ -82,7 +82,7 @@ const UserPostManagement: React.FC = () => {
   const { posts, loadPosts } = usePosts();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editPost, setEditPost] = useState(null);
-  const [editPostId, setEditPostId] = useState(null);
+
   const handleDeletePost = async (postId: string) => {
     try {
       const rawResponse: any = await deleteData(`/api/posts/${postId}`);
@@ -110,9 +110,7 @@ const UserPostManagement: React.FC = () => {
 
   const handleEditPost = (post: any) => {
     setEditPost(post);
-    setEditPostId(post.id);
     setShowCreateDialog(true);
-    // Implement edit functionality
   };
 
   const formatDate = (isoDate: string | null | undefined) => {
@@ -202,7 +200,6 @@ const UserPostManagement: React.FC = () => {
         onOpenChange={setShowCreateDialog}
         loadPosts={loadPosts}
         editPost={editPost}
-        // editPostId={editPostId}
       />
     </>
   );

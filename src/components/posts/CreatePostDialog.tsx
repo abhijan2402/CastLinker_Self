@@ -81,7 +81,7 @@ const formSchema = z.object({
     .url("Please enter a valid URL")
     .optional()
     .nullable(),
-  place: z.string().optional(),
+  place_name: z.string().optional(),
   location: z.string().optional(),
   pincode: z.string().optional(),
   landmark: z.string().optional(),
@@ -125,7 +125,7 @@ const CreatePostDialog = ({
       tags: [],
       event_date: null,
       external_url: null,
-      place: "",
+      place_name: "",
       location: "",
       pincode: "",
       landmark: "",
@@ -141,7 +141,7 @@ const CreatePostDialog = ({
         tags: editPost.tags || [],
         event_date: editPost.event_date ? new Date(editPost.event_date) : null,
         external_url: editPost.external_url || null,
-        place: editPost.place_name || "",
+        place_name: editPost.place_name || "",
         location: editPost.location || "",
         pincode: editPost.pincode || "",
         landmark: editPost.landmark || "",
@@ -238,7 +238,7 @@ const CreatePostDialog = ({
       formData.append("external_url", values.external_url);
     }
 
-    formData.append("place", values.place || "");
+    formData.append("place_name", values.place_name || "");
     formData.append("location", values.location || "");
     formData.append("pincode", values.pincode || "");
     formData.append("landmark", values.landmark || "");
@@ -505,7 +505,7 @@ const CreatePostDialog = ({
 
               <FormField
                 control={form.control}
-                name="place"
+                name="place_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Place Name</FormLabel>
