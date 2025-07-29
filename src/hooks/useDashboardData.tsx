@@ -9,6 +9,7 @@ export const useDashboardData = (fetchData: Function) => {
     profileViews: 0,
     callbacks: 0,
     activityScore: 0,
+    total_projects:0,
   });
 
   const [recentOpportunities, setRecentOpportunities] = useState([]);
@@ -29,6 +30,7 @@ export const useDashboardData = (fetchData: Function) => {
           profileViews: 0,
           callbacks: 0,
           activityScore: 0,
+          total_projects: res.data.total_projects || 0,
         });
 
         setRecentOpportunities(

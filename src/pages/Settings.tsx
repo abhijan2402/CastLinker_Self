@@ -11,11 +11,87 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { postData } from "@/api/ClientFuntion";
+import { toast } from "react-toastify";
+import { useTheme } from "@/contexts/ThemeContext";
+
+type Theme = "light" | "dark" | "system";
 
 const Settings = () => {
   const [notifications, setNotifications] = useState(true);
   const [marketing, setMarketing] = useState(false);
   const [newsletter, setNewsletter] = useState(true);
+  const [selectedTheme, setSelectedTheme] = useState<Theme>("dark");
+  const { theme, toggleTheme, setTheme } = useTheme();
+
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Handle Password Change
+  const handlePasswordChange = async () => {
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      toast.warn("Please fill in all fields.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.warn("New password and confirm password do not match.");
+      return;
+    }
+
+    const payload = {
+      old_password: oldPassword,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    };
+
+    try {
+      const resp: any = await postData("api/change-password", payload);
+      if (resp.success) {
+        toast.success("Password updated successfully.");
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error(resp.message || "Failed to update password.");
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast.error("Failed to update password.");
+    }
+  };
+
+  // Handle Appearance
+  const handleAppearance = async () => {
+    try {
+      if (selectedTheme === "system") {
+        localStorage.removeItem("theme");
+
+        // Follow system preference again
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        setTheme(prefersDark ? "dark" : "light");
+      } else {
+        localStorage.setItem("theme", selectedTheme);
+        setTheme(selectedTheme);
+      }
+
+      // Optional API call to save preference
+      const payload = { theme: selectedTheme };
+      const res: any = await postData("api/theme", payload);
+      console.log("Theme updated:", res);
+      if (res.success) {
+        toast.success(res.message || "Appearance settings saved!");
+      } else {
+        toast.warn("Failed to save appearance settings.");
+      }
+    } catch (err) {
+      console.error("Error saving theme:", err);
+      toast.warn("Failed to save appearance settings.");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -114,6 +190,10 @@ const Settings = () => {
                   id="theme"
                   className="w-full p-2 border rounded bg-background text-foreground border-gold/10"
                   defaultValue="dark"
+                  value={selectedTheme}
+                  onChange={(e) =>
+                    setSelectedTheme(e.target.value as Theme | "system")
+                  }
                 >
                   <option value="dark">Dark</option>
                   <option value="light">Light</option>
@@ -122,7 +202,10 @@ const Settings = () => {
               </div>
             </CardContent>
             <CardFooter className="px-6">
-              <Button className="bg-gold text-black hover:bg-gold/90">
+              <Button
+                className="bg-gold text-black hover:bg-gold/90"
+                onClick={handleAppearance}
+              >
                 Save Changes
               </Button>
             </CardFooter>
@@ -207,6 +290,8 @@ const Settings = () => {
                   type="password"
                   className="w-full p-2 border rounded bg-background text-foreground border-gold/10"
                   placeholder="••••••••"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
                 />
               </div>
 
@@ -217,6 +302,8 @@ const Settings = () => {
                   type="password"
                   className="w-full p-2 border rounded bg-background text-foreground border-gold/10"
                   placeholder="••••••••"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
                 />
               </div>
 
@@ -227,11 +314,16 @@ const Settings = () => {
                   type="password"
                   className="w-full p-2 border rounded bg-background text-foreground border-gold/10"
                   placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
             </CardContent>
             <CardFooter className="px-6">
-              <Button className="bg-gold text-black hover:bg-gold/90">
+              <Button
+                className="bg-gold text-black hover:bg-gold/90"
+                onClick={handlePasswordChange}
+              >
                 Update Password
               </Button>
             </CardFooter>

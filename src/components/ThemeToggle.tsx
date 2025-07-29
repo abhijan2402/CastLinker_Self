@@ -10,13 +10,14 @@ interface ThemeToggleProps {
 }
 
 const ThemeToggle = ({ showTooltip = true, className = '' }: ThemeToggleProps) => {
+  
   const { theme, toggleTheme } = useTheme();
 
   const toggleButton = (
     <Button 
       variant="outline" 
       size="icon" 
-      onClick={toggleTheme}
+      // onClick={toggleTheme}
       className={`rounded-xl ${
         theme === 'light' 
           ? 'border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-600' 

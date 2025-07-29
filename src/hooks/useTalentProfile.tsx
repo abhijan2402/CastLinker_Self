@@ -23,6 +23,7 @@ type TalentProfile = {
   acting_skills: string;
   createdAt: string;
   updatedAt: string;
+  theme: string;
 
   profile_pic_url?: string;
   cover_pic_url?: string;

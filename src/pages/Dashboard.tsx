@@ -265,7 +265,9 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent className="px-4 pb-4">
                 <div className="flex flex-col">
-                  <div className="text-3xl font-bold">{stats.applications}</div>
+                  <div className="text-3xl font-bold">
+                    {stats.total_projects}
+                  </div>
                   <div className="flex items-center mt-1.5">
                     <span className="text-xs text-green-500 font-medium flex items-center">
                       <TrendingUp className="h-3 w-3 mr-1" /> +2
