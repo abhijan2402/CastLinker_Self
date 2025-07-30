@@ -14,18 +14,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTalentProfile } from "@/hooks/useTalentProfile";
 import { useNavigate, useParams } from "react-router-dom";
-import { baseURL, updateData } from "../../api/ClientFuntion";
+import { baseURL, fetchData, updateData } from "../../api/ClientFuntion";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
 import { Input } from "../ui/input";
 import { EditProfileDialog } from "./EditProfileDialog";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import CreateProfileDialog from "./CreateProfileDialog";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 const ProfileHeader = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, fetchProfile, UpdateSocialLinks } = useTalentProfile(user);
+  const { stats } = useDashboardData(fetchData);
+
   const [isEditing, setIsEditing] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const form = useForm({
@@ -71,7 +74,7 @@ const ProfileHeader = () => {
         {/* Avatar - positioned to overlap with cover */}
         <Avatar className="h-28 w-28 border-4 border-card absolute -top-16 left-6">
           <AvatarImage
-            src={`${baseURL}${profile?.cover_pic_url}`}
+            src={`${baseURL}${profile?.profile_pic_url}`}
             alt={profile?.username}
           />
           <AvatarFallback className="bg-cinematic-light text-2xl capitalize">
@@ -190,15 +193,11 @@ const ProfileHeader = () => {
 
           <div className="flex gap-8 mt-6">
             <div className="text-center">
-              <p className="text-2xl font-bold">
-                {profile?.total_connections || "0"}
-              </p>
+              <p className="text-2xl font-bold">{stats.connections || "0"}</p>
               <p className="text-sm text-foreground/60">Connections</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold">
-                {profile?.total_likes || "0"}
-              </p>
+              <p className="text-2xl font-bold">{stats.likes || "0"}</p>
               <p className="text-sm text-foreground/60">Likes</p>
             </div>
             {/* <div className="text-center">

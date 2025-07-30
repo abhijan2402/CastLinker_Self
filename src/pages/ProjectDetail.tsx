@@ -175,7 +175,7 @@ const ProjectDetail = () => {
     due_date: "",
     status: "pending",
   });
- 
+
   const [connections, setConnections] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
@@ -445,8 +445,6 @@ const ProjectDetail = () => {
   ) => {
     if (!projectId || !isTeamHead) return;
 
-    console.log(milestoneId, newStatus);
-
     try {
       const response: any = await updateData<{ milestone: any }>(
         `api/projects/milestone/${milestoneId}/complete`,
@@ -457,6 +455,12 @@ const ProjectDetail = () => {
           title: "Status updated",
           description: `Milestone status updated to ${newStatus}`,
         });
+        const respMilestone: any = await fetchData(
+          `api/projects/milestones/${projectId}`
+        );
+        if (respMilestone?.data) {
+          setMilestones(respMilestone?.data);
+        }
       }
     } catch (error: any) {
       console.error("Error updating milestone status:", error);

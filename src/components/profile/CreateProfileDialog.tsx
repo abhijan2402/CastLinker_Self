@@ -154,21 +154,6 @@ const CreateProfileDialog = ({
             }}
             className="space-y-4"
           >
-            {/* Username */}
-            {/* <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your username" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> */}
-
             {/* Profile Image Upload */}
             <div className="space-y-2">
               <FormLabel>Profile Image</FormLabel>
@@ -244,7 +229,7 @@ const CreateProfileDialog = ({
                 <img
                   src={coverPreview}
                   alt="Cover Preview"
-                  className="rounded-md max-w-full h-auto border mt-2"
+                  className="rounded-md w-24 h-34 border mt-2"
                 />
               )}
             </div>
