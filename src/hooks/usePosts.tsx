@@ -189,7 +189,7 @@ export const usePosts = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const handleLikePost = async (postId: string) => {
+  const handleLikePost = async (postId: string, isLiked: boolean) => {
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -199,10 +199,15 @@ export const usePosts = () => {
       return;
     }
 
+    console.log(isLiked);
     try {
-      const isLiked = await togglePostLike(postId, user.id);
+      const newLikeStatus = await togglePostLike(
+        postId,
+        String(user.id),
+        isLiked
+      );
 
-      console.log("Post like status:", isLiked ? "Liked" : "Unliked");
+      console.log("Post like status:", newLikeStatus ? "Liked" : "Unliked");
 
       // Reload posts or update state locally
       loadPosts();

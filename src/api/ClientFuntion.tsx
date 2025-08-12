@@ -33,7 +33,7 @@ const handleRequest = async <T,>(
     const response = await api({
       method,
       url,
-      data: method !== "get" && method !== "delete" ? data : undefined,
+      data: method !== "get"  ? data : undefined,
       params: method === "get" ? data : undefined,
       headers: {
         ...(isFormData ? {} : { "Content-Type": "application/json" }),

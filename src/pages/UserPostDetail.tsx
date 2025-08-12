@@ -194,7 +194,7 @@ const UserPostDetail: React.FC = () => {
 
   const handleDeletePost = async () => {
     try {
-      const rawResponse: any = await deleteData(`/api/posts/${postId}`);
+      const rawResponse: any = await deleteData(`/api/posts/${postId}`, {});
       if (rawResponse.message) {
         toast.success("The post has been successfully deleted.");
         navigate("/manage");

@@ -191,7 +191,7 @@ const PostDetail = () => {
 
     try {
       // Import and call deletePost function
-      const response = deleteData(`/api/posts/${post.id}`);
+      const response = deleteData(`/api/posts/${post.id}`, {});
       if (response) {
         toast({
           title: "Success",

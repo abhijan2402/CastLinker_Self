@@ -85,7 +85,7 @@ const UserPostManagement: React.FC = () => {
 
   const handleDeletePost = async (postId: string) => {
     try {
-      const rawResponse: any = await deleteData(`/api/posts/${postId}`);
+      const rawResponse: any = await deleteData(`/api/posts/${postId}`, {});
       if (rawResponse.message) {
         toast({
           title: "Post Deleted",

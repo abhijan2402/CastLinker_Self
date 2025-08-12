@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchData, postData } from "@/api/ClientFuntion";
+import { deleteData, fetchData, postData } from "@/api/ClientFuntion";
 import { toast } from "react-toastify";
 
 export type Post = {
@@ -26,6 +26,7 @@ export type Post = {
   landmark?: string | null;
   user_id: number;
   is_liked: boolean;
+  media?: string | null;
 };
 
 export type PostApplication = {
@@ -51,13 +52,13 @@ interface LikeResponse {
 
 export const fetchPosts = async () => {
   try {
-    const { data, error } = await supabase
-      .from("FilmCollab_posts")
-      .select("*")
-      .order("created_at", { ascending: false });
+    // const { data, error } = await supabase
+    //   .from("FilmCollab_posts")
+    //   .select("*")
+    //   .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    return data as Post[];
+    // if (error) throw error;
+    // return data as Post[];
   } catch (error) {
     console.error("Error fetching posts:", error);
     return [];
@@ -78,14 +79,14 @@ export const createPost = async (
   post: Omit<Post, "id" | "created_at" | "updated_at" | "like_count">
 ) => {
   try {
-    const { data, error } = await supabase
-      .from("FilmCollab_posts")
-      .insert(post)
-      .select()
-      .single();
+    // const { data, error } = await supabase
+    //   .from("FilmCollab_posts")
+    //   .insert(post)
+    //   .select()
+    //   .single();
 
-    if (error) throw error;
-    return data as Post;
+    // if (error) throw error;
+    // return data as Post;
   } catch (error) {
     console.error("Error creating post:", error);
     return null;
@@ -94,15 +95,15 @@ export const createPost = async (
 
 export const updatePost = async (id: string, post: Partial<Post>) => {
   try {
-    const { data, error } = await supabase
-      .from("FilmCollab_posts")
-      .update(post)
-      .eq("id", id)
-      .select()
-      .single();
+    // const { data, error } = await supabase
+    //   .from("FilmCollab_posts")
+    //   .update(post)
+    //   .eq("id", id)
+    //   .select()
+    //   .single();
 
-    if (error) throw error;
-    return data as Post;
+    // if (error) throw error;
+    // return data as Post;
   } catch (error) {
     console.error("Error updating post:", error);
     return null;
@@ -110,30 +111,30 @@ export const updatePost = async (id: string, post: Partial<Post>) => {
 };
 
 export const deletePost = async (id: string) => {
-  try {
-    const { error } = await supabase
-      .from("FilmCollab_posts")
-      .delete()
-      .eq("id", id);
+  // try {
+  //   const { error } = await supabase
+  //     .from("FilmCollab_posts")
+  //     .delete()
+  //     .eq("id", id);
 
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error("Error deleting post:", error);
-    return false;
-  }
+  //   if (error) throw error;
+  //   return true;
+  // } catch (error) {
+  //   console.error("Error deleting post:", error);
+  //   return false;
+  // }
 };
 
 export const applyToPost = async (post_id: string, user_id: string) => {
   try {
-    const { data, error } = await supabase
-      .from("post_applications")
-      .insert({ post_id, user_id })
-      .select()
-      .single();
+    // const { data, error } = await supabase
+    //   .from("post_applications")
+    //   .insert({ post_id, user_id })
+    //   .select()
+    //   .single();
 
-    if (error) throw error;
-    return data as PostApplication;
+    // if (error) throw error;
+    // return data as PostApplication;
   } catch (error) {
     console.error("Error applying to post:", error);
     return null;
@@ -195,24 +196,44 @@ export const getApplicationsForPost = async (post_id: string) => {
   }
 };
 
-export const togglePostLike = async (post_id: string, user_id: string) => {
+export const togglePostLike = async (
+  post_id: string,
+  user_id: string,
+  isCurrentlyLiked: boolean
+) => {
   try {
-    const response = await postData<LikeResponse>("/api/likes/like", {
-      post_id,
-      user_id,
-    });
+    let response: LikeResponse | null = null;
 
-    if (response?.success) {
-      if (response?.message === "liked") {
-        toast.success(response?.message || "Post already liked.");
-        return true; // Liked
-      } else if (response?.message === "Post already liked") {
-        toast.success(response?.message || "Post disliked successfully.");
-        return false; // Unliked
-      }
+    if (isCurrentlyLiked) {
+      // Unlike → DELETE request
+      const payload = {
+        post_id,
+        user_id: Number(user_id),
+      };
+      console.log(payload);
+      response = await deleteData<LikeResponse>("/api/likes/unlike", {
+        post_id,
+        user_id,
+      });
+    } else {
+      // Like → POST request
+      response = await postData<LikeResponse>("/api/likes/like", {
+        post_id,
+        user_id,
+      });
     }
 
-    toast.warn("Something went wrong.");
+    if (response?.success) {
+      toast.success(
+        response?.message ||
+          (isCurrentlyLiked
+            ? "Post unliked successfully"
+            : "Post liked successfully")
+      );
+      return !isCurrentlyLiked; // Return the new state
+    }
+
+    toast.warn(response?.message || "Something went wrong.");
     return null;
   } catch (error) {
     console.error("Error toggling like:", error);

@@ -30,6 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { baseURL } from "@/api/ClientFuntion";
 
 interface PostCardProps {
   loadPosts;
@@ -38,7 +39,7 @@ interface PostCardProps {
   isLiked: boolean;
   applicationCount: number;
   onApply: (postId: string) => void;
-  onLike: (postId: string) => void;
+  onLike: (postId: string, isLiked:boolean) => void;
   onViewDetails: (post: Post) => void;
 }
 
@@ -127,7 +128,7 @@ const PostCard = ({
                 )}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onLike(post.id);
+                  onLike(post.id, post?.is_liked);
                 }}
               >
                 <Heart
@@ -164,18 +165,18 @@ const PostCard = ({
       </div>
 
       {/* Media Preview at the top if exists */}
-      {post.external_url ? (
+      {post.media ? (
         <div className="w-full relative rounded-t-lg overflow-hidden">
-          {post.external_url === "image" ? (
+          {post.media === "image" ? (
             <img
-              src={post.media_url}
+              src={post.media || `${baseURL}uploads/${post.media}`}
               alt={post.title}
               className="w-full h-48 object-cover"
             />
-          ) : post.external_url === "video" ? (
+          ) : post.media === "video" ? (
             <div className="relative w-full h-48 bg-black">
               <video
-                src={post.media_url}
+                src={post.media || `${baseURL}uploads/${post.media}`}
                 className="w-full h-full object-cover"
                 controls
                 poster={post.media_url + "?poster=true"}
@@ -183,7 +184,7 @@ const PostCard = ({
             </div>
           ) : (
             <img
-              src={post.external_url}
+              src={`${baseURL}uploads/${post.media}`}
               alt={post.title}
               className="w-full h-48 object-cover"
             />
@@ -192,12 +193,12 @@ const PostCard = ({
       ) : (
         <div className="w-full h-48 bg-muted flex items-center justify-center rounded-t-lg">
           <div className="text-center text-muted-foreground">
-            {post.external_url === "image" ? (
+            {post.media === "image" ? (
               <>
                 <Image className="h-10 w-10 mx-auto mb-2 opacity-40" />
                 <p>No image provided</p>
               </>
-            ) : post.external_url === "video" ? (
+            ) : post.media === "video" ? (
               <>
                 <Film className="h-10 w-10 mx-auto mb-2 opacity-40" />
                 <p>No video provided</p>
