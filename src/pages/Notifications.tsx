@@ -23,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { useNotifications } from "@/hooks/useNotifications";
-import { updateData } from "@/api/ClientFuntion";
+import { fetchData, updateData } from "@/api/ClientFuntion";
 
 interface MarkAsReadResponse {
   success: boolean;
@@ -33,7 +33,7 @@ interface MarkAsReadResponse {
 const NotificationsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { notifications, isLoading } = useNotifications();
+  const { notifications, isLoading, setNotifications } = useNotifications();
 
   const [activeTab, setActiveTab] = useState("all");
 
@@ -93,7 +93,10 @@ const NotificationsPage = () => {
 
   // Mark all notifications as read
   const markAllAsRead = async () => {
-    const resp = await updateData<MarkAsReadResponse>("/read-all", {});
+    const resp = await updateData<MarkAsReadResponse>(
+      "/api/notifications/read-all",
+      {}
+    );
 
     console.log(resp);
     if (resp?.success) {
@@ -101,6 +104,10 @@ const NotificationsPage = () => {
         title: "Success",
         description: resp.message || "All notifications marked as read",
       });
+      const res: any = await fetchData("/api/notifications");
+      if (res.data) {
+        setNotifications(res.data);
+      }
     } else {
       toast({
         title: "Notice",

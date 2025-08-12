@@ -123,18 +123,20 @@ const PostCard = ({
                 size="icon"
                 className={cn(
                   "rounded-full bg-background/80 backdrop-blur-sm border-muted",
-                  Number(post?.total_likes) > 0 && "text-red-500 border-red-500"
+                  post?.is_liked && "text-red-500 border-red-500"
                 )}
                 onClick={(e) => {
                   e.stopPropagation();
                   onLike(post.id);
                 }}
               >
-                <Heart className={cn("h-4 w-4", isLiked && "fill-red-500")} />
+                <Heart
+                  className={cn("h-4 w-4", post?.is_liked && "fill-red-500")}
+                />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
-              <p>{isLiked ? "Unlike" : "Like"}</p>
+              <p>{post?.is_liked ? "Unlike" : "Like"}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

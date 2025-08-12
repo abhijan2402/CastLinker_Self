@@ -132,6 +132,7 @@ export const usePosts = () => {
   useEffect(() => {
     const checkLikeStatus = async () => {
       if (!user || !posts.length) return;
+      console.log();
 
       const likeMap: Record<string, boolean> = {};
 
@@ -188,7 +189,6 @@ export const usePosts = () => {
     return matchesCategory && matchesSearch;
   });
 
-  // Toggle like on a post
   const handleLikePost = async (postId: string) => {
     if (!user) {
       toast({
@@ -202,23 +202,10 @@ export const usePosts = () => {
     try {
       const isLiked = await togglePostLike(postId, user.id);
 
-      if (isLiked !== null) {
-        setLikedPosts((prev) => ({ ...prev, [postId]: isLiked }));
+      console.log("Post like status:", isLiked ? "Liked" : "Unliked");
 
-        // Update the like count in the UI without needing to refetch all posts
-        setPosts((prev) =>
-          prev.map((post) =>
-            post.id === postId
-              ? {
-                  ...post,
-                  like_count: isLiked
-                    ? post.like_count + 1
-                    : Math.max(0, post.like_count - 1),
-                }
-              : post
-          )
-        );
-      }
+      // Reload posts or update state locally
+      loadPosts();
     } catch (err) {
       toast({
         title: "Error",
@@ -250,11 +237,11 @@ export const usePosts = () => {
         });
         setAppliedPosts((prev) => ({ ...prev, [postId]: true }));
         return;
-      }else{
-         toast({
-           title: "Already Applied",
-           description: "You have Already applied for this opportunity.",
-         });
+      } else {
+        toast({
+          title: "Already Applied",
+          description: "You have Already applied for this opportunity.",
+        });
       }
     } catch (error) {
       toast({

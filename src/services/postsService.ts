@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchData, postData } from "@/api/ClientFuntion";
+import { toast } from "react-toastify";
 
 export type Post = {
   id: string;
@@ -24,6 +25,7 @@ export type Post = {
   pincode?: string | null;
   landmark?: string | null;
   user_id: number;
+  is_liked: boolean;
 };
 
 export type PostApplication = {
@@ -200,24 +202,28 @@ export const togglePostLike = async (post_id: string, user_id: string) => {
       user_id,
     });
 
-    const likeres = await fetchData(`/api/likes/count/${post_id}`);
-  
-    console.log(likeres);
-    if (response.success) {
-      // Post was liked
-      return true;
-    } else {
-      // Post already liked (i.e., this acts like an "unlike")
-      return false;
+    if (response?.success) {
+      if (response?.message === "liked") {
+        toast.success(response?.message || "Post already liked.");
+        return true; // Liked
+      } else if (response?.message === "Post already liked") {
+        toast.success(response?.message || "Post disliked successfully.");
+        return false; // Unliked
+      }
     }
+
+    toast.warn("Something went wrong.");
+    return null;
   } catch (error) {
     console.error("Error toggling like:", error);
+    toast.error("Failed to update like status.");
     return null;
   }
 };
 
 export const checkIfLiked = async (post_id: number, user_id: number) => {
   try {
+    const res: any = fetchData("/api/posts");
     const { data, error } = await supabase
       .from("post_likes")
       .select("*")

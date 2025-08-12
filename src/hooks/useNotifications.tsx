@@ -1,5 +1,5 @@
 import { fetchData } from "@/api/ClientFuntion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import useAuth from "./useAuth";
 import { toast } from "react-toastify";
 
@@ -32,9 +32,7 @@ export const useNotifications = () => {
       setIsLoading(true);
 
       try {
-        // Simulate delay
         await new Promise((resolve) => setTimeout(resolve, 1000));
-
         const res = (await fetchData("/api/notifications")) as ApiResponse;
         setNotifications(res.data);
       } catch (error) {
@@ -48,5 +46,10 @@ export const useNotifications = () => {
     fetchNotifications();
   }, [user, toast]);
 
-  return { notifications, isLoading };
+  // 👇 Count of unread notifications
+  const unreadCount = useMemo(() => {
+    return notifications.filter((n) => !n.is_read).length;
+  }, [notifications]);
+
+  return { notifications, isLoading, unreadCount, setNotifications };
 };
