@@ -65,7 +65,8 @@ import {
   INDIA_LOCATIONS,
 } from "@/components/filters/LocationFilter";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+// import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { baseURL, postData } from "@/api/ClientFuntion";
 
 const TalentDirectory = () => {
@@ -90,6 +91,7 @@ const TalentDirectory = () => {
     shareProfile,
     changePage,
     sendConnectionRequest,
+    fetchTalents,
   } = useTalentDirectory();
 
   // UI state
@@ -121,43 +123,23 @@ const TalentDirectory = () => {
       return;
     }
 
-    // Toggle like locally first for better UX
-    toggleLike(profile.id);
-
     try {
-      // If the profile was just liked (now in likedProfiles)
-      const isLiked = likedProfiles.includes(profile.id);
+      const res: any = await postData("api/users/like", {
+        liked_id: profile?.id,
+      });
 
-      if (isLiked) {
-        // Add to database
-        const { error } = await supabase.from("talent_likes").insert({
-          liker_id: user.id,
-          talent_id: profile.userId,
-        });
-
-        if (error) {
-          throw error;
+      if (res?.success) {
+        if (res?.is_like) {
+          toast.success(res?.message || "Profile liked successfully");
+        } else {
+          toast.info(res?.message || "Profile unliked successfully");
         }
-
-        toast.success(`You liked ${profile.username}'s profile`);
+        fetchTalents();
       } else {
-        // Remove from database
-        const { error } = await supabase.from("talent_likes").delete().match({
-          liker_id: user.id,
-          talent_id: profile.userId,
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        toast.info(`You unliked ${profile.username}'s profile`);
+        toast.warning(res?.message || "Something went wrong.");
       }
     } catch (error) {
-      console.error("Error toggling like:", error);
-      // Revert local state in case of error
-      toggleLike(profile.id);
-      toast.error("Could not update like status. Please try again.");
+      toast.error(error?.message || "Something went wrong.");
     }
   };
 
@@ -603,16 +585,16 @@ const TalentDirectory = () => {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <div className="flex items-center">
+                    {/* <div className="flex items-center">
                       <Star className="h-4 w-4 text-gold mr-1 fill-gold" />
                       <span className="text-sm font-medium">
                         {profile?.rating?.toFixed(1) || 5}
                       </span>
-                    </div>
+                    </div> */}
                     <div className="flex items-center">
                       <Heart className="h-3.5 w-3.5 text-rose-400 mr-1" />
                       <span className="text-xs text-foreground/60">
-                        {profile?.likesCount}
+                        {profile?.total_likes || "0"}
                       </span>
                     </div>
                   </div>
@@ -663,7 +645,7 @@ const TalentDirectory = () => {
                     variant="outline"
                     size="lg"
                     className={`px-3 border-gold/20 ${
-                      likedProfiles?.includes(profile.id)
+                      profile?.is_like
                         ? "bg-rose-950/30 text-rose-400"
                         : "hover:bg-rose-950/20 hover:text-rose-400"
                     }`}
@@ -671,12 +653,10 @@ const TalentDirectory = () => {
                   >
                     <Heart
                       className={`h-4 w-4 mr-1 ${
-                        likedProfiles?.includes(profile.id)
-                          ? "fill-rose-400"
-                          : ""
+                        profile?.is_like ? "fill-rose-400" : ""
                       }`}
                     />
-                    {likedProfiles?.includes(profile.id) ? "Liked" : "Like"}
+                    {profile?.is_like ? "Liked" : "Like"}
                   </Button>
 
                   {/* <Button

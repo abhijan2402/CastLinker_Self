@@ -49,137 +49,139 @@ export const useTalentDirectory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
   const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
-
+  console.log(talents);
   // Load talents from profiles table
-  useEffect(() => {
-    const fetchTalents = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetchData(`api/users`);
-
-        if (Array.isArray(res)) {
-          console.log("Profiles Data:", res);
-          setTalents(res); // Safe to set
-        } else {
-          console.warn("API returned non-array data:", res);
-        }
-      } catch (error) {
-        console.error("Error in talent directory:", error);
-      } finally {
-        setIsLoading(false);
+  const fetchTalents = async () => {
+    setIsLoading(true);
+    try {
+      const res: any = await fetchData(`api/users?liker_id=${user?.id}`);
+      console.log(res);
+      if (res?.success) {
+        setTalents(res?.data);
       }
-    };
+      // if (Array.isArray(res)) {
+      //   console.log("Profiles Data:", res);
+      //   setTalents(res); // Safe to set
+      // } else {
+      //   console.warn("API returned non-array data:", res);
+      // }
+    } catch (error) {
+      console.error("Error in talent directory:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTalents();
   }, [user]);
 
   // Fetch connection requests
   const fetchConnections = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("talent_connections")
-        .select("*")
-        .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`);
+      // const { data, error } = await supabase
+      //   .from("talent_connections")
+      //   .select("*")
+      //   .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`);
 
-      if (error) {
-        console.error("Error fetching connections:", error);
-        return;
-      }
+      // if (error) {
+      //   console.error("Error fetching connections:", error);
+      //   return;
+      // }
 
-      if (data) {
-        setConnectionRequests(data);
-      }
+      // if (data) {
+      //   setConnectionRequests(data);
+      // }
     } catch (error) {
       console.error("Error fetching connections:", error);
     }
   };
 
   // Apply filters
-useEffect(() => {
-  let results = [...talents];
+  useEffect(() => {
+    let results = [...talents];
 
-  const search = debouncedSearchTerm?.toLowerCase();
+    const search = debouncedSearchTerm?.toLowerCase();
 
-  // ✅ Search filter (username or user_type)
-  if (search) {
-    results = results.filter((talent) => {
-      return (
-        (talent.username && talent.username.toLowerCase().includes(search)) ||
-        (talent.user_type && talent.user_type.toLowerCase().includes(search))
+    // ✅ Search filter (username or user_type)
+    if (search) {
+      results = results.filter((talent) => {
+        return (
+          (talent.username && talent.username.toLowerCase().includes(search)) ||
+          (talent.user_type && talent.user_type.toLowerCase().includes(search))
+        );
+      });
+    }
+
+    // ✅ Filter by selected roles (user_type)
+    if (
+      Array.isArray(filters.selectedRoles) &&
+      filters.selectedRoles.length > 0
+    ) {
+      results = results.filter((talent) =>
+        filters.selectedRoles.includes(talent.user_type)
       );
-    });
-  }
+    }
 
-  // ✅ Filter by selected roles (user_type)
-  if (
-    Array.isArray(filters.selectedRoles) &&
-    filters.selectedRoles.length > 0
-  ) {
-    results = results.filter((talent) =>
-      filters.selectedRoles.includes(talent.user_type)
-    );
-  }
-
-  // ✅ Filter by selected locations
-  if (
-    Array.isArray(filters.selectedLocations) &&
-    filters.selectedLocations.length > 0
-  ) {
-    results = results.filter((talent) =>
-      filters.selectedLocations.includes(talent.location)
-    );
-  }
-
-  // ✅ Filter by verified users only
-  if (filters.verifiedOnly) {
-    results = results.filter((talent) => talent.verified === true);
-  }
-
-  // ✅ Filter by available users only
-  if (filters.availableOnly) {
-    results = results.filter((talent) => talent.status === "active");
-  }
-
-  // ✅ Filter by experience range (assuming `experience` is a number field)
-  if (
-    Array.isArray(filters.experienceRange) &&
-    filters.experienceRange.length === 2
-  ) {
-    const [minExp, maxExp] = filters.experienceRange;
-    results = results.filter((talent) => {
-      const exp = Number(talent.experience ?? 0); // Adjust this key based on your data
-      return exp >= minExp && exp <= maxExp;
-    });
-  }
-
-  // ✅ Filter by likes minimum (assuming `likes` is a number field)
-  if (filters.likesMinimum > 0) {
-    results = results.filter((talent) => {
-      const likes = Number(talent.likes ?? 0); // Adjust this key based on your data
-      return likes >= filters.likesMinimum;
-    });
-  }
-
-  // ✅ Sorting
-  switch (filters.sortBy) {
-    case "nameAsc":
-      results.sort((a, b) =>
-        (a.username || "").localeCompare(b.username || "")
+    // ✅ Filter by selected locations
+    if (
+      Array.isArray(filters.selectedLocations) &&
+      filters.selectedLocations.length > 0
+    ) {
+      results = results.filter((talent) =>
+        filters.selectedLocations.includes(talent.location)
       );
-      break;
-    case "nameDesc":
-      results.sort((a, b) =>
-        (b.username || "").localeCompare(a.username || "")
-      );
-      break;
-    default:
-      break;
-  }
+    }
 
-  setFilteredTalents(results);
-  setCurrentPage(1);
-}, [talents, filters, debouncedSearchTerm]);
+    // ✅ Filter by verified users only
+    if (filters.verifiedOnly) {
+      results = results.filter((talent) => talent.verified === true);
+    }
 
+    // ✅ Filter by available users only
+    if (filters.availableOnly) {
+      results = results.filter((talent) => talent.status === "active");
+    }
+
+    // ✅ Filter by experience range (assuming `experience` is a number field)
+    if (
+      Array.isArray(filters.experienceRange) &&
+      filters.experienceRange.length === 2
+    ) {
+      const [minExp, maxExp] = filters.experienceRange;
+      results = results.filter((talent) => {
+        const exp = Number(talent.experience ?? 0); // Adjust this key based on your data
+        return exp >= minExp && exp <= maxExp;
+      });
+    }
+
+    // ✅ Filter by likes minimum (assuming `likes` is a number field)
+    if (filters.likesMinimum > 0) {
+      results = results.filter((talent) => {
+        const likes = Number(talent.likes ?? 0); // Adjust this key based on your data
+        return likes >= filters.likesMinimum;
+      });
+    }
+
+    // ✅ Sorting
+    switch (filters.sortBy) {
+      case "nameAsc":
+        results.sort((a, b) =>
+          (a.username || "").localeCompare(b.username || "")
+        );
+        break;
+      case "nameDesc":
+        results.sort((a, b) =>
+          (b.username || "").localeCompare(a.username || "")
+        );
+        break;
+      default:
+        break;
+    }
+
+    setFilteredTalents(results);
+    setCurrentPage(1);
+  }, [talents, filters, debouncedSearchTerm]);
 
   // Calculate pagination values
   const totalCount = filteredTalents.length;
@@ -324,6 +326,7 @@ useEffect(() => {
     shareProfile,
     sendMessage,
     changePage,
+    fetchTalents,
   };
 };
 

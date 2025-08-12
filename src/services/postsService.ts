@@ -143,14 +143,14 @@ export const applyToPost = async (post_id: string, user_id: string) => {
 
 export const checkIfApplied = async (post_id: string, user_id: string) => {
   try {
-    const { data, error } = await supabase
-      .from("post_applications")
-      .select("*")
-      .eq("post_id", post_id)
-      .eq("user_id", user_id);
+    // const { data, error } = await supabase
+    //   .from("post_applications")
+    //   .select("*")
+    //   .eq("post_id", post_id)
+    //   .eq("user_id", user_id);
 
-    if (error) throw error;
-    return data && data.length > 0;
+    // if (error) throw error;
+    // return data && data.length > 0;
   } catch (error) {
     console.error("Error checking application:", error);
     return false;
@@ -244,15 +244,15 @@ export const togglePostLike = async (
 
 export const checkIfLiked = async (post_id: number, user_id: number) => {
   try {
-    const res: any = fetchData("/api/posts");
-    const { data, error } = await supabase
-      .from("post_likes")
-      .select("*")
-      .eq("post_id", post_id)
-      .eq("user_id", user_id);
+    // const res: any = fetchData("/api/posts");
+    // const { data, error } = await supabase
+    //   .from("post_likes")
+    //   .select("*")
+    //   .eq("post_id", post_id)
+    //   .eq("user_id", user_id);
 
-    if (error) throw error;
-    return data && data.length > 0;
+    // if (error) throw error;
+    // return data && data.length > 0;
   } catch (error) {
     console.error("Error checking like:", error);
     return false;
@@ -267,20 +267,20 @@ export const uploadPostMedia = async (file: File, userId: string) => {
       .substring(2, 15)}.${fileExt}`;
     const filePath = `${userId}/${fileName}`;
 
-    const { data, error } = await supabase.storage
-      .from("post_media")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+    // const { data, error } = await supabase.storage
+    //   .from("post_media")
+    //   .upload(filePath, file, {
+    //     cacheControl: "3600",
+    //     upsert: false,
+    //   });
 
-    if (error) throw error;
+    // if (error) throw error;
 
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("post_media").getPublicUrl(filePath);
+    // const {
+    //   data: { publicUrl },
+    // } = supabase.storage.from("post_media").getPublicUrl(filePath);
 
-    return publicUrl;
+    // return publicUrl;
   } catch (error) {
     console.error("Error uploading file:", error);
     return null;
@@ -289,46 +289,46 @@ export const uploadPostMedia = async (file: File, userId: string) => {
 
 export const getApplicantsByPostId = async (postId: string) => {
   try {
-    const { data: applications, error: appsError } = await supabase
-      .from("post_applications")
-      .select("*")
-      .eq("post_id", postId);
+    // const { data: applications, error: appsError } = await supabase
+    //   .from("post_applications")
+    //   .select("*")
+    //   .eq("post_id", postId);
 
-    if (appsError) throw appsError;
+    // if (appsError) throw appsError;
 
-    if (!applications || applications.length === 0) {
-      return [];
-    }
+    // if (!applications || applications.length === 0) {
+    //   return [];
+    // }
 
-    const userIds = applications.map((app) => app.user_id);
+    // const userIds = applications.map((app) => app.user_id);
 
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, full_name, avatar_url, profession_type, location, email")
-      .in("id", userIds);
+    // const { data: profiles, error: profilesError } = await supabase
+    //   .from("profiles")
+    //   .select("id, full_name, avatar_url, profession_type, location, email")
+    //   .in("id", userIds);
 
-    if (profilesError) throw profilesError;
+    // if (profilesError) throw profilesError;
 
     // Make sure we have profiles before we try to use them
-    const profileData = profiles || [];
+    // const profileData = profiles || [];
 
-    const applicantsWithProfiles = applications.map((app) => {
-      const profile = profileData.find((p) => p.id === app.user_id) || {
-        id: app.user_id,
-        full_name: "User",
-        avatar_url: "",
-        profession_type: "Unknown",
-        location: "",
-        email: "",
-      };
+    // const applicantsWithProfiles = applications.map((app) => {
+    //   const profile = profileData.find((p) => p.id === app.user_id) || {
+    //     id: app.user_id,
+    //     full_name: "User",
+    //     avatar_url: "",
+    //     profession_type: "Unknown",
+    //     location: "",
+    //     email: "",
+    //   };
 
-      return {
-        ...app,
-        profile,
-      };
-    });
+    //   return {
+    //     ...app,
+    //     profile,
+    //   };
+    // });
 
-    return applicantsWithProfiles;
+    // return applicantsWithProfiles;
   } catch (error) {
     console.error("Error fetching applicants:", error);
     return [];
@@ -337,14 +337,14 @@ export const getApplicantsByPostId = async (postId: string) => {
 
 export const getUserProfileById = async (userId: string) => {
   try {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    // const { data, error } = await supabase
+    //   .from("profiles")
+    //   .select("*")
+    //   .eq("id", userId)
+    //   .single();
 
-    if (error) throw error;
-    return data;
+    // if (error) throw error;
+    // return data;
   } catch (error) {
     console.error("Error fetching user profile:", error);
     return null;

@@ -62,6 +62,8 @@ export type TalentProfile = {
   rating?: number;
   created_at: string;
   updated_at: string;
+  is_like: boolean;
+  total_likes: string;
 
   // Additional properties needed by the UI components
   username?: string;
