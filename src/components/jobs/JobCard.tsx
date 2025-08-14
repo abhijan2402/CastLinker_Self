@@ -27,7 +27,7 @@ const JobCard = ({
   const isFeatured = job.is_featured;
   const isRemote = job.location_type === 'Remote';
 
-  console.log("this is jobs data", job);
+  // console.log("this is jobs data", job);
   
   return (
     <Card
@@ -96,9 +96,11 @@ const JobCard = ({
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm line-clamp-2">
-            {job.job_description}
-          </p>
+<div className="max-h-16 overflow-y-auto">
+  <p className="text-xs sm:text-sm whitespace-normal" style={{ overflowWrap: 'anywhere' }}>
+    {job.job_description}
+  </p>
+</div>
 
           {job.requirements && job.requirements.length > 0 && (
             <div className="flex flex-wrap gap-1 sm:gap-2">

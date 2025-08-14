@@ -465,7 +465,7 @@ const Dashboard = () => {
                                   {job.job_type}
                                 </div>
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <DollarSign className="h-3 w-3" />
+                                  ₹
                                   {job.min_salary}
                                 </div>
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -475,9 +475,9 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {job.job_description}
-                          </p>
+                         <p className="text-xs sm:text-sm line-clamp-2 break-all whitespace-normal">
+  {job.job_description}
+</p>
                           <div className="flex items-center justify-end gap-2 pt-1">
                             <Button
                               variant="outline"

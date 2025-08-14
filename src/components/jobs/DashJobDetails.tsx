@@ -101,7 +101,11 @@ const DashJobDetails = ({ job, isOpen, onClose }) => {
               className="mt-4 text-foreground/80 leading-relaxed"
             >
               <h3 className="text-lg font-medium mb-2">Job Description</h3>
-              <p>{job.description}</p>
+           <div className="max-h-16 overflow-y-auto">
+  <p className="text-xs sm:text-sm whitespace-normal" style={{ overflowWrap: 'anywhere' }}>
+    {job.job_description}
+  </p>
+</div>
               <div className="flex flex-wrap gap-2 mt-4">
                 {job.tags?.map((tag) => (
                   <Badge
